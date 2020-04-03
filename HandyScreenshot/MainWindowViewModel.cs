@@ -72,16 +72,21 @@ namespace HandyScreenshot
             return NativeMethods.CallNextHookEx(IntPtr.Zero, nCode, wParam, lParam);
         }
 
-        private static CachedElement GetAdjustElement(IReadOnlyList<CachedElement> elements, Point point)
+        private static CachedElement GetAdjustElement(IReadOnlyList<CachedElement> elements, Point point, int maxDeep = -1)
+        {
+            return GetAdjustElement(elements, point, 0, maxDeep);
+        }
+
+        private static CachedElement GetAdjustElement(IReadOnlyList<CachedElement> elements, Point point, int deep, int maxDeep)
         {
             if (elements == null || !elements.Any()) return null;
 
             var result = elements
                 .FirstOrDefault(item => item.Rect.Contains(point));
 
-            if (result != null)
+            if (result != null && (maxDeep == -1 || deep < maxDeep))
             {
-                result = GetAdjustElement(result.Children, point) ?? result;
+                result = GetAdjustElement(result.Children, point, deep + 1, maxDeep) ?? result;
             }
 
             return result;
