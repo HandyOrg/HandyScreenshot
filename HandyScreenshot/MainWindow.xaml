@@ -6,10 +6,6 @@
         xmlns:local="clr-namespace:HandyScreenshot"
         mc:Ignorable="d"
         Title="MainWindow"
-        Top="0"
-        Left="0"
-        Height="{x:Static SystemParameters.PrimaryScreenHeight}"
-        Width="{x:Static SystemParameters.PrimaryScreenWidth}"
         WindowStyle="None"
         AllowsTransparency="True"
         Background="Transparent"
@@ -71,6 +67,6 @@
                           Grid.Row="0"
                           Grid.ColumnSpan="2"
                           Grid.RowSpan="2"
-                          Rect="{Binding SelectedElement.Rect}" />
+                          Rect="{Binding Rect}" />
     </Grid>
 </Window>

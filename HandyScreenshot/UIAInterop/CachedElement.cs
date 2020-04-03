@@ -31,7 +31,7 @@ namespace HandyScreenshot.UIAInterop
                     {
                         if (_children == null)
                         {
-                            _children = GetChildren(_element);
+                            _children = GetChildren(_element, MonitorHelper.ScaleFactor);
                         }
                     }
                 }
@@ -46,7 +46,7 @@ namespace HandyScreenshot.UIAInterop
             Info = element.Current;
         }
 
-        public static IReadOnlyList<CachedElement> GetChildren(AutomationElement element)
+        public static IReadOnlyList<CachedElement> GetChildren(AutomationElement element, double scale)
         {
             return element.FindAll(TreeScope.Children, Condition.TrueCondition)
                 .OfType<AutomationElement>()
@@ -57,19 +57,20 @@ namespace HandyScreenshot.UIAInterop
                     {
                         return null;
                     }
-                    var rect = GetRect(item);
+
+                    var rect = GetRect(item, scale);
                     return rect != Rect.Empty ? new CachedElement(item) { Rect = rect } : null;
                 })
                 .Where(item => item != null)
                 .ToList();
         }
 
-        private static Rect GetRect(AutomationElement element)
+        private static Rect GetRect(AutomationElement element, double scale)
         {
             try
             {
                 var rect = element.Current.BoundingRectangle;
-                return rect != Rect.Empty ? rect.Scale(0.8) : Rect.Empty;
+                return rect != Rect.Empty ? rect.Scale(scale) : Rect.Empty;
             }
             catch
             {

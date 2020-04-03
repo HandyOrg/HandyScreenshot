@@ -64,11 +64,13 @@
     </ApplicationDefinition>
     <Compile Include="BindableBase.cs" />
     <Compile Include="Disposable.cs" />
-    <Compile Include="Interop\GeometryExtensions.cs" />
+    <Compile Include="Interop\MonitorHelper.cs" />
+    <Compile Include="Interop\MonitorInfo.cs" />
+    <Compile Include="Interop\MonitorNativeMethods.cs" />
     <Compile Include="MainWindowViewModel.cs" />
     <Compile Include="RectCanvas.cs" />
     <Compile Include="RelayCommand.cs" />
-    <Compile Include="Interop\WindowInterop.cs" />
+    <Compile Include="Interop\Win32Helper.cs" />
     <Compile Include="UIAInterop\CachedElement.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>

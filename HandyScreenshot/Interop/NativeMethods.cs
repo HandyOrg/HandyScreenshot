@@ -1,5 +1,9 @@
 ﻿using System;
 using System.Runtime.InteropServices;
+// ReSharper disable IdentifierTypo
+// ReSharper disable StringLiteralTypo
+// ReSharper disable UnusedMember.Global
+// ReSharper disable CommentTypo
 
 namespace HandyScreenshot.Interop
 {

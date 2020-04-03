@@ -15,6 +15,7 @@ namespace HandyScreenshot
     {
         private Point _mousePosition;
         private CachedElement _selectedElement;
+        private Rect _rect;
 
         public CachedElement SelectedElement
         {
@@ -28,14 +29,22 @@ namespace HandyScreenshot
             set => SetProperty(ref _mousePosition, value);
         }
 
+        public Rect Rect
+        {
+            get => _rect;
+            set => SetProperty(ref _rect, value);
+        }
+
+        public MonitorInfo MonitorInfo { get; set; }
+
         public ICommand CloseCommand { get; } = new RelayCommand(() => Application.Current.Shutdown());
 
         private readonly IReadOnlyList<CachedElement> _elements;
 
         public MainWindowViewModel()
         {
-            _elements = CachedElement.GetChildren(AutomationElement.RootElement);
-            App.FreeHook = HookWindowEvents();
+            _elements = CachedElement.GetChildren(AutomationElement.RootElement, MonitorHelper.ScaleFactor);
+            App.HookDisposables.Add(HookWindowEvents());
         }
 
         private IDisposable HookWindowEvents()
@@ -61,11 +70,27 @@ namespace HandyScreenshot
             if (nCode != 0)
                 return NativeMethods.CallNextHookEx(IntPtr.Zero, nCode, wParam, lParam);
 
-            switch ((long)wParam)
+            switch ((long) wParam)
             {
                 case NativeMethods.WM_MOUSEMOVE:
-                    MousePosition = WindowInterop.GetMousePosition().ToPoint(0.8);
-                    SelectedElement = GetAdjustElement(_elements, MousePosition);
+                    MousePosition = Win32Helper.GetMousePosition().ToPoint(MonitorHelper.ScaleFactor);
+                    if (MonitorInfo.ScreenRect.Contains(MousePosition))
+                    {
+                        SelectedElement = GetAdjustElement(_elements, MousePosition);
+                        Rect = SelectedElement != null
+                            ? new Rect(
+                                SelectedElement.Rect.Left - MonitorInfo.ScreenRect.Left,
+                                SelectedElement.Rect.Top - MonitorInfo.ScreenRect.Top,
+                                SelectedElement.Rect.Width,
+                                SelectedElement.Rect.Height)
+                            : Rect.Empty;
+                    }
+                    else
+                    {
+                        SelectedElement = null;
+                        Rect = Rect.Empty;
+                    }
+
                     break;
             }
 
