@@ -51,6 +51,8 @@
     <Reference Include="System.Xaml">
       <RequiredTargetFramework>4.0</RequiredTargetFramework>
     </Reference>
+    <Reference Include="UIAutomationClient" />
+    <Reference Include="UIAutomationTypes" />
     <Reference Include="WindowsBase" />
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
@@ -71,6 +73,7 @@
     <Compile Include="Interop\WindowInterop.cs" />
     <Compile Include="Interop\WindowStyles.cs" />
     <Compile Include="Interop\WindowStylesEx.cs" />
+    <Compile Include="UIAInterop\CachedElement.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>

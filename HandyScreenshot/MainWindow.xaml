@@ -21,8 +21,6 @@
     <Window.InputBindings>
         <KeyBinding Key="Escape"
                     Command="{Binding CloseCommand}" />
-        <KeyBinding Key="Space"
-                    Command="{Binding RefreshWindowsCommand}" />
     </Window.InputBindings>
 
     <Grid>
@@ -41,30 +39,38 @@
             Mouse:
             (<Run Text="{Binding Path=MousePosition.X, Mode=OneWay}" />, <Run Text="{Binding Path=MousePosition.Y, Mode=OneWay}" />)
             <LineBreak />
-            Title:
-            <Run Text="{Binding SelectedWindow.Title}" />
+            Name:
+            <Run Text="{Binding SelectedElement.Info.Name, Mode=OneWay}" />
             <LineBreak />
             ClassName:
-            <Run Text="{Binding SelectedWindow.ClassName}" />
+            <Run Text="{Binding SelectedElement.Info.ClassName, Mode=OneWay}" />
             <LineBreak />
-            WindowStyles:
-            <Run Text="{Binding SelectedWindow.Info.WindowStyles}" />
+            ControlType:
+            <Run Text="{Binding SelectedElement.Info.ControlType.LocalizedControlType, Mode=OneWay}" />
             <LineBreak />
-            ShowCmd:
-            <Run Text="{Binding SelectedWindow.ShowCmd}" />
+            ItemType:
+            <Run Text="{Binding SelectedElement.Info.ItemType, Mode=OneWay}" />
+            <LineBreak />
+            IsOffscreen:
+            <Run Text="{Binding SelectedElement.Info.IsOffscreen, Mode=OneWay}" />
+            <LineBreak />
+            IsEnabled:
+            <Run Text="{Binding SelectedElement.Info.IsEnabled, Mode=OneWay}" />
+            <LineBreak />
+            NativeWindowHandle:
+            <Run Text="{Binding SelectedElement.Info.NativeWindowHandle, Mode=OneWay}" />
             <LineBreak />
             Rect:
-            (<Run Text="{Binding Path=SelectedWindow.Info.Window.Top, Mode=OneWay}" />, <Run Text="{Binding Path=SelectedWindow.Info.Window.Left, Mode=OneWay}" />)
-            [<Run Text="{Binding Path=SelectedWindow.Info.Window.Width, Mode=OneWay}" />
+            (<Run Text="{Binding Path=SelectedElement.Rect.Left, Mode=OneWay}" />, <Run Text="{Binding Path=SelectedElement.Rect.Top, Mode=OneWay}" />)
+            [<Run Text="{Binding Path=SelectedElement.Rect.Width, Mode=OneWay}" />
             ×
-            <Run Text="{Binding Path=SelectedWindow.Info.Window.Height, Mode=OneWay}" />]
+            <Run Text="{Binding Path=SelectedElement.Rect.Height, Mode=OneWay}" />]
         </TextBlock>
 
         <local:RectCanvas Grid.Column="0"
                           Grid.Row="0"
                           Grid.ColumnSpan="2"
                           Grid.RowSpan="2"
-                          Rect="{Binding SelectedWindow.Info.Window}" />
-
+                          Rect="{Binding SelectedElement.Rect}" />
     </Grid>
 </Window>

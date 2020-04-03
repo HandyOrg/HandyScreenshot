@@ -4,21 +4,22 @@ using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Windows;
+using System.Windows.Automation;
 using System.Windows.Input;
 using HandyScreenshot.Interop;
+using HandyScreenshot.UIAInterop;
 
 namespace HandyScreenshot
 {
     public class MainWindowViewModel : BindableBase
     {
         private Point _mousePosition;
+        private CachedElement _selectedElement;
 
-        private DisplayWindowInfo _selectedWindow;
-
-        public DisplayWindowInfo SelectedWindow
+        public CachedElement SelectedElement
         {
-            get => _selectedWindow;
-            set => SetProperty(ref _selectedWindow, value);
+            get => _selectedElement;
+            set => SetProperty(ref _selectedElement, value);
         }
 
         public Point MousePosition
@@ -29,23 +30,12 @@ namespace HandyScreenshot
 
         public ICommand CloseCommand { get; } = new RelayCommand(() => Application.Current.Shutdown());
 
-        public ICommand RefreshWindowsCommand { get; }
-
-        private IReadOnlyList<DisplayWindowInfo> _windows;
+        private readonly IReadOnlyList<CachedElement> _elements;
 
         public MainWindowViewModel()
         {
-            RefreshWindowsCommand = new RelayCommand(() => _windows = GetDisplayWindowInfos().ToList());
-            RefreshWindowsCommand.Execute(null);
+            _elements = CachedElement.GetChildren(AutomationElement.RootElement);
             App.FreeHook = HookWindowEvents();
-        }
-
-        private static IEnumerable<DisplayWindowInfo> GetDisplayWindowInfos()
-        {
-            return WindowInterop.GetTopLevelWindows()
-                .Where(NativeMethods.IsWindowVisible)
-                .Select(DisplayWindowInfo.FromHWnd)
-                .Where(item => item.Info.Window != DisplayWindowInfo.RectZero);
         }
 
         private IDisposable HookWindowEvents()
@@ -75,32 +65,26 @@ namespace HandyScreenshot
             {
                 case NativeMethods.WM_MOUSEMOVE:
                     MousePosition = WindowInterop.GetMousePosition().ToPoint(0.8);
-                    SelectedWindow = GetDisplayWindowInfo(_windows, MousePosition);
+                    SelectedElement = GetAdjustElement(_elements, MousePosition);
                     break;
             }
 
             return NativeMethods.CallNextHookEx(IntPtr.Zero, nCode, wParam, lParam);
         }
 
-        private static DisplayWindowInfo GetDisplayWindowInfo(IEnumerable<DisplayWindowInfo> windows, Point point)
+        private static CachedElement GetAdjustElement(IReadOnlyList<CachedElement> elements, Point point)
         {
-            var window = windows.FirstOrDefault(item => item.Info.Window.Contains(point));
+            if (elements == null || !elements.Any()) return null;
 
-            if (window != null && window.Children.Any())
+            var result = elements
+                .FirstOrDefault(item => item.Rect.Contains(point));
+
+            if (result != null)
             {
-                var temp = window.Children
-                    .Where(item => item.Info.Window.Contains(point))
-                    .ToList();
-
-                if (temp.Any())
-                {
-                    window = temp.Select(item => (source: item, area: item.Info.Window.Width * item.Info.Window.Height))
-                        .Aggregate((acc, item) => acc.area > item.area ? item : acc)
-                        .source;
-                }
+                result = GetAdjustElement(result.Children, point) ?? result;
             }
 
-            return window;
+            return result;
         }
     }
 }

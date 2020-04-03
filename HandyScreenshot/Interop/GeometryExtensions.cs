@@ -17,5 +17,10 @@ namespace HandyScreenshot.Interop
                 (rect.Right - rect.Left) * scale,
                 (rect.Bottom - rect.Top) * scale);
         }
+
+        public static Rect Scale(this Rect rect, double scale)
+        {
+            return new Rect(rect.Left * scale, rect.Top * scale, rect.Width * scale, rect.Height * scale);
+        }
     }
 }
