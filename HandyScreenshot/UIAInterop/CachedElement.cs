@@ -1,5 +1,6 @@
 ﻿using HandyScreenshot.Interop;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Windows;
 using System.Windows.Automation;
@@ -7,8 +8,11 @@ using Condition = System.Windows.Automation.Condition;
 
 namespace HandyScreenshot.UIAInterop
 {
+    [DebuggerDisplay("{Info.ClassName}, {Info.Name}")]
     public class CachedElement
     {
+        private readonly object _locker = new object();
+
         private IReadOnlyList<CachedElement> _children;
 
         private readonly AutomationElement _element;
@@ -17,7 +21,24 @@ namespace HandyScreenshot.UIAInterop
 
         public Rect Rect { get; private set; }
 
-        public IReadOnlyList<CachedElement> Children => _children ??= GetChildren(_element);
+        public IReadOnlyList<CachedElement> Children
+        {
+            get
+            {
+                if (_children == null)
+                {
+                    lock (_locker)
+                    {
+                        if (_children == null)
+                        {
+                            _children = GetChildren(_element);
+                        }
+                    }
+                }
+
+                return _children;
+            }
+        }
 
         public CachedElement(AutomationElement element)
         {
@@ -47,7 +68,8 @@ namespace HandyScreenshot.UIAInterop
         {
             try
             {
-                return element.Current.BoundingRectangle.Scale(0.8);
+                var rect = element.Current.BoundingRectangle;
+                return rect != Rect.Empty ? rect.Scale(0.8) : Rect.Empty;
             }
             catch
             {

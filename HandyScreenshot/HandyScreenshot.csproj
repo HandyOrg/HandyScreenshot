@@ -63,16 +63,12 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="BindableBase.cs" />
-    <Compile Include="Interop\DisplayWindowInfo.cs" />
     <Compile Include="Disposable.cs" />
     <Compile Include="Interop\GeometryExtensions.cs" />
     <Compile Include="MainWindowViewModel.cs" />
     <Compile Include="RectCanvas.cs" />
     <Compile Include="RelayCommand.cs" />
-    <Compile Include="Interop\WindowInfo.cs" />
     <Compile Include="Interop\WindowInterop.cs" />
-    <Compile Include="Interop\WindowStyles.cs" />
-    <Compile Include="Interop\WindowStylesEx.cs" />
     <Compile Include="UIAInterop\CachedElement.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>

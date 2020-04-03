@@ -9,15 +9,6 @@ namespace HandyScreenshot.Interop
             return new Point(point.X * scale, point.Y * scale);
         }
 
-        public static Rect ToRect(this NativeMethods.RECT rect, double scale = 1)
-        {
-            return new Rect(
-                rect.Left * scale,
-                rect.Top * scale,
-                (rect.Right - rect.Left) * scale,
-                (rect.Bottom - rect.Top) * scale);
-        }
-
         public static Rect Scale(this Rect rect, double scale)
         {
             return new Rect(rect.Left * scale, rect.Top * scale, rect.Width * scale, rect.Height * scale);
