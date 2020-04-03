@@ -1,6 +1,6 @@
 ﻿using System.Windows;
 
-namespace HandyScreenshot
+namespace HandyScreenshot.Interop
 {
     public class WindowInfo
     {

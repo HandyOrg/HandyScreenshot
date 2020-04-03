@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Text;
 
-namespace HandyScreenshot
+namespace HandyScreenshot.Interop
 {
     public static class WindowInterop
     {
