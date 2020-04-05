@@ -29,6 +29,9 @@ namespace HandyScreenshot.UIAInterop
 
         public static IReadOnlyList<CachedElement> GetChildren(AutomationElement element, double scale)
         {
+            // BUG: System.Runtime.InteropServices.COMException:
+            // 'An outgoing call cannot be made since the application is dispatching an input-synchronous call.
+            // (Exception from HRESULT: 0x8001010D (RPC_E_CANTCALLOUT_ININPUTSYNCCALL))'
             return element.FindAll(TreeScope.Children, Condition.TrueCondition)
                 .OfType<AutomationElement>()
                 .Select(item =>

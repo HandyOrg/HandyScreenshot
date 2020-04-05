@@ -1,6 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
+using System.Reactive.Concurrency;
+using System.Reactive.Linq;
 using System.Windows;
 using System.Windows.Automation;
 using System.Windows.Input;
@@ -40,22 +42,28 @@ namespace HandyScreenshot
         public MainWindowViewModel()
         {
             IReadOnlyList<CachedElement> elements = CachedElement.GetChildren(AutomationElement.RootElement, MonitorHelper.ScaleFactor);
-            App.HookDisposables.Add(Win32Helper.HookMouseMoveEvent(point =>
-            {
-                MousePosition = point.ToPoint(MonitorHelper.ScaleFactor);
-                if (MonitorInfo.ScreenRect.Contains(MousePosition))
+
+            var disposable = Observable.Create<Point>(o =>
+                    Win32Helper.HookMouseMoveEvent(point => o.OnNext(point.ToPoint(MonitorHelper.ScaleFactor))))
+                .ObserveOn(NewThreadScheduler.Default)
+                .Subscribe(point =>
                 {
-                    SelectedElement = GetAdjustElement(elements, MousePosition);
-                    Rect = SelectedElement != null
-                        ? RebaseRect(SelectedElement.Rect, MonitorInfo.ScreenRect.Left, MonitorInfo.ScreenRect.Top)
-                        : Rect.Empty;
-                }
-                else
-                {
-                    SelectedElement = null;
-                    Rect = Rect.Empty;
-                }
-            }));
+                    MousePosition = point;
+                    if (MonitorInfo.ScreenRect.Contains(MousePosition))
+                    {
+                        SelectedElement = GetAdjustElement(elements, MousePosition);
+                        Rect = SelectedElement != null
+                            ? RebaseRect(SelectedElement.Rect, MonitorInfo.ScreenRect.Left, MonitorInfo.ScreenRect.Top)
+                            : Rect.Empty;
+                    }
+                    else
+                    {
+                        SelectedElement = null;
+                        Rect = Rect.Empty;
+                    }
+                });
+
+            App.HookDisposables.Add(disposable);
         }
 
         private static CachedElement GetAdjustElement(IReadOnlyCollection<CachedElement> elements, Point point)
