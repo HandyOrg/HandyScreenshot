@@ -1,9 +1,45 @@
-﻿using System.Windows;
+﻿using System;
+using System.Diagnostics;
+using System.Runtime.InteropServices;
+using System.Windows;
 
 namespace HandyScreenshot.Interop
 {
     public static class Win32Helper
     {
+        public static IDisposable HookMouseMoveEvent(Action<NativeMethods.POINT> action)
+        {
+            var gcHandle = GCHandle.Alloc(new NativeMethods.HookProc(WndProc));
+
+            var hookId = NativeMethods.SetWindowsHookEx(
+                NativeMethods.HookType.WH_MOUSE_LL,
+                (NativeMethods.HookProc)gcHandle.Target,
+                // ReSharper disable once PossibleNullReferenceException
+                Process.GetCurrentProcess().MainModule.BaseAddress,
+                0);
+
+            return Disposable.Create(() =>
+            {
+                NativeMethods.UnhookWindowsHookEx(hookId);
+                gcHandle.Free();
+            });
+
+            IntPtr WndProc(int nCode, IntPtr wParam, IntPtr lParam)
+            {
+                if (nCode != 0)
+                    return NativeMethods.CallNextHookEx(IntPtr.Zero, nCode, wParam, lParam);
+
+                switch ((long)wParam)
+                {
+                    case NativeMethods.WM_MOUSEMOVE:
+                        action(GetMousePosition());
+                        break;
+                }
+
+                return NativeMethods.CallNextHookEx(IntPtr.Zero, nCode, wParam, lParam);
+            }
+        }
+
         public static NativeMethods.POINT GetMousePosition()
         {
             var position = new NativeMethods.POINT();

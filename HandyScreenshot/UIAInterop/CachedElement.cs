@@ -11,8 +11,6 @@ namespace HandyScreenshot.UIAInterop
     [DebuggerDisplay("{Info.ClassName}, {Info.Name}")]
     public class CachedElement
     {
-        private readonly object _locker = new object();
-
         private IReadOnlyList<CachedElement> _children;
 
         private readonly AutomationElement _element;
@@ -21,24 +19,7 @@ namespace HandyScreenshot.UIAInterop
 
         public Rect Rect { get; private set; }
 
-        public IReadOnlyList<CachedElement> Children
-        {
-            get
-            {
-                if (_children == null)
-                {
-                    lock (_locker)
-                    {
-                        if (_children == null)
-                        {
-                            _children = GetChildren(_element, MonitorHelper.ScaleFactor);
-                        }
-                    }
-                }
-
-                return _children;
-            }
-        }
+        public IReadOnlyList<CachedElement> Children => _children ??= GetChildren(_element, MonitorHelper.ScaleFactor);
 
         public CachedElement(AutomationElement element)
         {

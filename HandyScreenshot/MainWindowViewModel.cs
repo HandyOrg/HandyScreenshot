@@ -1,8 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Automation;
 using System.Windows.Input;
@@ -39,82 +37,60 @@ namespace HandyScreenshot
 
         public ICommand CloseCommand { get; } = new RelayCommand(() => Application.Current.Shutdown());
 
-        private readonly IReadOnlyList<CachedElement> _elements;
-
         public MainWindowViewModel()
         {
-            _elements = CachedElement.GetChildren(AutomationElement.RootElement, MonitorHelper.ScaleFactor);
-            App.HookDisposables.Add(HookWindowEvents());
+            IReadOnlyList<CachedElement> elements = CachedElement.GetChildren(AutomationElement.RootElement, MonitorHelper.ScaleFactor);
+            App.HookDisposables.Add(Win32Helper.HookMouseMoveEvent(point =>
+            {
+                MousePosition = point.ToPoint(MonitorHelper.ScaleFactor);
+                if (MonitorInfo.ScreenRect.Contains(MousePosition))
+                {
+                    SelectedElement = GetAdjustElement(elements, MousePosition);
+                    Rect = SelectedElement != null
+                        ? RebaseRect(SelectedElement.Rect, MonitorInfo.ScreenRect.Left, MonitorInfo.ScreenRect.Top)
+                        : Rect.Empty;
+                }
+                else
+                {
+                    SelectedElement = null;
+                    Rect = Rect.Empty;
+                }
+            }));
         }
 
-        private IDisposable HookWindowEvents()
+        private static CachedElement GetAdjustElement(IReadOnlyCollection<CachedElement> elements, Point point)
         {
-            var gcHandle = GCHandle.Alloc(new NativeMethods.HookProc(WndProc));
+            CachedElement result = null;
 
-            var hookId = NativeMethods.SetWindowsHookEx(
-                NativeMethods.HookType.WH_MOUSE_LL,
-                (NativeMethods.HookProc)gcHandle.Target,
-                // ReSharper disable once PossibleNullReferenceException
-                Process.GetCurrentProcess().MainModule.BaseAddress,
-                0);
-
-            return Disposable.Create(() =>
+            while (true)
             {
-                NativeMethods.UnhookWindowsHookEx(hookId);
-                gcHandle.Free();
-            });
-        }
+                var temp = elements
+                    .FirstOrDefault(item => item.Rect.Contains(point));
 
-        private IntPtr WndProc(int nCode, IntPtr wParam, IntPtr lParam)
-        {
-            if (nCode != 0)
-                return NativeMethods.CallNextHookEx(IntPtr.Zero, nCode, wParam, lParam);
+                if (temp == null) break;
 
-            switch ((long) wParam)
-            {
-                case NativeMethods.WM_MOUSEMOVE:
-                    MousePosition = Win32Helper.GetMousePosition().ToPoint(MonitorHelper.ScaleFactor);
-                    if (MonitorInfo.ScreenRect.Contains(MousePosition))
-                    {
-                        SelectedElement = GetAdjustElement(_elements, MousePosition);
-                        Rect = SelectedElement != null
-                            ? new Rect(
-                                SelectedElement.Rect.Left - MonitorInfo.ScreenRect.Left,
-                                SelectedElement.Rect.Top - MonitorInfo.ScreenRect.Top,
-                                SelectedElement.Rect.Width,
-                                SelectedElement.Rect.Height)
-                            : Rect.Empty;
-                    }
-                    else
-                    {
-                        SelectedElement = null;
-                        Rect = Rect.Empty;
-                    }
-
+                result = temp;
+                var children = result.Children;
+                if (children.Count > 0)
+                {
+                    elements = children;
+                }
+                else
+                {
                     break;
-            }
-
-            return NativeMethods.CallNextHookEx(IntPtr.Zero, nCode, wParam, lParam);
-        }
-
-        private static CachedElement GetAdjustElement(IReadOnlyList<CachedElement> elements, Point point, int maxDeep = -1)
-        {
-            return GetAdjustElement(elements, point, 0, maxDeep);
-        }
-
-        private static CachedElement GetAdjustElement(IReadOnlyList<CachedElement> elements, Point point, int deep, int maxDeep)
-        {
-            if (elements == null || !elements.Any()) return null;
-
-            var result = elements
-                .FirstOrDefault(item => item.Rect.Contains(point));
-
-            if (result != null && (maxDeep == -1 || deep < maxDeep))
-            {
-                result = GetAdjustElement(result.Children, point, deep + 1, maxDeep) ?? result;
+                }
             }
 
             return result;
+        }
+
+        private static Rect RebaseRect(Rect rect, double originX, double originY)
+        {
+            return new Rect(
+                rect.Left - originX,
+                rect.Top - originY,
+                rect.Width,
+                rect.Height);
         }
     }
 }
