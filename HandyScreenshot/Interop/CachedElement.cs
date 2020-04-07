@@ -1,12 +1,11 @@
-﻿using HandyScreenshot.Interop;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Windows;
 using System.Windows.Automation;
 using Condition = System.Windows.Automation.Condition;
 
-namespace HandyScreenshot.UIAInterop
+namespace HandyScreenshot.Interop
 {
     [DebuggerDisplay("{Info.ClassName}, {Info.Name}")]
     public class CachedElement
@@ -19,7 +18,7 @@ namespace HandyScreenshot.UIAInterop
 
         public Rect Rect { get; private set; }
 
-        public IReadOnlyList<CachedElement> Children => _children ??= GetChildren(_element, MonitorHelper.ScaleFactor);
+        public IReadOnlyList<CachedElement> Children => _children ??= GetChildren(_element, Constants.ScaleFactor);
 
         public CachedElement(AutomationElement element)
         {
@@ -43,7 +42,7 @@ namespace HandyScreenshot.UIAInterop
                     }
 
                     var rect = GetRect(item, scale);
-                    return rect != Rect.Empty ? new CachedElement(item) { Rect = rect } : null;
+                    return rect != Constants.RectZero ? new CachedElement(item) { Rect = rect } : null;
                 })
                 .Where(item => item != null)
                 .ToList();
@@ -54,11 +53,11 @@ namespace HandyScreenshot.UIAInterop
             try
             {
                 var rect = element.Current.BoundingRectangle;
-                return rect != Rect.Empty ? rect.Scale(scale) : Rect.Empty;
+                return rect != Rect.Empty ? rect.Scale(scale) : Constants.RectZero;
             }
             catch
             {
-                return Rect.Empty;
+                return Constants.RectZero;
             }
         }
     }

@@ -7,7 +7,6 @@ using System.Windows;
 using System.Windows.Automation;
 using System.Windows.Input;
 using HandyScreenshot.Interop;
-using HandyScreenshot.UIAInterop;
 
 namespace HandyScreenshot
 {
@@ -41,10 +40,10 @@ namespace HandyScreenshot
 
         public MainWindowViewModel()
         {
-            IReadOnlyList<CachedElement> elements = CachedElement.GetChildren(AutomationElement.RootElement, MonitorHelper.ScaleFactor);
+            var elements = CachedElement.GetChildren(AutomationElement.RootElement, Constants.ScaleFactor);
 
             var disposable = Observable.Create<Point>(o =>
-                    Win32Helper.HookMouseMoveEvent(point => o.OnNext(point.ToPoint(MonitorHelper.ScaleFactor))))
+                    Win32Helper.HookMouseMoveEvent(point => o.OnNext(point.ToPoint(Constants.ScaleFactor))))
                 .ObserveOn(NewThreadScheduler.Default)
                 .Subscribe(point =>
                 {
@@ -54,12 +53,12 @@ namespace HandyScreenshot
                         SelectedElement = GetAdjustElement(elements, MousePosition);
                         Rect = SelectedElement != null
                             ? RebaseRect(SelectedElement.Rect, MonitorInfo.ScreenRect.Left, MonitorInfo.ScreenRect.Top)
-                            : Rect.Empty;
+                            : Constants.RectZero;
                     }
                     else
                     {
                         SelectedElement = null;
-                        Rect = Rect.Empty;
+                        Rect = Constants.RectZero;
                     }
                 });
 

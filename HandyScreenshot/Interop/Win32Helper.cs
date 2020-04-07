@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Reactive.Disposables;
 using System.Runtime.InteropServices;
 using System.Windows;
 

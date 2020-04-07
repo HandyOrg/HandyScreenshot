@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Windows;
 using HandyScreenshot.Interop;
@@ -22,7 +21,7 @@ namespace HandyScreenshot
 
         public static void StartScreenshot()
         {
-            foreach (var monitorInfo in MonitorHelper.GetMonitorInfos(MonitorHelper.ScaleFactor))
+            foreach (var monitorInfo in MonitorHelper.GetMonitorInfos(Constants.ScaleFactor))
             {
                 var window = new MainWindow
                 {

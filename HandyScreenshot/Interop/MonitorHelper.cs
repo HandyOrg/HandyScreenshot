@@ -14,8 +14,6 @@ namespace HandyScreenshot.Interop
         private static readonly bool DpiApiLevel3 = Environment.OSVersion.Version >= new Version(6, 3);
         public const uint MonitorDefaultToNull = 0;
 
-        public static readonly double ScaleFactor = GetScaleFactor();
-
         public static IEnumerable<MonitorInfo> GetMonitorInfos(double scale = 1D)
         {
             var monitors = new List<MONITORINFOEX>();
