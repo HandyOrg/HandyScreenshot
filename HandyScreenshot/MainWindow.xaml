@@ -32,9 +32,6 @@
         <TextBlock Background="#AA000000"
                    Foreground="White"
                    HorizontalAlignment="Left">
-            Mouse:
-            (<Run Text="{Binding Path=MousePosition.X, Mode=OneWay}" />, <Run Text="{Binding Path=MousePosition.Y, Mode=OneWay}" />)
-            <LineBreak />
             Name:
             <Run Text="{Binding SelectedElement.Info.Name, Mode=OneWay}" />
             <LineBreak />

@@ -10,7 +10,6 @@ namespace HandyScreenshot
 {
     public class MainWindowViewModel : BindableBase
     {
-        private Point _mousePosition;
         private CachedElement _selectedElement;
         private Rect _rect;
 
@@ -18,12 +17,6 @@ namespace HandyScreenshot
         {
             get => _selectedElement;
             set => SetProperty(ref _selectedElement, value);
-        }
-
-        public Point MousePosition
-        {
-            get => _mousePosition;
-            set => SetProperty(ref _mousePosition, value);
         }
 
         public Rect Rect
@@ -56,7 +49,6 @@ namespace HandyScreenshot
                 .ObserveOn(NewThreadScheduler.Default)
                 .Subscribe(physicalPoint =>
                 {
-                    MousePosition = physicalPoint;
                     if (MonitorInfo.PhysicalScreenRect.Contains(physicalPoint))
                     {
                         SelectedElement = detector.GetByPhysicalPoint(physicalPoint);

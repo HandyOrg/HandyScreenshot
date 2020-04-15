@@ -9,7 +9,6 @@ namespace HandyScreenshot.Interop
 {
     public static partial class NativeMethods
     {
-        public const int WM_MOUSEMOVE = 0x0200;
         internal delegate IntPtr HookProc(int code, IntPtr wParam, IntPtr lParam);
         internal delegate bool EnumMonitorsDelegate(IntPtr hMonitor, IntPtr hdcMonitor, ref RECT lprcMonitor, IntPtr dwData);
 

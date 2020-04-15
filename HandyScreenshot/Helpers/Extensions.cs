@@ -1,29 +1,22 @@
-﻿using System;
-using System.Windows;
-using System.Windows.Interop;
+﻿using System.Windows;
 using static HandyScreenshot.Interop.NativeMethods;
 
 namespace HandyScreenshot.Helpers
 {
     public static class Extensions
     {
-        public static Point ToPoint(this POINT point, double scale = 1D)
+        public static Point ToPoint(this POINT point, double scaleX = 1D, double scaleY = 1D)
         {
-            return new Point(point.X * scale, point.Y * scale);
+            return new Point(point.X * scaleX, point.Y * scaleY);
         }
 
-        public static Rect ToRect(this RECT rect, double scale = 1D)
+        public static Rect ToRect(this RECT rect, double scaleX = 1D, double scaleY = 1D)
         {
             return new Rect(
-                rect.Left * scale,
-                rect.Top * scale,
-                (rect.Right - rect.Left) * scale,
-                (rect.Bottom - rect.Top) * scale);
-        }
-
-        public static IntPtr GetHandle(this Window window)
-        {
-            return new WindowInteropHelper(window).EnsureHandle();
+                rect.Left * scaleX,
+                rect.Top * scaleY,
+                (rect.Right - rect.Left) * scaleX,
+                (rect.Bottom - rect.Top) * scaleY);
         }
     }
 }
