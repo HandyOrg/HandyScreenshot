@@ -66,19 +66,23 @@ namespace HandyScreenshot.UiElementDetection
                         return null;
                     }
 
-                    var rect = GetRect(item);
+                    var rect = GetRect(element, item);
                     return rect != Constants.RectZero ? new CachedElement(item) { PhysicalRect = rect } : null;
                 })
                 .Where(item => item != null)
                 .ToList();
         }
 
-        private static Rect GetRect(AutomationElement element)
+        private static Rect GetRect(AutomationElement parent, AutomationElement element)
         {
             try
             {
                 var rect = element.Current.BoundingRectangle;
-                return rect != Rect.Empty ? rect : Constants.RectZero;
+                if (rect == Rect.Empty) return Constants.RectZero;
+
+                var parentRect = parent.Current.BoundingRectangle;
+                rect.Intersect(parentRect);
+                return rect;
             }
             catch
             {
