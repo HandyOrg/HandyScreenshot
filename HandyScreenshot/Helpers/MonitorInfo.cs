@@ -3,20 +3,20 @@ using System.Windows;
 
 namespace HandyScreenshot.Helpers
 {
-    [DebuggerDisplay("[{WorkArea}], [{ScreenRect}]")]
+    [DebuggerDisplay("[{PhysicalScreenRect}], [{PhysicalWorkArea}]")]
     public class MonitorInfo
     {
         public bool IsPrimaryScreen { get; }
 
-        public Rect WorkArea { get; }
+        public Rect PhysicalWorkArea { get; }
 
-        public Rect ScreenRect { get; }
+        public Rect PhysicalScreenRect { get; }
 
         public MonitorInfo(bool isPrimaryScreen, Rect workArea, Rect screenRect)
         {
             IsPrimaryScreen = isPrimaryScreen;
-            WorkArea = workArea;
-            ScreenRect = screenRect;
+            PhysicalWorkArea = workArea;
+            PhysicalScreenRect = screenRect;
         }
     }
 }

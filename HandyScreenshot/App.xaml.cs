@@ -22,15 +22,10 @@ namespace HandyScreenshot
 
         public static void StartScreenshot()
         {
-            foreach (var monitorInfo in MonitorHelper.GetMonitorInfos(Constants.ScaleFactor))
+            foreach (var monitorInfo in MonitorHelper.GetMonitorInfos())
             {
-                var window = new MainWindow
-                {
-                    Left = monitorInfo.ScreenRect.Left,
-                    Top = monitorInfo.ScreenRect.Top,
-                    Width = monitorInfo.ScreenRect.Width,
-                    Height = monitorInfo.ScreenRect.Height
-                };
+                var window = new MainWindow();
+                SetWindowRect(window, monitorInfo.PhysicalScreenRect.Scale())
 
                 if (window.DataContext is MainWindowViewModel vm)
                 {
@@ -49,6 +44,14 @@ namespace HandyScreenshot
             }
 
             base.OnExit(e);
+        }
+
+        private static void SetWindowRect(Window window, Rect rect)
+        {
+            window.Left = rect.Left;
+            window.Top = rect.Top;
+            window.Width = rect.Width;
+            window.Height = rect.Height;
         }
     }
 }

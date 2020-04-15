@@ -32,7 +32,7 @@ namespace HandyScreenshot.Interop
 
         [DllImport(DllNames.User32)]
         [return: MarshalAs(UnmanagedType.Bool)]
-        internal static extern bool GetCursorPos(ref POINT pt);
+        internal static extern bool GetPhysicalCursorPos(ref POINT pt);
 
         [DllImport(DllNames.User32, CharSet = CharSet.Auto, CallingConvention = CallingConvention.StdCall)]
         internal static extern IntPtr CallNextHookEx(IntPtr idHook, int nCode, IntPtr wParam, IntPtr lParam);

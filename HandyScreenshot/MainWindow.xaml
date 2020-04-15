@@ -57,10 +57,10 @@
             <Run Text="{Binding SelectedElement.Info.NativeWindowHandle, Mode=OneWay}" />
             <LineBreak />
             Rect:
-            (<Run Text="{Binding Path=SelectedElement.Rect.Left, Mode=OneWay}" />, <Run Text="{Binding Path=SelectedElement.Rect.Top, Mode=OneWay}" />)
-            [<Run Text="{Binding Path=SelectedElement.Rect.Width, Mode=OneWay}" />
+            (<Run Text="{Binding Path=Rect.Left, Mode=OneWay}" />, <Run Text="{Binding Path=Rect.Top, Mode=OneWay}" />)
+            [<Run Text="{Binding Path=Rect.Width, Mode=OneWay}" />
             ×
-            <Run Text="{Binding Path=SelectedElement.Rect.Height, Mode=OneWay}" />]
+            <Run Text="{Binding Path=Rect.Height, Mode=OneWay}" />]
         </TextBlock>
 
         <local:RectCanvas Grid.Column="0"

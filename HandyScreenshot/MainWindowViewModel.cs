@@ -8,6 +8,7 @@ using System.Windows.Automation;
 using System.Windows.Input;
 using HandyScreenshot.Helpers;
 using HandyScreenshot.Interop;
+using HandyScreenshot.UiElementDetection;
 
 namespace HandyScreenshot
 {
@@ -41,25 +42,26 @@ namespace HandyScreenshot
 
         public MainWindowViewModel()
         {
-            var elements = CachedElement.GetChildren(AutomationElement.RootElement, Constants.ScaleFactor);
+            var detector = new ElementDetector();
+            detector.Snapshot();
 
             var disposable = Observable.Create<Point>(o =>
                     Win32Helper.SubscribeMouseHook((message, info) =>
                     {
                         if (message == MouseMessage.MouseMove)
                         {
-                            o.OnNext(info.pt.ToPoint(Constants.ScaleFactor));
+                            o.OnNext(Win32Helper.GetPhysicalMousePosition().ToPoint());
                         }
                     }))
                 .ObserveOn(NewThreadScheduler.Default)
                 .Subscribe(point =>
                 {
                     MousePosition = point;
-                    if (MonitorInfo.ScreenRect.Contains(MousePosition))
+                    if (MonitorInfo.PhysicalScreenRect.Contains(MousePosition))
                     {
-                        SelectedElement = GetAdjustElement(elements, MousePosition);
+                        SelectedElement = detector.GetByPoint(MousePosition);
                         Rect = SelectedElement != null
-                            ? RebaseRect(SelectedElement.Rect, MonitorInfo.ScreenRect.Left, MonitorInfo.ScreenRect.Top)
+                            ? RebaseRect(SelectedElement.PhysicalRect, MonitorInfo.PhysicalScreenRect.Left, MonitorInfo.PhysicalScreenRect.Top)
                             : Constants.RectZero;
                     }
                     else
@@ -70,32 +72,6 @@ namespace HandyScreenshot
                 });
 
             App.HookDisposables.Add(disposable);
-        }
-
-        private static CachedElement GetAdjustElement(IReadOnlyCollection<CachedElement> elements, Point point)
-        {
-            CachedElement result = null;
-
-            while (true)
-            {
-                var temp = elements
-                    .FirstOrDefault(item => item.Rect.Contains(point));
-
-                if (temp == null) break;
-
-                result = temp;
-                var children = result.Children;
-                if (children.Count > 0)
-                {
-                    elements = children;
-                }
-                else
-                {
-                    break;
-                }
-            }
-
-            return result;
         }
 
         private static Rect RebaseRect(Rect rect, double originX, double originY)

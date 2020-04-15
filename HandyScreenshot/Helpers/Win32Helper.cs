@@ -40,5 +40,12 @@ namespace HandyScreenshot.Helpers
                 return CallNextHookEx(IntPtr.Zero, nCode, wParam, lParam);
             }
         }
+
+        public static POINT GetPhysicalMousePosition()
+        {
+            var position = new POINT();
+            GetPhysicalCursorPos(ref position);
+            return position;
+        }
     }
 }
