@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Windows;
 using HandyScreenshot.Helpers;
-using HandyScreenshot.Interop;
 
 namespace HandyScreenshot
 {
@@ -22,15 +22,27 @@ namespace HandyScreenshot
 
         public static void StartScreenshot()
         {
-            foreach (var monitorInfo in MonitorHelper.GetMonitorInfos())
+            var monitorInfos = MonitorHelper.GetMonitorInfos().ToList();
+            var primaryScreen = monitorInfos.First(item => item.IsPrimaryScreen);
+            var (primaryScreenScaleX, primaryScreenScaleY) = MonitorHelper.GetScaleFactorFromMonitor(primaryScreen.Handle);
+
+            foreach (var monitorInfo in monitorInfos)
             {
                 var window = new MainWindow();
-                SetWindowRect(window, monitorInfo.PhysicalScreenRect.Scale())
 
-                if (window.DataContext is MainWindowViewModel vm)
+                var physicalRect = monitorInfo.PhysicalScreenRect;
+                var rect = new Rect(physicalRect.X, physicalRect.Y, physicalRect.Width, physicalRect.Height);
+                var (scaleX, scaleY) = MonitorHelper.GetScaleFactorFromMonitor(monitorInfo.Handle);
+                rect.Scale(primaryScreenScaleX, primaryScreenScaleY);
+
+                SetWindowRect(window, rect);
+
+                window.DataContext = new MainWindowViewModel
                 {
-                    vm.MonitorInfo = monitorInfo;
-                }
+                    MonitorInfo = monitorInfo,
+                    ScaleX = scaleX,
+                    ScaleY = scaleY
+                };
 
                 window.Show();
             }

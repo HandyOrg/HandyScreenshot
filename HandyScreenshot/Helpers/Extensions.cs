@@ -1,4 +1,6 @@
-﻿using System.Windows;
+﻿using System;
+using System.Windows;
+using System.Windows.Interop;
 using static HandyScreenshot.Interop.NativeMethods;
 
 namespace HandyScreenshot.Helpers
@@ -19,13 +21,9 @@ namespace HandyScreenshot.Helpers
                 (rect.Bottom - rect.Top) * scale);
         }
 
-        public static Rect Scale(this Rect rect, double scale)
+        public static IntPtr GetHandle(this Window window)
         {
-            return new Rect(
-                rect.Left * scale, 
-                rect.Top * scale, 
-                rect.Width * scale, 
-                rect.Height * scale);
+            return new WindowInteropHelper(window).EnsureHandle();
         }
     }
 }

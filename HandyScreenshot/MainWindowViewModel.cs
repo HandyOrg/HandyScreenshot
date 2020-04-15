@@ -1,13 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Reactive.Concurrency;
 using System.Reactive.Linq;
 using System.Windows;
-using System.Windows.Automation;
 using System.Windows.Input;
 using HandyScreenshot.Helpers;
-using HandyScreenshot.Interop;
 using HandyScreenshot.UiElementDetection;
 
 namespace HandyScreenshot
@@ -38,6 +34,10 @@ namespace HandyScreenshot
 
         public MonitorInfo MonitorInfo { get; set; }
 
+        public double ScaleX { get; set; }
+
+        public double ScaleY { get; set; }
+
         public ICommand CloseCommand { get; } = new RelayCommand(() => Application.Current.Shutdown());
 
         public MainWindowViewModel()
@@ -54,14 +54,14 @@ namespace HandyScreenshot
                         }
                     }))
                 .ObserveOn(NewThreadScheduler.Default)
-                .Subscribe(point =>
+                .Subscribe(physicalPoint =>
                 {
-                    MousePosition = point;
-                    if (MonitorInfo.PhysicalScreenRect.Contains(MousePosition))
+                    MousePosition = physicalPoint;
+                    if (MonitorInfo.PhysicalScreenRect.Contains(physicalPoint))
                     {
-                        SelectedElement = detector.GetByPoint(MousePosition);
+                        SelectedElement = detector.GetByPhysicalPoint(physicalPoint);
                         Rect = SelectedElement != null
-                            ? RebaseRect(SelectedElement.PhysicalRect, MonitorInfo.PhysicalScreenRect.Left, MonitorInfo.PhysicalScreenRect.Top)
+                            ? ToDisplayRect(SelectedElement.PhysicalRect)
                             : Constants.RectZero;
                     }
                     else
@@ -74,13 +74,16 @@ namespace HandyScreenshot
             App.HookDisposables.Add(disposable);
         }
 
-        private static Rect RebaseRect(Rect rect, double originX, double originY)
+        private Rect ToDisplayRect(Rect physicalRect)
         {
-            return new Rect(
-                rect.Left - originX,
-                rect.Top - originY,
-                rect.Width,
-                rect.Height);
+            var rect = new Rect(
+                physicalRect.X - MonitorInfo.PhysicalScreenRect.X,
+                physicalRect.Y - MonitorInfo.PhysicalScreenRect.Y,
+                physicalRect.Width,
+                physicalRect.Height);
+            rect.Scale(ScaleX, ScaleY);
+
+            return rect;
         }
     }
 }

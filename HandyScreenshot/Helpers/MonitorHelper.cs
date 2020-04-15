@@ -1,10 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Linq;
 using System.Runtime.InteropServices;
-using System.Windows;
-using System.Windows.Interop;
 using static HandyScreenshot.Interop.NativeMethods;
 
 namespace HandyScreenshot.Helpers
@@ -13,48 +10,51 @@ namespace HandyScreenshot.Helpers
     {
         private const double DefaultDpi = 96.0;
         private const uint MonitorDefaultToNull = 0;
+        
         private static readonly bool DpiApiLevel3 = Environment.OSVersion.Version >= new Version(6, 3);
 
         public static IEnumerable<MonitorInfo> GetMonitorInfos()
         {
-            var monitors = new List<MONITORINFOEX>();
+            var monitors = new List<MonitorInfo>();
             EnumDisplayMonitors(IntPtr.Zero, IntPtr.Zero,
                 (IntPtr monitor, IntPtr hdcMonitor, ref RECT lprcMonitor, IntPtr data) =>
                 {
-                    var info = new MONITORINFOEX { Size = Marshal.SizeOf(typeof(MONITORINFOEX)) };
-                    GetMonitorInfo(monitor, ref info);
+                    var monitorInfoEx = new MONITORINFOEX { Size = Marshal.SizeOf(typeof(MONITORINFOEX)) };
+                    GetMonitorInfo(monitor, ref monitorInfoEx);
+                    var info = new MonitorInfo(monitor,
+                        monitorInfoEx.Flags == 1,
+                        monitorInfoEx.WorkArea.ToRect(),
+                        monitorInfoEx.Monitor.ToRect());
+
                     monitors.Add(info);
+
                     return true;
                 },
                 IntPtr.Zero);
 
-            return monitors.Select(item => new MonitorInfo(
-                item.Flags == 1,
-                item.WorkArea.ToRect(),
-                item.Monitor.ToRect()));
+            return monitors;
         }
 
-        public static (double scaleX, double scaleY) GetScaleFactor()
+        public static (double scaleX, double scaleY) GetScaleFactorFromMonitor(IntPtr hMonitor)
         {
-            var window = new Window();
-            var scale = GetScaleFactor(new WindowInteropHelper(window).EnsureHandle());
-            window.Close();
+            if (!DpiApiLevel3) throw new NotSupportedException();
 
-            return scale;
+            var ret = GetDpiForMonitor(hMonitor, MonitorDpiType.MdtEffectiveDpi, out var dpiX, out var dpiY);
+            if (ret != 0)
+                throw new Win32Exception("Queries DPI of a display failed", Marshal.GetExceptionForHR(ret));
+
+            return (DefaultDpi / dpiX, DefaultDpi / dpiY);
         }
 
-        public static (double scaleX, double scaleY) GetScaleFactor(IntPtr windowHandle)
+        public static (double scaleX, double scaleY) GetScaleFactorFromWindow(IntPtr hWnd)
         {
             if (DpiApiLevel3)
             {
-                var hMonitor = MonitorFromWindow(windowHandle, MonitorDefaultToNull);
-                var ret = GetDpiForMonitor(hMonitor, MonitorDpiType.MdtEffectiveDpi, out var dpiX, out var dpiY);
-                if (ret != 0)
-                    throw new Win32Exception("Queries DPI of a display failed", Marshal.GetExceptionForHR(ret));
-
-                return (DefaultDpi / dpiX, DefaultDpi / dpiY);
+                var hMonitor = MonitorFromWindow(hWnd, MonitorDefaultToNull);
+                return GetScaleFactorFromMonitor(hMonitor);
             }
-            var windowDc = GetWindowDC(windowHandle);
+
+            var windowDc = GetWindowDC(hWnd);
             if (windowDc == IntPtr.Zero)
                 throw new Win32Exception("Getting window device context failed");
 
@@ -66,7 +66,7 @@ namespace HandyScreenshot.Helpers
             }
             finally
             {
-                if (ReleaseDC(windowHandle, windowDc) == 0)
+                if (ReleaseDC(hWnd, windowDc) == 0)
                     throw new Win32Exception("Releasing window device context failed");
             }
         }

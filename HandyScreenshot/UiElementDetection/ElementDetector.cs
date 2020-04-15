@@ -14,7 +14,7 @@ namespace HandyScreenshot.UiElementDetection
             _elementSnapshot = CachedElement.GetChildren(AutomationElement.RootElement);
         }
 
-        public CachedElement GetByPoint(Point physicalPoint)
+        public CachedElement GetByPhysicalPoint(Point physicalPoint)
         {
             if (_elementSnapshot == null)
             {
