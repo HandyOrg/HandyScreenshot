@@ -1,6 +1,6 @@
 ﻿using System.Windows;
 
-namespace HandyScreenshot.Interop
+namespace HandyScreenshot.Helpers
 {
     public static class Constants
     {

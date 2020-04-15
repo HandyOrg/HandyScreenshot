@@ -1,43 +1,37 @@
-﻿using System;
-using System.Runtime.InteropServices;
-// ReSharper disable IdentifierTypo
+﻿// ReSharper disable CommentTypo
 // ReSharper disable StringLiteralTypo
-// ReSharper disable UnusedMember.Global
-// ReSharper disable CommentTypo
+// ReSharper disable IdentifierTypo
+
+using System;
+using System.Runtime.InteropServices;
 
 namespace HandyScreenshot.Interop
 {
-    public static class MonitorNativeMethods
+    public static partial class NativeMethods
     {
-        // size of a device name string
-        private const int CCHDEVICENAME = 32;
+        #region Methods
 
-        internal delegate bool EnumMonitorsDelegate(IntPtr hMonitor, IntPtr hdcMonitor, ref RECT lprcMonitor, IntPtr dwData);
+        [DllImport(DllNames.Gdi32, CharSet = CharSet.Unicode)]
+        internal static extern IntPtr CreateDC(string lpszDriver, string lpszDevice, string lpszOutput, IntPtr lpInitData);
 
-        [DllImport("user32.dll")]
-        internal static extern bool EnumDisplayMonitors(IntPtr hdc, IntPtr lprcClip, EnumMonitorsDelegate lpfnEnum, IntPtr dwData);
+        [DllImport(DllNames.Gdi32)]
+        internal static extern bool BitBlt(IntPtr hdcDest, int nXDest, int nYDest, int nWidth, int nHeight, IntPtr hdcSrc, int nXSrc, int nYSrc, TernaryRasterOperations dwRop);
 
-        [DllImport("user32.dll", CharSet = CharSet.Auto)]
-        internal static extern bool GetMonitorInfo(IntPtr hMonitor, ref MONITORINFOEX lpmi);
+        [DllImport(DllNames.Gdi32)]
+        internal static extern IntPtr CreateCompatibleBitmap(IntPtr hdc, int nWidth, int nHeight);
 
-        [DllImport("USER32")]
-        internal static extern IntPtr MonitorFromWindow(IntPtr hWnd, uint dwFlags);
+        [DllImport(DllNames.Gdi32)]
+        internal static extern IntPtr CreateCompatibleDC(IntPtr hdc);
 
-        [DllImport("USER32")]
-        internal static extern int ReleaseDC(IntPtr hWnd, IntPtr hDc);
+        [DllImport(DllNames.Gdi32)]
+        internal static extern int SelectObject(IntPtr hdc, IntPtr hGdiObj);
 
-        [DllImport("USER32")]
-        internal static extern IntPtr GetWindowDC(IntPtr hWnd);
+        [DllImport(DllNames.Gdi32)]
+        internal static extern int GetDeviceCaps(IntPtr hDc, DeviceCap nIndex);
 
-        [DllImport("GDI32")]
-        internal static extern int GetDeviceCaps(IntPtr hDc, int nIndex);
+        #endregion
 
-        [DllImport("SHCORE")]
-        internal static extern int GetDpiForMonitor(
-            IntPtr hMonitor,
-            MonitorDpiType dpiType,
-            out uint dpiX,
-            out uint dpiY);
+        #region Enums
 
         public enum DeviceCap
         {
@@ -204,75 +198,26 @@ namespace HandyScreenshot.Interop
             Bltalignment = 119
         }
 
-        public enum MonitorDpiType : uint
+        public enum TernaryRasterOperations : uint
         {
-            MdtDefault = 0,
-            MdtEffectiveDpi = 0,
-            MdtAngularDpi = 1,
-            MdtRawDpi = 2,
+            SRCCOPY = 0x00CC0020,
+            SRCPAINT = 0x00EE0086,
+            SRCAND = 0x008800C6,
+            SRCINVERT = 0x00660046,
+            SRCERASE = 0x00440328,
+            NOTSRCCOPY = 0x00330008,
+            NOTSRCERASE = 0x001100A6,
+            MERGECOPY = 0x00C000CA,
+            MERGEPAINT = 0x00BB0226,
+            PATCOPY = 0x00F00021,
+            PATPAINT = 0x00FB0A09,
+            PATINVERT = 0x005A0049,
+            DSTINVERT = 0x00550009,
+            BLACKNESS = 0x00000042,
+            WHITENESS = 0x00FF0062,
+            CAPTUREBLT = 0x40000000 //only if WinVer >= 5.0.0 (see wingdi.h)
         }
 
-        [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
-        public struct MONITORINFOEX
-        {
-            /// <summary>
-            /// The size, in bytes, of the structure. Set this member to sizeof(MONITORINFOEX) (72) before calling the GetMonitorInfo function.
-            /// Doing so lets the function determine the type of structure you are passing to it.
-            /// </summary>
-            public int Size;
-
-            /// <summary>
-            /// A RECT structure that specifies the display monitor rectangle, expressed in virtual-screen coordinates.
-            /// Note that if the monitor is not the primary display monitor, some of the rectangle's coordinates may be negative values.
-            /// </summary>
-            public RECT Monitor;
-
-            /// <summary>
-            /// A RECT structure that specifies the work area rectangle of the display monitor that can be used by applications,
-            /// expressed in virtual-screen coordinates. Windows uses this rectangle to maximize an application on the monitor.
-            /// The rest of the area in rcMonitor contains system windows such as the task bar and side bars.
-            /// Note that if the monitor is not the primary display monitor, some of the rectangle's coordinates may be negative values.
-            /// </summary>
-            public RECT WorkArea;
-
-            /// <summary>
-            /// The attributes of the display monitor.
-            ///
-            /// This member can be the following value:
-            ///   1 : MONITORINFOF_PRIMARY
-            /// </summary>
-            public uint Flags;
-
-            /// <summary>
-            /// A string that specifies the device name of the monitor being used. Most applications have no use for a display monitor name,
-            /// and so can save some bytes by using a MONITORINFO structure.
-            /// </summary>
-            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = CCHDEVICENAME)]
-            public string DeviceName;
-        }
-
-        [StructLayout(LayoutKind.Sequential)]
-        public struct RECT
-        {
-            /// <summary>
-            /// The x-coordinate of the upper-left corner of the rectangle.
-            /// </summary>
-            public int Left;
-
-            /// <summary>
-            /// The y-coordinate of the upper-left corner of the rectangle.
-            /// </summary>
-            public int Top;
-
-            /// <summary>
-            /// The x-coordinate of the lower-right corner of the rectangle.
-            /// </summary>
-            public int Right;
-
-            /// <summary>
-            /// The y-coordinate of the lower-right corner of the rectangle.
-            /// </summary>
-            public int Bottom;
-        }
+        #endregion
     }
 }

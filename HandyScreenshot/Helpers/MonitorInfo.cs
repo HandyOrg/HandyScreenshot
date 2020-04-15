@@ -1,7 +1,7 @@
 ﻿using System.Diagnostics;
 using System.Windows;
 
-namespace HandyScreenshot.Interop
+namespace HandyScreenshot.Helpers
 {
     [DebuggerDisplay("[{WorkArea}], [{ScreenRect}]")]
     public class MonitorInfo

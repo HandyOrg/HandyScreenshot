@@ -6,6 +6,7 @@ using System.Reactive.Linq;
 using System.Windows;
 using System.Windows.Automation;
 using System.Windows.Input;
+using HandyScreenshot.Helpers;
 using HandyScreenshot.Interop;
 
 namespace HandyScreenshot
@@ -43,7 +44,13 @@ namespace HandyScreenshot
             var elements = CachedElement.GetChildren(AutomationElement.RootElement, Constants.ScaleFactor);
 
             var disposable = Observable.Create<Point>(o =>
-                    Win32Helper.HookMouseMoveEvent(point => o.OnNext(point.ToPoint(Constants.ScaleFactor))))
+                    Win32Helper.SubscribeMouseHook((message, info) =>
+                    {
+                        if (message == MouseMessage.MouseMove)
+                        {
+                            o.OnNext(info.pt.ToPoint(Constants.ScaleFactor));
+                        }
+                    }))
                 .ObserveOn(NewThreadScheduler.Default)
                 .Subscribe(point =>
                 {

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Windows;
+using HandyScreenshot.Helpers;
 using HandyScreenshot.Interop;
 
 namespace HandyScreenshot

@@ -3,9 +3,10 @@ using System.Diagnostics;
 using System.Linq;
 using System.Windows;
 using System.Windows.Automation;
+using HandyScreenshot.Helpers;
 using Condition = System.Windows.Automation.Condition;
 
-namespace HandyScreenshot.Interop
+namespace HandyScreenshot
 {
     [DebuggerDisplay("{Info.ClassName}, {Info.Name}")]
     public class CachedElement
