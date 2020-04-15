@@ -41,7 +41,8 @@ namespace HandyScreenshot
                 {
                     MonitorInfo = monitorInfo,
                     ScaleX = scaleX,
-                    ScaleY = scaleY
+                    ScaleY = scaleY,
+                    Background = ScreenshotHelper.CaptureScreen(monitorInfo)
                 };
 
                 window.Show();

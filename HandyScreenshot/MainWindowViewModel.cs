@@ -3,6 +3,7 @@ using System.Reactive.Concurrency;
 using System.Reactive.Linq;
 using System.Windows;
 using System.Windows.Input;
+using System.Windows.Media.Imaging;
 using HandyScreenshot.Helpers;
 using HandyScreenshot.UiElementDetection;
 
@@ -24,6 +25,8 @@ namespace HandyScreenshot
             get => _rect;
             set => SetProperty(ref _rect, value);
         }
+
+        public BitmapSource Background { get; set; }
 
         public MonitorInfo MonitorInfo { get; set; }
 

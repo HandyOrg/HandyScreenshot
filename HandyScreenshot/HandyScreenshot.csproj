@@ -82,6 +82,7 @@
     <Compile Include="Helpers\MonitorHelper.cs" />
     <Compile Include="Helpers\MonitorInfo.cs" />
     <Compile Include="Helpers\MouseMessage.cs" />
+    <Compile Include="Helpers\ScreenshotHelper.cs" />
     <Compile Include="Interop\DllNames.cs" />
     <Compile Include="Interop\NativeMethods.Gdi32.cs" />
     <Compile Include="Interop\NativeMethods.Other.cs" />

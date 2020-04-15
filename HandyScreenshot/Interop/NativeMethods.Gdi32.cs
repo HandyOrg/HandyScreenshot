@@ -15,6 +15,12 @@ namespace HandyScreenshot.Interop
         internal static extern IntPtr CreateDC(string lpszDriver, string lpszDevice, string lpszOutput, IntPtr lpInitData);
 
         [DllImport(DllNames.Gdi32)]
+        internal static extern bool DeleteDC(IntPtr hdc);
+
+        [DllImport(DllNames.Gdi32)]
+        internal static extern bool DeleteObject(IntPtr hObject);
+
+        [DllImport(DllNames.Gdi32)]
         internal static extern bool BitBlt(IntPtr hdcDest, int nXDest, int nYDest, int nWidth, int nHeight, IntPtr hdcSrc, int nXSrc, int nYSrc, TernaryRasterOperations dwRop);
 
         [DllImport(DllNames.Gdi32)]
@@ -198,6 +204,7 @@ namespace HandyScreenshot.Interop
             Bltalignment = 119
         }
 
+        [Flags]
         public enum TernaryRasterOperations : uint
         {
             SRCCOPY = 0x00CC0020,
