@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
 using System.Windows.Automation;
@@ -9,17 +10,15 @@ namespace HandyScreenshot.UiElementDetection
     {
         private IReadOnlyList<CachedElement> _elementSnapshot;
 
-        public void Snapshot()
+        public void Snapshot(Rect physicalFullScreenRect)
         {
-            _elementSnapshot = CachedElement.GetChildren(AutomationElement.RootElement);
+            _elementSnapshot = CachedElement.GetChildren(AutomationElement.RootElement, physicalFullScreenRect);
         }
 
         public CachedElement GetByPhysicalPoint(Point physicalPoint)
         {
             if (_elementSnapshot == null)
-            {
-                Snapshot();
-            }
+                throw new InvalidOperationException("");
 
             return GetAdjustElement(_elementSnapshot, physicalPoint);
         }
@@ -49,6 +48,5 @@ namespace HandyScreenshot.UiElementDetection
 
             return result;
         }
-
     }
 }

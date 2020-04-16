@@ -8,19 +8,17 @@ namespace HandyScreenshot.Helpers
 {
     public static class ScreenshotHelper
     {
-        public static BitmapSource CaptureScreen(MonitorInfo info)
+        public static BitmapSource CaptureScreen(Rect rect)
         {
             var hdcSrc = GetAllMonitorsDC();
 
-            var width = (int)info.PhysicalScreenRect.Width;
-            var height = (int)info.PhysicalScreenRect.Height;
+            var width = (int)rect.Width;
+            var height = (int)rect.Height;
             var hdcDest = CreateCompatibleDC(hdcSrc);
             var hBitmap = CreateCompatibleBitmap(hdcSrc, width, height);
             SelectObject(hdcDest, hBitmap);
 
-            var originX = (int)info.PhysicalScreenRect.X;
-            var originY = (int)info.PhysicalScreenRect.Y;
-            BitBlt(hdcDest, 0, 0, width, height, hdcSrc, originX, originY, 
+            BitBlt(hdcDest, 0, 0, width, height, hdcSrc, (int)rect.X, (int)rect.Y, 
                 TernaryRasterOperations.SRCCOPY | TernaryRasterOperations.CAPTUREBLT);
 
             var bitmap = Imaging.CreateBitmapSourceFromHBitmap(hBitmap, IntPtr.Zero, Int32Rect.Empty,

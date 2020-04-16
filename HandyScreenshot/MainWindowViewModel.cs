@@ -26,6 +26,8 @@ namespace HandyScreenshot
             set => SetProperty(ref _rect, value);
         }
 
+        public ElementDetector Detector { get; set; }
+
         public BitmapSource Background { get; set; }
 
         public MonitorInfo MonitorInfo { get; set; }
@@ -38,9 +40,6 @@ namespace HandyScreenshot
 
         public MainWindowViewModel()
         {
-            var detector = new ElementDetector();
-            detector.Snapshot();
-
             var disposable = Observable.Create<Point>(o =>
                     Win32Helper.SubscribeMouseHook((message, info) =>
                     {
@@ -54,7 +53,7 @@ namespace HandyScreenshot
                 {
                     if (MonitorInfo.PhysicalScreenRect.Contains(physicalPoint))
                     {
-                        SelectedElement = detector.GetByPhysicalPoint(physicalPoint);
+                        SelectedElement = Detector.GetByPhysicalPoint(physicalPoint);
                         Rect = SelectedElement != null
                             ? ToDisplayRect(SelectedElement.PhysicalRect)
                             : Constants.RectZero;

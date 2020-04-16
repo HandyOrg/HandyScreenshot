@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
 using HandyScreenshot.Helpers;
+using HandyScreenshot.UiElementDetection;
 
 namespace HandyScreenshot
 {
@@ -26,6 +27,15 @@ namespace HandyScreenshot
             var primaryScreen = monitorInfos.First(item => item.IsPrimaryScreen);
             var (primaryScreenScaleX, primaryScreenScaleY) = MonitorHelper.GetScaleFactorFromMonitor(primaryScreen.Handle);
 
+            
+            var detector = new ElementDetector();
+            detector.Snapshot(monitorInfos
+                .Select(item => item.PhysicalScreenRect)
+                .Aggregate((acc, item) =>
+                {
+                    acc.Union(item);
+                    return acc;
+                }));
             foreach (var monitorInfo in monitorInfos)
             {
                 var window = new MainWindow();
@@ -42,7 +52,8 @@ namespace HandyScreenshot
                     MonitorInfo = monitorInfo,
                     ScaleX = scaleX,
                     ScaleY = scaleY,
-                    Background = ScreenshotHelper.CaptureScreen(monitorInfo)
+                    Background = ScreenshotHelper.CaptureScreen(monitorInfo.PhysicalScreenRect),
+                    Detector = detector
                 };
 
                 window.Show();
