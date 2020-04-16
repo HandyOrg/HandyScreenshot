@@ -28,7 +28,7 @@ namespace HandyScreenshot
             var (primaryScreenScaleX, primaryScreenScaleY) = MonitorHelper.GetScaleFactorFromMonitor(primaryScreen.Handle);
 
             
-            var detector = new ElementDetector();
+            var detector = new RectDetector();
             detector.Snapshot(monitorInfos
                 .Select(item => item.PhysicalScreenRect)
                 .Aggregate((acc, item) =>

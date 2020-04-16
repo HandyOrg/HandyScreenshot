@@ -6,26 +6,26 @@ using System.Windows.Automation;
 
 namespace HandyScreenshot.UiElementDetection
 {
-    public class ElementDetector
+    public class RectDetector
     {
-        private IReadOnlyList<CachedElement> _elementSnapshot;
+        private IReadOnlyList<CachedRect> _elementSnapshot;
 
         public void Snapshot(Rect physicalFullScreenRect)
         {
-            _elementSnapshot = CachedElement.GetChildren(AutomationElement.RootElement, physicalFullScreenRect);
+            _elementSnapshot = CachedRect.GetChildren(AutomationElement.RootElement, physicalFullScreenRect);
         }
 
-        public CachedElement GetByPhysicalPoint(Point physicalPoint)
+        public Rect GetByPhysicalPoint(Point physicalPoint)
         {
             if (_elementSnapshot == null)
                 throw new InvalidOperationException("");
 
-            return GetAdjustElement(_elementSnapshot, physicalPoint);
+            return GetAdjustElement(_elementSnapshot, physicalPoint)?.PhysicalRect ?? Rect.Empty;
         }
 
-        private static CachedElement GetAdjustElement(IReadOnlyCollection<CachedElement> elements, Point physicalPoint)
+        private static CachedRect GetAdjustElement(IReadOnlyCollection<CachedRect> elements, Point physicalPoint)
         {
-            CachedElement result = null;
+            CachedRect result = null;
 
             while (true)
             {

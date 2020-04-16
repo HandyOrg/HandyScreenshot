@@ -7,31 +7,25 @@ using Condition = System.Windows.Automation.Condition;
 
 namespace HandyScreenshot.UiElementDetection
 {
-    [DebuggerDisplay("{Info.ClassName}, {Info.Name}")]
-    public class CachedElement
+    [DebuggerDisplay("{" + nameof(PhysicalRect) + "}")]
+    public class CachedRect
     {
         //private const double MinRectLimit = 32 * 32;
-        private static readonly IReadOnlyList<CachedElement> EmptyChildren = Enumerable.Empty<CachedElement>().ToList();
+        private static readonly IReadOnlyList<CachedRect> EmptyChildren = Enumerable.Empty<CachedRect>().ToList();
         private static readonly Condition ChildrenCondition
             = new NotCondition(new PropertyCondition(WindowPattern.WindowVisualStateProperty, WindowVisualState.Minimized));
 
-        private IReadOnlyList<CachedElement> _children;
+        private IReadOnlyList<CachedRect> _children;
 
         private readonly AutomationElement _element;
 
-        public AutomationElement.AutomationElementInformation Info { get; }
-
         public Rect PhysicalRect { get; private set; }
 
-        public IReadOnlyList<CachedElement> Children => _children ??= GetChildren(_element, PhysicalRect);
+        public IReadOnlyList<CachedRect> Children => _children ??= GetChildren(_element, PhysicalRect);
 
-        public CachedElement(AutomationElement element)
-        {
-            _element = element;
-            Info = element.Current;
-        }
+        public CachedRect(AutomationElement element) => _element = element;
 
-        internal static IReadOnlyList<CachedElement> GetChildren(AutomationElement parentElement, Rect physicalParentRect)
+        internal static IReadOnlyList<CachedRect> GetChildren(AutomationElement parentElement, Rect physicalParentRect)
         {
             try
             {
@@ -55,14 +49,14 @@ namespace HandyScreenshot.UiElementDetection
             }
         }
 
-        private static IReadOnlyList<CachedElement> CriticalGetChildren(AutomationElement parentElement, Rect physicalParentRect)
+        private static IReadOnlyList<CachedRect> CriticalGetChildren(AutomationElement parentElement, Rect physicalParentRect)
         {
             return parentElement.FindAll(TreeScope.Children, ChildrenCondition)
                 .OfType<AutomationElement>()
                 .Select(item => (element: item, rect: GetRect(item, physicalParentRect)))
                 .Where(item => item.rect != Rect.Empty)
                 //.Where(item => item.PhysicalRect.Width * item.PhysicalRect.Height > MinRectLimit)
-                .Select(item => new CachedElement(item.element) { PhysicalRect = item.rect })
+                .Select(item => new CachedRect(item.element) { PhysicalRect = item.rect })
                 .ToList();
         }
 

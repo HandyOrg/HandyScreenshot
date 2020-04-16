@@ -11,14 +11,7 @@ namespace HandyScreenshot
 {
     public class MainWindowViewModel : BindableBase
     {
-        private CachedElement _selectedElement;
         private Rect _rect;
-
-        public CachedElement SelectedElement
-        {
-            get => _selectedElement;
-            set => SetProperty(ref _selectedElement, value);
-        }
 
         public Rect Rect
         {
@@ -26,7 +19,7 @@ namespace HandyScreenshot
             set => SetProperty(ref _rect, value);
         }
 
-        public ElementDetector Detector { get; set; }
+        public RectDetector Detector { get; set; }
 
         public BitmapSource Background { get; set; }
 
@@ -53,14 +46,11 @@ namespace HandyScreenshot
                 {
                     if (MonitorInfo.PhysicalScreenRect.Contains(physicalPoint))
                     {
-                        SelectedElement = Detector.GetByPhysicalPoint(physicalPoint);
-                        Rect = SelectedElement != null
-                            ? ToDisplayRect(SelectedElement.PhysicalRect)
-                            : Constants.RectZero;
+                        var rect = Detector.GetByPhysicalPoint(physicalPoint);
+                        Rect = rect == Rect.Empty ? Constants.RectZero : ToDisplayRect(rect);
                     }
                     else
                     {
-                        SelectedElement = null;
                         Rect = Constants.RectZero;
                     }
                 });

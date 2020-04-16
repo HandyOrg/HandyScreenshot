@@ -35,29 +35,9 @@
         <TextBlock Background="#AA000000"
                    Foreground="White"
                    HorizontalAlignment="Left">
-            Name:
-            <Run Text="{Binding SelectedElement.Info.Name, Mode=OneWay}" />
-            <LineBreak />
-            ClassName:
-            <Run Text="{Binding SelectedElement.Info.ClassName, Mode=OneWay}" />
-            <LineBreak />
-            ControlType:
-            <Run Text="{Binding SelectedElement.Info.ControlType.LocalizedControlType, Mode=OneWay}" />
-            <LineBreak />
-            ItemType:
-            <Run Text="{Binding SelectedElement.Info.ItemType, Mode=OneWay}" />
-            <LineBreak />
-            IsOffscreen:
-            <Run Text="{Binding SelectedElement.Info.IsOffscreen, Mode=OneWay}" />
-            <LineBreak />
-            IsEnabled:
-            <Run Text="{Binding SelectedElement.Info.IsEnabled, Mode=OneWay}" />
-            <LineBreak />
-            NativeWindowHandle:
-            <Run Text="{Binding SelectedElement.Info.NativeWindowHandle, Mode=OneWay}" />
-            <LineBreak />
-            Rect:
+            Origin:
             (<Run Text="{Binding Path=Rect.Left, Mode=OneWay}" />, <Run Text="{Binding Path=Rect.Top, Mode=OneWay}" />)
+            Size:
             [<Run Text="{Binding Path=Rect.Width, Mode=OneWay}" />
             ×
             <Run Text="{Binding Path=Rect.Height, Mode=OneWay}" />]
