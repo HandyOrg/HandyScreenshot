@@ -4,6 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:HandyScreenshot"
+        xmlns:controls="clr-namespace:HandyScreenshot.Controls"
         mc:Ignorable="d"
         Title="MainWindow"
         WindowStyle="None"
@@ -43,7 +44,7 @@
             <Run Text="{Binding Path=Rect.Height, Mode=OneWay}" />]
         </TextBlock>
 
-        <local:RectCanvas Grid.Column="0"
+        <controls:RectCanvas Grid.Column="0"
                           Grid.Row="0"
                           Grid.ColumnSpan="2"
                           Grid.RowSpan="2"

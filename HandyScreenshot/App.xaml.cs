@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
+using HandyScreenshot.Detection;
 using HandyScreenshot.Helpers;
-using HandyScreenshot.UiElementDetection;
 
 namespace HandyScreenshot
 {

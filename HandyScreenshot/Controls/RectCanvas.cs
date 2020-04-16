@@ -1,7 +1,7 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
 
-namespace HandyScreenshot
+namespace HandyScreenshot.Controls
 {
     public class RectCanvas : Control
     {

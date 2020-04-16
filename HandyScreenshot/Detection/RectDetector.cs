@@ -5,7 +5,7 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Automation;
 
-namespace HandyScreenshot.UiElementDetection
+namespace HandyScreenshot.Detection
 {
     public class RectDetector
     {

@@ -4,8 +4,8 @@ using System.Reactive.Linq;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
+using HandyScreenshot.Detection;
 using HandyScreenshot.Helpers;
-using HandyScreenshot.UiElementDetection;
 
 namespace HandyScreenshot
 {
