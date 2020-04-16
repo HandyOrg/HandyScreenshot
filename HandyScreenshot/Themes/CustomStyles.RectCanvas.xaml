@@ -7,10 +7,10 @@
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type controls:RectCanvas}">
                     <Canvas>
-                        <Border Canvas.Top="{Binding Path=Rect.Top, RelativeSource={RelativeSource TemplatedParent}}"
-                                Canvas.Left="{Binding Path=Rect.Left, RelativeSource={RelativeSource TemplatedParent}}"
-                                Width="{Binding Path=Rect.Width, RelativeSource={RelativeSource TemplatedParent}}"
-                                Height="{Binding Path=Rect.Height, RelativeSource={RelativeSource TemplatedParent}}"
+                        <Border Canvas.Left="{Binding Path=ClipRect.X, RelativeSource={RelativeSource TemplatedParent}}"
+                                Canvas.Top="{Binding Path=ClipRect.Y, RelativeSource={RelativeSource TemplatedParent}}"
+                                Width="{Binding Path=ClipRect.Width, RelativeSource={RelativeSource TemplatedParent}}"
+                                Height="{Binding Path=ClipRect.Height, RelativeSource={RelativeSource TemplatedParent}}"
                                 Background="Transparent"
                                 BorderThickness="2"
                                 BorderBrush="Red" />

@@ -5,13 +5,13 @@ namespace HandyScreenshot.Controls
 {
     public class RectCanvas : Control
     {
-        public static readonly DependencyProperty RectProperty = DependencyProperty.Register(
-            "Rect", typeof(Rect), typeof(RectCanvas), new PropertyMetadata(default(Rect)));
+        public static readonly DependencyProperty ClipRectProperty = DependencyProperty.Register(
+            "ClipRect", typeof(Rect), typeof(RectCanvas), new PropertyMetadata(default(Rect)));
 
-        public Rect Rect
+        public Rect ClipRect
         {
-            get => (Rect) GetValue(RectProperty);
-            set => SetValue(RectProperty, value);
+            get => (Rect) GetValue(ClipRectProperty);
+            set => SetValue(ClipRectProperty, value);
         }
 
         static RectCanvas()

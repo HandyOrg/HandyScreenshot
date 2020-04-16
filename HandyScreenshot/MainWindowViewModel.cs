@@ -11,12 +11,20 @@ namespace HandyScreenshot
 {
     public class MainWindowViewModel : BindableBase
     {
-        private Rect _rect;
+        private Point _physicalStartPoint;
+        private Rect _clipRect;
+        private ClipBoxState _state;
 
-        public Rect Rect
+        public Rect ClipRect
         {
-            get => _rect;
-            set => SetProperty(ref _rect, value);
+            get => _clipRect;
+            set => SetProperty(ref _clipRect, value);
+        }
+
+        public ClipBoxState State
+        {
+            get => _state;
+            set => SetProperty(ref _state, value);
         }
 
         public RectDetector Detector { get; set; }
@@ -33,29 +41,66 @@ namespace HandyScreenshot
 
         public MainWindowViewModel()
         {
-            var disposable = Observable.Create<Point>(o =>
-                    Win32Helper.SubscribeMouseHook((message, info) =>
-                    {
-                        if (message == MouseMessage.MouseMove)
-                        {
-                            o.OnNext(Win32Helper.GetPhysicalMousePosition().ToPoint());
-                        }
-                    }))
+            var disposable = Observable.Create<(MouseMessage message, Point point)>(o => Win32Helper.SubscribeMouseHook((message, info) =>
+                    o.OnNext((message, point: Win32Helper.GetPhysicalMousePosition().ToPoint()))))
                 .ObserveOn(NewThreadScheduler.Default)
-                .Subscribe(physicalPoint =>
-                {
-                    if (MonitorInfo.PhysicalScreenRect.Contains(physicalPoint))
-                    {
-                        var rect = Detector.GetByPhysicalPoint(physicalPoint);
-                        Rect = rect == Rect.Empty ? Constants.RectZero : ToDisplayRect(rect);
-                    }
-                    else
-                    {
-                        Rect = Constants.RectZero;
-                    }
-                });
+                .Subscribe(item => ChangeState(item.message, item.point));
 
             App.HookDisposables.Add(disposable);
+        }
+
+        public void ChangeState(MouseMessage mouseMessage, Point physicalPoint)
+        {
+            switch (mouseMessage)
+            {
+                case MouseMessage.LeftButtonDown:
+                    if (State == ClipBoxState.AutoDetect)
+                    {
+                        State = ClipBoxState.Dragging;
+                        _physicalStartPoint = physicalPoint;
+                    }
+                    else if (State == ClipBoxState.Static)
+                    {
+                        ClipRect = Union(ClipRect, ToDisplayPoint(physicalPoint));
+                    }
+                    break;
+                case MouseMessage.LeftButtonUp:
+                    if (State == ClipBoxState.Dragging)
+                    {
+                        State = ClipBoxState.Static;
+                    }
+                    break;
+                case MouseMessage.RightButtonDown:
+                    if (State == ClipBoxState.Static)
+                    {
+                        State = ClipBoxState.AutoDetect;
+                    }
+                    else if (State == ClipBoxState.AutoDetect)
+                    {
+                        // Exit
+                        Application.Current.Dispatcher.Invoke(Application.Current.Shutdown);
+                    }
+                    break;
+                case MouseMessage.MouseMove:
+                    if (State == ClipBoxState.AutoDetect)
+                    {
+                        if (MonitorInfo.PhysicalScreenRect.Contains(physicalPoint))
+                        {
+                            var rect = Detector.GetByPhysicalPoint(physicalPoint);
+                            ClipRect = rect == Rect.Empty ? Constants.RectZero : ToDisplayRect(rect);
+                        }
+                        else
+                        {
+                            ClipRect = Constants.RectZero;
+                        }
+                    }
+                    else if (State == ClipBoxState.Dragging)
+                    {
+                        // Update Rect
+                        ClipRect = ToDisplayRect(new Rect(_physicalStartPoint, physicalPoint));
+                    }
+                    break;
+            }
         }
 
         private Rect ToDisplayRect(Rect physicalRect)
@@ -68,6 +113,23 @@ namespace HandyScreenshot
             rect.Scale(ScaleX, ScaleY);
 
             return rect;
+        }
+
+        private Point ToDisplayPoint(Point physicalPoint)
+        {
+            var point = new Point(physicalPoint.X, physicalPoint.Y);
+            point.Offset(MonitorInfo.PhysicalScreenRect.X, MonitorInfo.PhysicalScreenRect.Y);
+            point.X *= ScaleX;
+            point.Y *= ScaleY;
+
+            return point;
+        }
+
+        private static Rect Union(Rect rect, Point point)
+        {
+            return new Rect(
+               new Point(Math.Min(rect.X, point.X), Math.Min(rect.Y, point.Y)),
+               new Point(Math.Max(rect.Right, point.X), Math.Max(rect.Bottom, point.Y)));
         }
     }
 }
