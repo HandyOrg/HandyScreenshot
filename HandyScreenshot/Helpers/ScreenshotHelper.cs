@@ -17,7 +17,7 @@ namespace HandyScreenshot.Helpers
         {
             var monitorInfos = MonitorHelper.GetMonitorInfos();
             var primaryScreen = monitorInfos.First(item => item.IsPrimaryScreen);
-            //var (primaryScreenScaleX, primaryScreenScaleY) = MonitorHelper.GetScaleFactorFromMonitor(primaryScreen.Handle);
+            var (primaryScreenScaleX, primaryScreenScaleY) = MonitorHelper.GetScaleFactorFromMonitor(primaryScreen.Handle);
 
             var detector = new RectDetector();
             detector.Snapshot(monitorInfos
@@ -35,8 +35,8 @@ namespace HandyScreenshot.Helpers
 
                 var physicalRect = monitorInfo.PhysicalScreenRect;
                 var rect = new Rect(physicalRect.X, physicalRect.Y, physicalRect.Width, physicalRect.Height);
-                //var (scaleX, scaleY) = MonitorHelper.GetScaleFactorFromMonitor(monitorInfo.Handle);
-                //rect.Scale(primaryScreenScaleX, primaryScreenScaleY);
+                var (scaleX, scaleY) = MonitorHelper.GetScaleFactorFromMonitor(monitorInfo.Handle);
+                rect.Scale(primaryScreenScaleX, primaryScreenScaleY);
 
                 SetWindowRect(window, rect);
 
@@ -45,8 +45,8 @@ namespace HandyScreenshot.Helpers
                 window.DataContext = new MainWindowViewModel
                 {
                     MonitorInfo = monitorInfo,
-                    //ScaleX = scaleX,
-                    //ScaleY = scaleY,
+                    ScaleX = scaleX,
+                    ScaleY = scaleY,
                     Background = b,
                     Detector = detector
                 };
@@ -59,15 +59,17 @@ namespace HandyScreenshot.Helpers
 
         private static void WindowOnLoaded(object sender, RoutedEventArgs e)
         {
-            if (sender is FrameworkElement frameworkElement &&
-                frameworkElement.DataContext is MainWindowViewModel vm)
+            if (sender is Window window &&
+                window.DataContext is MainWindowViewModel vm)
             {
-                var source = PresentationSource.FromVisual(frameworkElement);
+                var source = PresentationSource.FromVisual(window);
                 if (source?.CompositionTarget != null)
                 {
                     var dpiX = 96.0 * source.CompositionTarget.TransformToDevice.M11;
                     var dpiY = 96.0 * source.CompositionTarget.TransformToDevice.M22;
                     vm.DpiString = $"{dpiX}, {dpiY}";
+
+                    //(vm.ScaleX, vm.ScaleY) = MonitorHelper.GetScaleFactorFromWindow(new WindowInteropHelper(window).EnsureHandle());
                 }
             }
         }
