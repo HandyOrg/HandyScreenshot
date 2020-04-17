@@ -1,6 +1,6 @@
 ﻿namespace HandyScreenshot
 {
-    public enum ClipBoxState
+    public enum ClipBoxStatus
     {
         AutoDetect,
         Dragging,

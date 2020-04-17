@@ -8,16 +8,15 @@
         mc:Ignorable="d"
         Title="MainWindow"
         WindowStyle="None"
-        Background="Transparent"
         AllowsTransparency="True"
         ShowInTaskbar="False"
         BorderThickness="0"
         Topmost="True"
         d:DataContext="{d:DesignInstance {x:Type local:MainWindowViewModel}}">
 
-    <!--<Window.Background>
+    <Window.Background>
         <ImageBrush ImageSource="{Binding Background}" />
-    </Window.Background>-->
+    </Window.Background>
 
     <Window.InputBindings>
         <KeyBinding Key="Escape"
@@ -43,6 +42,9 @@
             [<Run Text="{Binding Path=ClipRect.Width, Mode=OneWay}" />
             ×
             <Run Text="{Binding Path=ClipRect.Height, Mode=OneWay}" />]
+            <LineBreak />
+            Status:
+            <Run Text="{Binding Path=Status, Mode=OneWay}" />
         </TextBlock>
 
         <controls:RectCanvas Grid.Column="0"
