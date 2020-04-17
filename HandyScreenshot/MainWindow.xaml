@@ -14,6 +14,10 @@
         Topmost="True"
         d:DataContext="{d:DesignInstance {x:Type local:MainWindowViewModel}}">
 
+    <WindowChrome.WindowChrome>
+        <WindowChrome CaptionHeight="30" />
+    </WindowChrome.WindowChrome>
+
     <Window.Background>
         <ImageBrush ImageSource="{Binding Background}" />
     </Window.Background>
@@ -25,17 +29,26 @@
 
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="Auto" />
             <ColumnDefinition />
+            <ColumnDefinition Width="Auto" />
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition />
         </Grid.RowDefinitions>
 
-        <TextBlock Background="#AA000000"
+        <TextBlock Grid.Column="1"
+                   Grid.Row="0"
+                   Background="#AA000000"
                    Foreground="White"
                    HorizontalAlignment="Left">
+            Window Actual Size:
+            <Run Text="{Binding Path=ActualWidth, RelativeSource={RelativeSource FindAncestor, AncestorType=Window}, Mode=OneWay}" />
+            <Run Text="{Binding Path=ActualHeight, RelativeSource={RelativeSource FindAncestor, AncestorType=Window}, Mode=OneWay}" />
+            <LineBreak />
+            Monitor Pixel Size:
+            <Run Text="{Binding Path=MonitorInfo.PhysicalScreenRect, Mode=OneWay}" />
+            <LineBreak />
             Origin:
             (<Run Text="{Binding Path=ClipRect.Left, Mode=OneWay}" />, <Run Text="{Binding Path=ClipRect.Top, Mode=OneWay}" />)
             Size:
@@ -45,6 +58,9 @@
             <LineBreak />
             Status:
             <Run Text="{Binding Path=Status, Mode=OneWay}" />
+            <LineBreak />
+            Dpi:
+            <Run Text="{Binding Path=DpiString, Mode=OneWay}" />
         </TextBlock>
 
         <controls:RectCanvas Grid.Column="0"

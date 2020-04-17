@@ -13,7 +13,7 @@ namespace HandyScreenshot.Helpers
         
         private static readonly bool DpiApiLevel3 = Environment.OSVersion.Version >= new Version(6, 3);
 
-        public static IEnumerable<MonitorInfo> GetMonitorInfos()
+        public static IReadOnlyCollection<MonitorInfo> GetMonitorInfos()
         {
             var monitors = new List<MonitorInfo>();
             EnumDisplayMonitors(IntPtr.Zero, IntPtr.Zero,

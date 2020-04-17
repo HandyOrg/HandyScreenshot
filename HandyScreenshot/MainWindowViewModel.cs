@@ -15,6 +15,14 @@ namespace HandyScreenshot
         private Rect _clipRect;
         private ClipBoxStatus _status;
 
+        private string _dpiString;
+
+        public string DpiString
+        {
+            get => _dpiString;
+            set => SetProperty(ref _dpiString, value);
+        }
+
         public Rect ClipRect
         {
             get => _clipRect;
@@ -99,12 +107,6 @@ namespace HandyScreenshot
 
         private Rect DetectRectFromPhysicalPoint(Point physicalPoint)
         {
-            //if (MonitorInfo.PhysicalScreenRect.Contains(physicalPoint))
-            //{
-            //    var rect = Detector.GetByPhysicalPoint(physicalPoint);
-            //    return rect == Rect.Empty ? Constants.RectZero : ToDisplayRect(rect);
-            //}
-
             var rect = Detector.GetByPhysicalPoint(physicalPoint);
             return rect != Rect.Empty && MonitorInfo.PhysicalScreenRect.IntersectsWith(rect)
                 ? ToDisplayRect(rect)
