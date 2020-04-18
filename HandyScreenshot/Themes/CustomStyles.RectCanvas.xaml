@@ -13,7 +13,7 @@
                                 Height="{Binding Path=ClipRect.Height, RelativeSource={RelativeSource TemplatedParent}}"
                                 Background="Transparent"
                                 BorderThickness="2"
-                                BorderBrush="Red" />
+                                BorderBrush="#29c1fb" />
                     </Canvas>
                 </ControlTemplate>
             </Setter.Value>

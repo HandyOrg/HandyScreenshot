@@ -64,19 +64,27 @@ namespace HandyScreenshot.ViewModels
             switch (mouseMessage)
             {
                 case MouseMessage.LeftButtonDown:
+                    _physicalStartPoint = physicalPoint;
                     if (Status == ClipBoxStatus.AutoDetect)
                     {
                         Status = ClipBoxStatus.Dragging;
-                        _physicalStartPoint = physicalPoint;
                     }
                     else if (Status == ClipBoxStatus.Static)
                     {
-                        Status = ClipBoxStatus.Dragging;
-                        ClipRect = Union(ClipRect, ToDisplayPoint(physicalPoint));
+                        var displayPoint = ToDisplayPoint(physicalPoint);
+                        if (ClipRect.Contains(displayPoint))
+                        {
+                            Status = ClipBoxStatus.Moving;
+                        }
+                        else
+                        {
+                            Status = ClipBoxStatus.Dragging;
+                            ClipRect = Union(ClipRect, ToDisplayPoint(physicalPoint));
+                        }
                     }
                     break;
                 case MouseMessage.LeftButtonUp:
-                    if (Status == ClipBoxStatus.Dragging)
+                    if (Status == ClipBoxStatus.Dragging || Status == ClipBoxStatus.Moving)
                     {
                         Status = ClipBoxStatus.Static;
                     }
@@ -102,6 +110,13 @@ namespace HandyScreenshot.ViewModels
                     {
                         // Update Rect
                         ClipRect = ToDisplayRect(new Rect(_physicalStartPoint, physicalPoint));
+                    }
+                    else if (Status == ClipBoxStatus.Moving)
+                    {
+                        var copy = new Rect(ClipRect.X, ClipRect.Y, ClipRect.Width, ClipRect.Height);
+                        copy.Offset(ToDisplayPoint(physicalPoint) - ToDisplayPoint(_physicalStartPoint));
+                        _physicalStartPoint = physicalPoint;
+                        ClipRect = copy;
                     }
                     break;
             }
