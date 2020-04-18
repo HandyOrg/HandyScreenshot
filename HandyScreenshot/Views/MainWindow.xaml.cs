@@ -1,4 +1,4 @@
-﻿namespace HandyScreenshot
+﻿namespace HandyScreenshot.Views
 {
     /// <summary>
     /// Interaction logic for MainWindow.xaml

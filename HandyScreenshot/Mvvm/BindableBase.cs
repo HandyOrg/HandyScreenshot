@@ -2,7 +2,7 @@
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
-namespace HandyScreenshot
+namespace HandyScreenshot.Mvvm
 {
     public abstract class BindableBase : INotifyPropertyChanged
     {

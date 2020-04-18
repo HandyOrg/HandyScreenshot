@@ -1,4 +1,4 @@
-﻿namespace HandyScreenshot
+﻿namespace HandyScreenshot.ViewModels
 {
     public enum ClipBoxStatus
     {

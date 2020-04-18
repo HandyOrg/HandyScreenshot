@@ -6,8 +6,9 @@ using System.Windows.Input;
 using System.Windows.Media.Imaging;
 using HandyScreenshot.Detection;
 using HandyScreenshot.Helpers;
+using HandyScreenshot.Mvvm;
 
-namespace HandyScreenshot
+namespace HandyScreenshot.ViewModels
 {
     public class MainWindowViewModel : BindableBase
     {

@@ -7,6 +7,8 @@ using System.Windows;
 using System.Windows.Interop;
 using System.Windows.Media.Imaging;
 using HandyScreenshot.Detection;
+using HandyScreenshot.ViewModels;
+using HandyScreenshot.Views;
 using static HandyScreenshot.Interop.NativeMethods;
 
 namespace HandyScreenshot.Helpers

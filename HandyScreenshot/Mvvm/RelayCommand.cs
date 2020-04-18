@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Windows.Input;
 
-namespace HandyScreenshot
+namespace HandyScreenshot.Mvvm
 {
     public class RelayCommand : ICommand
     {
