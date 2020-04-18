@@ -9,8 +9,10 @@ using HandyScreenshot.Interop;
 
 namespace HandyScreenshot.Common
 {
-    public sealed class GlobalHotKey : IDisposable
+    public static class GlobalHotKey
     {
+        public delegate void Register(ModifierKeys modifier, Key key, Action callback);
+
         private struct Item
         {
             public ModifierKeys ModifierKeys { get; }
@@ -31,76 +33,63 @@ namespace HandyScreenshot.Common
         private static readonly IntPtr Hwnd = (IntPtr)(-3);
         private static HwndSource _hwndSource;
 
-        public static GlobalHotKey Create() => new GlobalHotKey();
-
-        private readonly Dictionary<(ModifierKeys modifier, Key key), Item> _items = new Dictionary<(ModifierKeys modifier, Key key), Item>();
-        private Dictionary<int, Action> _callbackMap = new Dictionary<int, Action>();
-        private bool _disposed;
-
-        private GlobalHotKey() { }
-
-        public GlobalHotKey Register(ModifierKeys modifier, Key key, Action callback)
+        public static IDisposable Start(Action<Register> configure)
         {
-            if (_disposed)
-                throw new ObjectDisposedException(nameof(GlobalHotKey));
+            // Register
+            var items = new Dictionary<(ModifierKeys modifier, Key key), Item>();
+            configure?.Invoke(GetRegister(items));
 
-            if (!IsValidKey(key))
-                throw new ArgumentException();
-
-            _items[(modifier, key)] = new Item(modifier, key, callback);
-
-            return this;
-        }
-
-        public IDisposable Start()
-        {
-            if (_disposed)
-                throw new ObjectDisposedException(nameof(GlobalHotKey));
-
-            if (_callbackMap != null)
-                throw new InvalidOperationException();
-
-            AddHook(HotKeyHookHandler);
-
-            _callbackMap = new Dictionary<int, Action>();
-            foreach (var item in _items.Values)
+            // Add hook
+            var callbackMap = new Dictionary<int, Action>();
+            var handler = GetHwndSourceHook(callbackMap);
+            AddHook(handler);
+            foreach (var item in items.Values)
             {
-                _callbackMap[item.GetHashCode()] = item.Callback;
+                callbackMap[item.GetHashCode()] = item.Callback;
                 RegisterHotKey(_hwndSource.Handle, item.GetHashCode(), item.ModifierKeys, item.Key);
             }
 
-            return this;
-        }
-
-        private IntPtr HotKeyHookHandler(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
-        {
-            if (_disposed || msg != WM_HOTKEY) return IntPtr.Zero;
-
-            try
+            return Disposable.Create(() =>
             {
-                if (_callbackMap.TryGetValue(wParam.ToInt32(), out var callback))
+                _hwndSource.RemoveHook(handler);
+                foreach (var item in items)
                 {
-                    callback?.Invoke();
+                    UnregisterHotKey(_hwndSource.Handle, item.GetHashCode());
                 }
-            }
-            catch
-            {
-                // TODO: Logging
-            }
-
-            return IntPtr.Zero;
+            });
         }
 
-        void IDisposable.Dispose()
+        private static Register GetRegister(IDictionary<(ModifierKeys modifier, Key key), Item> items)
         {
-            if (_disposed || _hwndSource == null) return;
-
-            _disposed = true;
-            _hwndSource.RemoveHook(HotKeyHookHandler);
-            foreach (var item in _items)
+            return (modifier, key, callback) =>
             {
-                UnregisterHotKey(_hwndSource.Handle, item.GetHashCode());
-            }
+                if (!IsValidKey(key))
+                    throw new ArgumentException();
+
+                items[(modifier, key)] = new Item(modifier, key, callback);
+            };
+        }
+
+        private static HwndSourceHook GetHwndSourceHook(IReadOnlyDictionary<int, Action> callbackMap)
+        {
+            return (IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled) =>
+            {
+                if (msg != WM_HOTKEY) return IntPtr.Zero;
+
+                try
+                {
+                    if (callbackMap.TryGetValue(wParam.ToInt32(), out var callback))
+                    {
+                        callback?.Invoke();
+                    }
+                }
+                catch
+                {
+                    // TODO: Logging
+                }
+
+                return IntPtr.Zero;
+            };
         }
 
         private static void AddHook(HwndSourceHook messageHook)
