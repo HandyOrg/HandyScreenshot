@@ -113,7 +113,7 @@ namespace HandyScreenshot.Helpers
         public static BitmapSource ToBitmapSource(this Image image)
         {
             using var memoryStream = new MemoryStream();
-            image.Save(memoryStream, ImageFormat.Jpeg);
+            image.Save(memoryStream, ImageFormat.Png);
             memoryStream.Seek(0, SeekOrigin.Begin);
 
             var bitmapImage = new BitmapImage();
