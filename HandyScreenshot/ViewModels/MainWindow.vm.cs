@@ -4,6 +4,7 @@ using System.Reactive.Linq;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
+using HandyScreenshot.Common;
 using HandyScreenshot.Detection;
 using HandyScreenshot.Helpers;
 using HandyScreenshot.Mvvm;
@@ -55,7 +56,7 @@ namespace HandyScreenshot.ViewModels
                 .ObserveOn(NewThreadScheduler.Default)
                 .Subscribe(item => SetState(item.message, item.point));
 
-            App.HookDisposables.Add(disposable);
+            SharedProperties.Disposables.Enqueue(disposable);
         }
 
         public void SetState(MouseMessage mouseMessage, Point physicalPoint)
