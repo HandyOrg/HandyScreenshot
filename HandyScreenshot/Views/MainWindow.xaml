@@ -9,7 +9,6 @@
         Title="MainWindow"
         WindowStyle="None"
         AllowsTransparency="True"
-        Background="Transparent"
         ShowInTaskbar="False"
         BorderThickness="0"
         Topmost="True"
@@ -19,9 +18,9 @@
         <WindowChrome CaptionHeight="30" />
     </WindowChrome.WindowChrome>
 
-    <!--<Window.Background>
+    <Window.Background>
         <ImageBrush ImageSource="{Binding Background}" />
-    </Window.Background>-->
+    </Window.Background>
 
     <Window.InputBindings>
         <KeyBinding Key="Escape"
