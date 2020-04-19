@@ -1,4 +1,5 @@
 ﻿using System.Windows;
+using HandyScreenshot.Common;
 using static HandyScreenshot.Interop.NativeMethods;
 
 namespace HandyScreenshot.Helpers
@@ -17,6 +18,11 @@ namespace HandyScreenshot.Helpers
                 rect.Top * scaleY,
                 (rect.Right - rect.Left) * scaleX,
                 (rect.Bottom - rect.Top) * scaleY);
+        }
+
+        public static ReadOnlyRect ToReadOnlyRect(this RECT rect)
+        {
+            return (rect.Left, rect.Top, rect.Right - rect.Left, rect.Bottom - rect.Top);
         }
     }
 }

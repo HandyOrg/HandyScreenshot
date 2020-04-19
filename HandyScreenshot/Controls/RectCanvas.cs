@@ -3,15 +3,42 @@ using System.Windows.Controls;
 
 namespace HandyScreenshot.Controls
 {
+    [TemplatePart(Name = ClipRectName, Type = typeof(FrameworkElement))]
     public class RectCanvas : Control
     {
-        public static readonly DependencyProperty ClipRectProperty = DependencyProperty.Register(
-            "ClipRect", typeof(Rect), typeof(RectCanvas), new PropertyMetadata(default(Rect)));
+        private const string ClipRectName = "PART_ClipRect";
 
-        public Rect ClipRect
+        public static readonly DependencyProperty RectOperationProperty = DependencyProperty.Register(
+            "RectOperation", typeof(RectOperation), typeof(RectCanvas), new PropertyMetadata(null, (o, args) =>
+            {
+                if (o is RectCanvas canvas)
+                {
+                    canvas.AttachToRectOperation();
+                }
+            }));
+
+        public RectOperation RectOperation
         {
-            get => (Rect) GetValue(ClipRectProperty);
-            set => SetValue(ClipRectProperty, value);
+            get => (RectOperation)GetValue(RectOperationProperty);
+            set => SetValue(RectOperationProperty, value);
+        }
+
+        private FrameworkElement _clipRect;
+
+        private void AttachToRectOperation()
+        {
+            RectOperation?.Attach(
+                x => Dispatcher.Invoke(() => Canvas.SetLeft(_clipRect, x)),
+                y => Dispatcher.Invoke(() => Canvas.SetTop(_clipRect, y)),
+                w => Dispatcher.Invoke(() => _clipRect.Width = w),
+                h => Dispatcher.Invoke(() => _clipRect.Height = h));
+        }
+
+        public override void OnApplyTemplate()
+        {
+            base.OnApplyTemplate();
+
+            _clipRect = GetTemplateChild(ClipRectName) as FrameworkElement;
         }
 
         static RectCanvas()

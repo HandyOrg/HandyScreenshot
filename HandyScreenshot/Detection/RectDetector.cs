@@ -4,6 +4,8 @@ using System.Diagnostics;
 using System.Linq;
 using System.Windows;
 using System.Windows.Automation;
+using HandyScreenshot.Common;
+using Condition = System.Windows.Automation.Condition;
 
 namespace HandyScreenshot.Detection
 {
@@ -14,11 +16,11 @@ namespace HandyScreenshot.Detection
         {
             public AutomationElement Element { get; }
 
-            public Rect PhysicalRect { get; }
+            public ReadOnlyRect PhysicalRect { get; }
 
             public IReadOnlyList<CachedRect> Children { get; set; }
 
-            public CachedRect(AutomationElement element, Rect physicalRect)
+            public CachedRect(AutomationElement element, ReadOnlyRect physicalRect)
             {
                 Element = element;
                 PhysicalRect = physicalRect;
@@ -26,31 +28,31 @@ namespace HandyScreenshot.Detection
         }
 
         private static readonly IReadOnlyList<CachedRect> EmptyChildren = Enumerable.Empty<CachedRect>().ToList();
-        private static readonly System.Windows.Automation.Condition ChildrenCondition
+        private static readonly Condition ChildrenCondition
             = new NotCondition(new PropertyCondition(WindowPattern.WindowVisualStateProperty, WindowVisualState.Minimized));
 
         private IReadOnlyList<CachedRect> _elementSnapshot;
 
-        public void Snapshot(Rect physicalFullScreenRect)
+        public void Snapshot(ReadOnlyRect physicalFullScreenRect)
         {
             _elementSnapshot = GetChildren(AutomationElement.RootElement, physicalFullScreenRect);
         }
 
-        public Rect GetByPhysicalPoint(Point physicalPoint)
+        public ReadOnlyRect GetByPhysicalPoint(double physicalX, double physicalY)
         {
             if (_elementSnapshot == null)
                 throw new InvalidOperationException("");
 
-            return GetAdjustRect(_elementSnapshot, physicalPoint)?.PhysicalRect ?? Rect.Empty;
+            return GetAdjustRect(_elementSnapshot, physicalX, physicalY)?.PhysicalRect ?? ReadOnlyRect.Empty;
         }
 
-        private static CachedRect GetAdjustRect(IReadOnlyCollection<CachedRect> elements, Point physicalPoint)
+        private static CachedRect GetAdjustRect(IReadOnlyCollection<CachedRect> elements, double physicalX, double physicalY)
         {
             CachedRect result = null;
 
             while (true)
             {
-                var temp = elements.FirstOrDefault(item => item.PhysicalRect.Contains(physicalPoint));
+                var temp = elements.FirstOrDefault(item => item.PhysicalRect.Contains(physicalX, physicalY));
 
                 if (temp == null) break;
 
@@ -78,7 +80,7 @@ namespace HandyScreenshot.Detection
             return cachedRect.Children.Count > 0;
         }
 
-        private static IReadOnlyList<CachedRect> GetChildren(AutomationElement parentElement, Rect physicalParentRect)
+        private static IReadOnlyList<CachedRect> GetChildren(AutomationElement parentElement, ReadOnlyRect physicalParentRect)
         {
             try
             {
@@ -102,30 +104,26 @@ namespace HandyScreenshot.Detection
             }
         }
 
-        private static IReadOnlyList<CachedRect> CriticalGetChildren(AutomationElement parentElement, Rect physicalParentRect)
+        private static IReadOnlyList<CachedRect> CriticalGetChildren(AutomationElement parentElement, ReadOnlyRect physicalParentRect)
         {
             return parentElement.FindAll(TreeScope.Children, ChildrenCondition)
                 .OfType<AutomationElement>()
                 .Select(item => (element: item, rect: GetRect(item, physicalParentRect)))
-                .Where(item => item.rect != Rect.Empty)
-                //.Where(item => item.PhysicalRect.Width * item.PhysicalRect.Height > MinRectLimit)
+                .Where(item => item.rect != ReadOnlyRect.Empty)
                 .Select(item => new CachedRect(item.element, item.rect))
                 .ToList();
         }
 
-        private static Rect GetRect(AutomationElement element, Rect parentRect)
+        private static ReadOnlyRect GetRect(AutomationElement element, ReadOnlyRect physicalParentRect)
         {
             try
             {
-                var rect = element.Current.BoundingRectangle;
-                if (rect == Rect.Empty) return Rect.Empty;
-
-                rect.Intersect(parentRect);
-                return rect;
+                ReadOnlyRect rect = element.Current.BoundingRectangle;
+                return rect == ReadOnlyRect.Empty ? ReadOnlyRect.Empty : rect.Intersect(physicalParentRect);
             }
             catch
             {
-                return Rect.Empty;
+                return ReadOnlyRect.Empty;
             }
         }
     }

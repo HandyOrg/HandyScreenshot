@@ -4,8 +4,8 @@ using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Windows;
-using System.Windows.Interop;
 using System.Windows.Media.Imaging;
+using HandyScreenshot.Common;
 using HandyScreenshot.Detection;
 using HandyScreenshot.ViewModels;
 using HandyScreenshot.Views;
@@ -24,32 +24,21 @@ namespace HandyScreenshot.Helpers
             var detector = new RectDetector();
             detector.Snapshot(monitorInfos
                 .Select(item => item.PhysicalScreenRect)
-                .Aggregate((acc, item) =>
-                {
-                    var copy = new Rect(acc.X, acc.Y, acc.Width, acc.Height);
-                    copy.Union(item);
-                    return copy;
-                }));
+                .Aggregate((acc, item) => acc.Union(item)));
 
             foreach (var monitorInfo in monitorInfos)
             {
                 var window = new MainWindow();
 
-                var physicalRect = monitorInfo.PhysicalScreenRect;
-                var rect = new Rect(physicalRect.X, physicalRect.Y, physicalRect.Width, physicalRect.Height);
                 var (scaleX, scaleY) = MonitorHelper.GetScaleFactorFromMonitor(monitorInfo.Handle);
-                rect.Scale(primaryScreenScaleX, primaryScreenScaleY);
-
-                SetWindowRect(window, rect);
-
-                var b = CaptureScreen(monitorInfo.PhysicalScreenRect);
+                SetWindowRect(window, monitorInfo.PhysicalScreenRect.Scale(primaryScreenScaleX, primaryScreenScaleY));
 
                 window.DataContext = new MainWindowViewModel
                 {
                     MonitorInfo = monitorInfo,
                     ScaleX = scaleX,
                     ScaleY = scaleY,
-                    Background = b,
+                    Background = CaptureScreen(monitorInfo.PhysicalScreenRect),
                     Detector = detector
                 };
 
@@ -76,15 +65,15 @@ namespace HandyScreenshot.Helpers
             }
         }
 
-        private static void SetWindowRect(Window window, Rect rect)
+        private static void SetWindowRect(Window window, ReadOnlyRect rect)
         {
-            window.Left = rect.Left;
-            window.Top = rect.Top;
+            window.Left = rect.X;
+            window.Top = rect.Y;
             window.Width = rect.Width;
             window.Height = rect.Height;
         }
 
-        public static BitmapSource CaptureScreen(Rect rect)
+        public static BitmapSource CaptureScreen(ReadOnlyRect rect)
         {
             var hdcSrc = GetAllMonitorsDC();
 

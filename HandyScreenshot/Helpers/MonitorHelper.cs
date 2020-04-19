@@ -23,8 +23,8 @@ namespace HandyScreenshot.Helpers
                     GetMonitorInfo(monitor, ref monitorInfoEx);
                     var info = new MonitorInfo(monitor,
                         monitorInfoEx.Flags == 1,
-                        monitorInfoEx.WorkArea.ToRect(),
-                        monitorInfoEx.Monitor.ToRect());
+                        monitorInfoEx.WorkArea.ToReadOnlyRect(),
+                        monitorInfoEx.Monitor.ToReadOnlyRect());
 
                     monitors.Add(info);
 

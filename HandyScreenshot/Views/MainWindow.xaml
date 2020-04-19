@@ -3,13 +3,13 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:HandyScreenshot"
         xmlns:controls="clr-namespace:HandyScreenshot.Controls"
         xmlns:viewModels="clr-namespace:HandyScreenshot.ViewModels"
         mc:Ignorable="d"
         Title="MainWindow"
         WindowStyle="None"
         AllowsTransparency="True"
+        Background="Transparent"
         ShowInTaskbar="False"
         BorderThickness="0"
         Topmost="True"
@@ -19,9 +19,9 @@
         <WindowChrome CaptionHeight="30" />
     </WindowChrome.WindowChrome>
 
-    <Window.Background>
+    <!--<Window.Background>
         <ImageBrush ImageSource="{Binding Background}" />
-    </Window.Background>
+    </Window.Background>-->
 
     <Window.InputBindings>
         <KeyBinding Key="Escape"
@@ -50,13 +50,6 @@
             Monitor Pixel Size:
             <Run Text="{Binding Path=MonitorInfo.PhysicalScreenRect, Mode=OneWay}" />
             <LineBreak />
-            Origin:
-            (<Run Text="{Binding Path=ClipRect.Left, Mode=OneWay}" />, <Run Text="{Binding Path=ClipRect.Top, Mode=OneWay}" />)
-            Size:
-            [<Run Text="{Binding Path=ClipRect.Width, Mode=OneWay}" />
-            ×
-            <Run Text="{Binding Path=ClipRect.Height, Mode=OneWay}" />]
-            <LineBreak />
             Status:
             <Run Text="{Binding Path=Status, Mode=OneWay}" />
             <LineBreak />
@@ -68,6 +61,6 @@
                              Grid.Row="0"
                              Grid.ColumnSpan="2"
                              Grid.RowSpan="2"
-                             ClipRect="{Binding ClipRect}" />
+                             RectOperation="{Binding RectOperation}" />
     </Grid>
 </Window>

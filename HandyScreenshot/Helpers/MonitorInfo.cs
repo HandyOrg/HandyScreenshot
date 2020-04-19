@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Windows;
+using HandyScreenshot.Common;
 
 namespace HandyScreenshot.Helpers
 {
@@ -11,11 +12,11 @@ namespace HandyScreenshot.Helpers
 
         public bool IsPrimaryScreen { get; }
 
-        public Rect PhysicalWorkArea { get; }
+        public ReadOnlyRect PhysicalWorkArea { get; }
 
-        public Rect PhysicalScreenRect { get; }
+        public ReadOnlyRect PhysicalScreenRect { get; }
 
-        public MonitorInfo(IntPtr handle, bool isPrimaryScreen, Rect workArea, Rect screenRect)
+        public MonitorInfo(IntPtr handle, bool isPrimaryScreen, ReadOnlyRect workArea, ReadOnlyRect screenRect)
         {
             Handle = handle;
             IsPrimaryScreen = isPrimaryScreen;

@@ -5,16 +5,16 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
 using HandyScreenshot.Common;
+using HandyScreenshot.Controls;
 using HandyScreenshot.Detection;
 using HandyScreenshot.Helpers;
+using HandyScreenshot.Interop;
 using HandyScreenshot.Mvvm;
 
 namespace HandyScreenshot.ViewModels
 {
     public class MainWindowViewModel : BindableBase
     {
-        private Point _physicalStartPoint;
-        private Rect _clipRect;
         private ClipBoxStatus _status;
 
         private string _dpiString;
@@ -25,11 +25,7 @@ namespace HandyScreenshot.ViewModels
             set => SetProperty(ref _dpiString, value);
         }
 
-        public Rect ClipRect
-        {
-            get => _clipRect;
-            set => SetProperty(ref _clipRect, value);
-        }
+        public RectOperation RectOperation { get; } = new RectOperation();
 
         public ClipBoxStatus Status
         {
@@ -51,35 +47,43 @@ namespace HandyScreenshot.ViewModels
 
         public MainWindowViewModel()
         {
-            var disposable = Observable.Create<(MouseMessage message, Point point)>(o => Win32Helper.SubscribeMouseHook((message, info) =>
-                    o.OnNext((message, point: Win32Helper.GetPhysicalMousePosition().ToPoint()))))
+            var disposable = Observable.Create<(MouseMessage message, double x, double y)>(o =>
+                    Win32Helper.SubscribeMouseHook((message, info) =>
+                    {
+                        var (x, y) = ToPoint(Win32Helper.GetPhysicalMousePosition());
+                        o.OnNext((message, x, y));
+                    }))
                 .ObserveOn(NewThreadScheduler.Default)
-                .Subscribe(item => SetState(item.message, item.point));
+                .Subscribe(item => SetState(item.message, item.x, item.y));
 
             SharedProperties.Disposables.Enqueue(disposable);
         }
 
-        public void SetState(MouseMessage mouseMessage, Point physicalPoint)
+        private double _displayStartPointX;
+        private double _displayStartPointY;
+
+        public void SetState(MouseMessage mouseMessage, double physicalX, double physicalY)
         {
             switch (mouseMessage)
             {
                 case MouseMessage.LeftButtonDown:
-                    _physicalStartPoint = physicalPoint;
                     if (Status == ClipBoxStatus.AutoDetect)
                     {
                         Status = ClipBoxStatus.Dragging;
+                        (_displayStartPointX, _displayStartPointY) = ToDisplayPoint(physicalX, physicalY);
                     }
                     else if (Status == ClipBoxStatus.Static)
                     {
-                        var displayPoint = ToDisplayPoint(physicalPoint);
-                        if (ClipRect.Contains(displayPoint))
+                        (double x, double y) = ToDisplayPoint(physicalX, physicalY);
+                        if (RectOperation.Contains(x, y))
                         {
                             Status = ClipBoxStatus.Moving;
+                            (_displayStartPointX, _displayStartPointY) = ToDisplayPoint(physicalX, physicalY);
                         }
                         else
                         {
                             Status = ClipBoxStatus.Dragging;
-                            ClipRect = Union(ClipRect, ToDisplayPoint(physicalPoint));
+                            RectOperation.Union(x, y);
                         }
                     }
                     break;
@@ -93,7 +97,8 @@ namespace HandyScreenshot.ViewModels
                     if (Status == ClipBoxStatus.Static)
                     {
                         Status = ClipBoxStatus.AutoDetect;
-                        ClipRect = DetectRectFromPhysicalPoint(physicalPoint);
+                        var (x, y, w, h) = DetectRectFromPhysicalPoint(physicalX, physicalY);
+                        RectOperation.Set(x, y, w, h);
                     }
                     else if (Status == ClipBoxStatus.AutoDetect)
                     {
@@ -104,59 +109,57 @@ namespace HandyScreenshot.ViewModels
                 case MouseMessage.MouseMove:
                     if (Status == ClipBoxStatus.AutoDetect)
                     {
-                        ClipRect = DetectRectFromPhysicalPoint(physicalPoint);
+                        var (x, y, w, h) = DetectRectFromPhysicalPoint(physicalX, physicalY);
+                        RectOperation.Set(x, y, w, h);
                     }
                     else if (Status == ClipBoxStatus.Dragging)
                     {
                         // Update Rect
-                        ClipRect = ToDisplayRect(new Rect(_physicalStartPoint, physicalPoint));
+                        var (displayX, displayY) = ToDisplayPoint(physicalX, physicalY);
+                        var (x, y, w, h) = CalculateRect(_displayStartPointX, _displayStartPointY, displayX, displayY);
+                        RectOperation.Set(x, y, w, h);
                     }
                     else if (Status == ClipBoxStatus.Moving)
                     {
-                        var copy = new Rect(ClipRect.X, ClipRect.Y, ClipRect.Width, ClipRect.Height);
-                        copy.Offset(ToDisplayPoint(physicalPoint) - ToDisplayPoint(_physicalStartPoint));
-                        _physicalStartPoint = physicalPoint;
-                        ClipRect = copy;
+                        (double x2, double y2) = ToDisplayPoint(physicalX, physicalY);
+                        RectOperation.Offset(_displayStartPointX, _displayStartPointY, x2, y2);
+                        (_displayStartPointX, _displayStartPointY) = (x2, y2);
                     }
                     break;
             }
         }
 
-        private Rect DetectRectFromPhysicalPoint(Point physicalPoint)
+        private ReadOnlyRect DetectRectFromPhysicalPoint(double physicalX, double physicalY)
         {
-            var rect = Detector.GetByPhysicalPoint(physicalPoint);
-            return rect != Rect.Empty && MonitorInfo.PhysicalScreenRect.IntersectsWith(rect)
+            var rect = Detector.GetByPhysicalPoint(physicalX, physicalY);
+            return rect != ReadOnlyRect.Empty && MonitorInfo.PhysicalScreenRect.IntersectsWith(rect)
                 ? ToDisplayRect(rect)
-                : Constants.RectZero;
+                : ReadOnlyRect.Zero;
         }
 
-        private Rect ToDisplayRect(Rect physicalRect)
+        private static ReadOnlyRect CalculateRect(double x1, double y1, double x2, double y2)
         {
-            var rect = new Rect(
-                physicalRect.X - MonitorInfo.PhysicalScreenRect.X,
-                physicalRect.Y - MonitorInfo.PhysicalScreenRect.Y,
-                physicalRect.Width,
-                physicalRect.Height);
-            rect.Scale(ScaleX, ScaleY);
-
-            return rect;
+            var x = Math.Min(x1, x2);
+            var y = Math.Min(y1, y2);
+            return (x, y,
+                    Math.Max(Math.Max(x1, x2) - x, 0.0),
+                    Math.Max(Math.Max(y1, y2) - y, 0.0));
         }
 
-        private Point ToDisplayPoint(Point physicalPoint)
+        private ReadOnlyRect ToDisplayRect(ReadOnlyRect physicalRect)
         {
-            var point = new Point(physicalPoint.X, physicalPoint.Y);
-            point.Offset(MonitorInfo.PhysicalScreenRect.X, MonitorInfo.PhysicalScreenRect.Y);
-            point.X *= ScaleX;
-            point.Y *= ScaleY;
-
-            return point;
+            return physicalRect
+                .Offset(MonitorInfo.PhysicalScreenRect.X, MonitorInfo.PhysicalScreenRect.Y)
+                .Scale(ScaleX, ScaleY);
         }
 
-        private static Rect Union(Rect rect, Point point)
+        private (double X, double Y) ToDisplayPoint(double x, double y)
         {
-            return new Rect(
-               new Point(Math.Min(rect.X, point.X), Math.Min(rect.Y, point.Y)),
-               new Point(Math.Max(rect.Right, point.X), Math.Max(rect.Bottom, point.Y)));
+            return (
+                (x - MonitorInfo.PhysicalScreenRect.X) * ScaleX,
+                (y - MonitorInfo.PhysicalScreenRect.Y) * ScaleY);
         }
+
+        private static (double X, double Y) ToPoint(NativeMethods.POINT point) => (point.X, point.Y);
     }
 }
