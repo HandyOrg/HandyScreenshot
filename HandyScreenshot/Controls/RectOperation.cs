@@ -16,10 +16,7 @@ namespace HandyScreenshot.Controls
 
         private SetRect _setRect = (x, y, w, h) => { };
 
-        public void Attach(SetRect setRect)
-        {
-            _setRect += setRect;
-        }
+        public void Attach(SetRect setRect) => _setRect += setRect;
 
         public bool Contains(double x, double y) => X <= x && Y <= y && x <= X + Width && y <= Y + Height;
 
