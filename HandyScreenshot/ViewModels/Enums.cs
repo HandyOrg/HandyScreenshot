@@ -3,7 +3,11 @@
     public enum ClipBoxStatus
     {
         AutoDetect,
-        Dragging,
+        ResizingVertex,
+        ResizingLeftEdge,
+        ResizingTopEdge,
+        ResizingRightEdge,
+        ResizingBottomEdge,
         Static,
         Moving,
     }

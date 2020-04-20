@@ -56,6 +56,11 @@
             <Run Text="{Binding Path=DpiString, Mode=OneWay}" />
         </TextBlock>
 
+        <controls:RectMaskControl Grid.Column="0"
+                                  Grid.Row="0"
+                                  Grid.ColumnSpan="2"
+                                  Grid.RowSpan="2"
+                                  RectOperation="{Binding RectOperation}" />
         <controls:RectCanvas Grid.Column="0"
                              Grid.Row="0"
                              Grid.ColumnSpan="2"

@@ -69,29 +69,74 @@ namespace HandyScreenshot.ViewModels
                 case MouseMessage.LeftButtonDown:
                     if (Status == ClipBoxStatus.AutoDetect)
                     {
-                        Status = ClipBoxStatus.Dragging;
+                        Status = ClipBoxStatus.ResizingVertex;
                         (_displayStartPointX, _displayStartPointY) = ToDisplayPoint(physicalX, physicalY);
                     }
                     else if (Status == ClipBoxStatus.Static)
                     {
-                        (double x, double y) = ToDisplayPoint(physicalX, physicalY);
-                        if (RectOperation.Contains(x, y))
+                        (double displayX, double displayY) = ToDisplayPoint(physicalX, physicalY);
+                        if (RectOperation.Contains(displayX, displayY))
                         {
                             Status = ClipBoxStatus.Moving;
                             (_displayStartPointX, _displayStartPointY) = ToDisplayPoint(physicalX, physicalY);
                         }
                         else
                         {
-                            Status = ClipBoxStatus.Dragging;
-                            RectOperation.Union(x, y);
+                            var right = RectOperation.X + RectOperation.Width;
+                            var bottom = RectOperation.Y + RectOperation.Height;
+                            if (displayX < RectOperation.X && displayY < RectOperation.Y)
+                            {
+                                Status = ClipBoxStatus.ResizingVertex;
+                                _displayStartPointX = right;
+                                _displayStartPointY = bottom;
+                            }
+                            else if (displayX > right && displayY < RectOperation.Y)
+                            {
+                                Status = ClipBoxStatus.ResizingVertex;
+                                _displayStartPointX = RectOperation.X;
+                                _displayStartPointY = bottom;
+                            }
+                            else if (displayX < RectOperation.X && displayY > bottom)
+                            {
+                                Status = ClipBoxStatus.ResizingVertex;
+                                _displayStartPointX = right;
+                                _displayStartPointY = RectOperation.Y;
+                            }
+                            else if (displayX > right && displayY > bottom)
+                            {
+                                Status = ClipBoxStatus.ResizingVertex;
+                                _displayStartPointX = RectOperation.X;
+                                _displayStartPointY = RectOperation.Y;
+                            }
+                            else if (displayX > RectOperation.X && displayX < right)
+                            {
+                                if (displayY < RectOperation.Y)
+                                {
+                                    Status = ClipBoxStatus.ResizingTopEdge;
+                                }
+                                else if (displayY > bottom)
+                                {
+                                    Status = ClipBoxStatus.ResizingBottomEdge;
+                                }
+                            }
+                            else if (displayY > RectOperation.Y && displayY < bottom)
+                            {
+                                if (displayX < RectOperation.X)
+                                {
+                                    Status = ClipBoxStatus.ResizingLeftEdge;
+                                }
+                                else if (displayX > right)
+                                {
+                                    Status = ClipBoxStatus.ResizingRightEdge;
+                                }
+                            }
+
+                            RectOperation.Union(displayX, displayY);
                         }
                     }
                     break;
                 case MouseMessage.LeftButtonUp:
-                    if (Status == ClipBoxStatus.Dragging || Status == ClipBoxStatus.Moving)
-                    {
-                        Status = ClipBoxStatus.Static;
-                    }
+                    Status = ClipBoxStatus.Static;
                     break;
                 case MouseMessage.RightButtonDown:
                     if (Status == ClipBoxStatus.Static)
@@ -112,12 +157,32 @@ namespace HandyScreenshot.ViewModels
                         var (x, y, w, h) = DetectRectFromPhysicalPoint(physicalX, physicalY);
                         RectOperation.Set(x, y, w, h);
                     }
-                    else if (Status == ClipBoxStatus.Dragging)
+                    else if (Status == ClipBoxStatus.ResizingVertex)
                     {
                         // Update Rect
                         var (displayX, displayY) = ToDisplayPoint(physicalX, physicalY);
                         var (x, y, w, h) = CalculateRect(_displayStartPointX, _displayStartPointY, displayX, displayY);
                         RectOperation.Set(x, y, w, h);
+                    }
+                    else if (Status == ClipBoxStatus.ResizingLeftEdge)
+                    {
+                        var (displayX, displayY) = ToDisplayPoint(physicalX, physicalY);
+                        RectOperation.SetLeft(displayX);
+                    }
+                    else if (Status == ClipBoxStatus.ResizingTopEdge)
+                    {
+                        var (displayX, displayY) = ToDisplayPoint(physicalX, physicalY);
+                        RectOperation.SetTop(displayY);
+                    }
+                    else if (Status == ClipBoxStatus.ResizingRightEdge)
+                    {
+                        var (displayX, displayY) = ToDisplayPoint(physicalX, physicalY);
+                        RectOperation.SetRight(displayX);
+                    }
+                    else if (Status == ClipBoxStatus.ResizingBottomEdge)
+                    {
+                        var (displayX, displayY) = ToDisplayPoint(physicalX, physicalY);
+                        RectOperation.SetBottom(displayY);
                     }
                     else if (Status == ClipBoxStatus.Moving)
                     {

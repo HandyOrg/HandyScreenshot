@@ -4,10 +4,13 @@ namespace HandyScreenshot.Controls
 {
     public class RectOperation
     {
-        private double _x;
-        private double _y;
-        private double _width;
-        private double _height;
+        public double X { get; private set; }
+
+        public double Y { get; private set; }
+
+        public double Width { get; private set; }
+
+        public double Height { get; private set; }
 
         private Action<double> _setX = _ => { };
         private Action<double> _setY = _ => { };
@@ -16,26 +19,26 @@ namespace HandyScreenshot.Controls
 
         public void Attach(Action<double> setX, Action<double> setY, Action<double> setWidth, Action<double> setHeight)
         {
-            _setX = x => setX(_x = x);
-            _setY = y => setY(_y = y);
-            _setWidth = w => setWidth(_width = w);
-            _setHeight = h => setHeight(_height = h);
+            _setX += x => setX(X = x);
+            _setY += y => setY(Y = y);
+            _setWidth += w => setWidth(Width = w);
+            _setHeight += h => setHeight(Height = h);
         }
 
-        public bool Contains(double x, double y) => _x <= x && _y <= y && x <= _x + _width && y <= _y + _height;
+        public bool Contains(double x, double y) => X <= x && Y <= y && x <= X + Width && y <= Y + Height;
 
         public void Offset(double x1, double y1, double x2, double y2)
         {
-            _setX(_x + x2 - x1);
-            _setY(_y + y2 - y1);
+            _setX(X + x2 - x1);
+            _setY(Y + y2 - y1);
         }
 
         public void Union(double x, double y)
         {
-            _setWidth(Math.Max(_width, _x < x ? x - _x : _x - x + _width));
-            _setHeight(Math.Max(_height, _y < y ? y - _y : _y - y + _height));
-            _setX(Math.Min(_x, x));
-            _setY(Math.Min(_y, y));
+            _setWidth(Math.Max(Width, X < x ? x - X : X - x + Width));
+            _setHeight(Math.Max(Height, Y < y ? y - Y : Y - y + Height));
+            _setX(Math.Min(X, x));
+            _setY(Math.Min(Y, y));
         }
 
         public void Set(double x, double y, double width, double height)
@@ -45,5 +48,21 @@ namespace HandyScreenshot.Controls
             _setWidth(width);
             _setHeight(height);
         }
+
+        public void SetLeft(double left)
+        {
+            _setWidth(X - left + Width);
+            _setX(left);
+        }
+
+        public void SetRight(double right) => _setWidth(right - X);
+
+        public void SetTop(double top)
+        {
+            _setHeight(Y - top + Height);
+            _setY(top);
+        }
+
+        public void SetBottom(double bottom) => _setHeight(bottom - Y);
     }
 }
