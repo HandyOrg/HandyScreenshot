@@ -2,6 +2,8 @@
 
 namespace HandyScreenshot.Controls
 {
+    public delegate void SetRect(double x, double y, double width, double height);
+
     public class RectOperation
     {
         public double X { get; private set; }
@@ -12,57 +14,74 @@ namespace HandyScreenshot.Controls
 
         public double Height { get; private set; }
 
-        private Action<double> _setX = _ => { };
-        private Action<double> _setY = _ => { };
-        private Action<double> _setWidth = _ => { };
-        private Action<double> _setHeight = _ => { };
+        private SetRect _setRect = (x, y, w, h) => { };
 
-        public void Attach(Action<double> setX, Action<double> setY, Action<double> setWidth, Action<double> setHeight)
+        public void Attach(SetRect setRect)
         {
-            _setX += x => setX(X = x);
-            _setY += y => setY(Y = y);
-            _setWidth += w => setWidth(Width = w);
-            _setHeight += h => setHeight(Height = h);
+            _setRect += setRect;
         }
 
         public bool Contains(double x, double y) => X <= x && Y <= y && x <= X + Width && y <= Y + Height;
 
+        private void Submit() => _setRect(X, Y, Width, Height);
+
         public void Offset(double x1, double y1, double x2, double y2)
         {
-            _setX(X + x2 - x1);
-            _setY(Y + y2 - y1);
+            X = X + x2 - x1;
+            Y = Y + y2 - y1;
+            Submit();
         }
 
         public void Union(double x, double y)
         {
-            _setWidth(Math.Max(Width, X < x ? x - X : X - x + Width));
-            _setHeight(Math.Max(Height, Y < y ? y - Y : Y - y + Height));
-            _setX(Math.Min(X, x));
-            _setY(Math.Min(Y, y));
+            Width = Math.Max(Width, X < x ? x - X : X - x + Width);
+            Height = Math.Max(Height, Y < y ? y - Y : Y - y + Height);
+            X = Math.Min(X, x);
+            Y = Math.Min(Y, y);
+            Submit();
         }
 
         public void Set(double x, double y, double width, double height)
         {
-            _setX(x);
-            _setY(y);
-            _setWidth(width);
-            _setHeight(height);
+            X = x;
+            Y = y;
+            Width = width;
+            Height = height;
+            Submit();
         }
 
         public void SetLeft(double left)
         {
-            _setWidth(X - left + Width);
-            _setX(left);
+            if (left > X + Width) return;
+
+            Width = X + Width - left;
+            X = left;
+            Submit();
         }
 
-        public void SetRight(double right) => _setWidth(right - X);
+        public void SetRight(double right)
+        {
+            if (right < X) return;
+
+            Width = right - X;
+            Submit();
+        }
 
         public void SetTop(double top)
         {
-            _setHeight(Y - top + Height);
-            _setY(top);
+            if (top > Y + Height) return;
+
+            Height = Y + Height - top;
+            Y = top;
+            Submit();
         }
 
-        public void SetBottom(double bottom) => _setHeight(bottom - Y);
+        public void SetBottom(double bottom)
+        {
+            if (bottom < Y) return;
+
+            Height = bottom - Y;
+            Submit();
+        }
     }
 }

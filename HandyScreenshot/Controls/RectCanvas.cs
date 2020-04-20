@@ -27,11 +27,13 @@ namespace HandyScreenshot.Controls
 
         private void AttachToRectOperation()
         {
-            RectOperation?.Attach(
-                x => Dispatcher.Invoke(() => Canvas.SetLeft(_clipRect, x)),
-                y => Dispatcher.Invoke(() => Canvas.SetTop(_clipRect, y)),
-                w => Dispatcher.Invoke(() => _clipRect.Width = w),
-                h => Dispatcher.Invoke(() => _clipRect.Height = h));
+            RectOperation?.Attach((x, y, w, h) => Dispatcher.Invoke(() =>
+            {
+                Canvas.SetLeft(_clipRect, x);
+                Canvas.SetTop(_clipRect, y);
+                _clipRect.Width = w;
+                _clipRect.Height = h;
+            }));
         }
 
         public override void OnApplyTemplate()

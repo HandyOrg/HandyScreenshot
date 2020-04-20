@@ -6,7 +6,7 @@ namespace HandyScreenshot.Controls
 {
     public class RectMaskControl : FrameworkElement
     {
-        private static readonly Brush MaskBrush = new SolidColorBrush(Color.FromArgb(0x80, 0, 0, 0));
+        private static readonly Brush MaskBrush = new SolidColorBrush(Color.FromArgb(0xA0, 0, 0, 0));
         private static readonly Rect RectZero = new Rect(0, 0, 0, 0);
 
         public static readonly DependencyProperty RectOperationProperty = DependencyProperty.Register(
@@ -46,37 +46,24 @@ namespace HandyScreenshot.Controls
 
         private void Attach()
         {
-            RectOperation?.Attach(
-                x => Dispatcher.Invoke(() =>
-                {
-                    _rightRect.X = Math.Max(x + RectOperation.Width, 0);
-                    _rightRect.Width = Math.Max(ActualWidth - x - RectOperation.Width, 0);
-                    _leftRect.Width = Math.Max(x, 0);
-                    RefreshMask();
-                }),
-                y => Dispatcher.Invoke(() =>
-                {
-                    _topRect.Height = Math.Max(y, 0);
-                    _rightRect.Y = Math.Max(y, 0);
-                    _bottomRect.Y = Math.Max(y + RectOperation.Height, 0);
-                    _bottomRect.Height = Math.Max(ActualHeight - y - RectOperation.Height, 0);
-                    _leftRect.Y = Math.Max(y, 0);
-                    RefreshMask();
-                }),
-                w => Dispatcher.Invoke(() =>
-                {
-                    _rightRect.X = Math.Max(RectOperation.X + w, 0);
-                    _rightRect.Width = Math.Max(ActualWidth - RectOperation.X - w, 0);
-                    RefreshMask();
-                }),
-                h => Dispatcher.Invoke(() =>
-                {
-                    _bottomRect.Y = Math.Max(RectOperation.Y + h, 0);
-                    _rightRect.Height = Math.Max(h, 0);
-                    _bottomRect.Height = Math.Max(ActualHeight - RectOperation.Y - h, 0);
-                    _leftRect.Height = Math.Max(h, 0);
-                    RefreshMask();
-                }));
+            RectOperation?.Attach((x, y, w, h) => Dispatcher.Invoke(() =>
+            {
+                _leftRect.Y = Math.Max(y, 0);
+                _leftRect.Width = Math.Max(x, 0);
+                _leftRect.Height = Math.Max(h, 0);
+
+                _topRect.Height = Math.Max(y, 0);
+
+                _rightRect.X = Math.Max(x + w, 0);
+                _rightRect.Y = Math.Max(y, 0);
+                _rightRect.Width = Math.Max(ActualWidth - x - w, 0);
+                _rightRect.Height = Math.Max(h, 0);
+
+                _bottomRect.Y = Math.Max(y + h, 0);
+                _bottomRect.Height = Math.Max(ActualHeight - y - h, 0);
+
+                DrawRectangles();
+            }));
         }
 
         private void OnSizeChanged(object sender, SizeChangedEventArgs e)
@@ -85,18 +72,22 @@ namespace HandyScreenshot.Controls
             _bottomRect.Width = ActualWidth;
         }
 
-        private void RefreshMask()
+        private void DrawRectangles()
         {
             var dc = ((DrawingVisual)_children[0]).RenderOpen();
-            foreach (var rect in new[] { _leftRect, _topRect, _rightRect, _bottomRect })
-            {
-                if (rect.Width * rect.Height > 0)
-                {
-                    dc.DrawRectangle(Background, null, rect);
-                }
-            }
-
+            DrawRectangle(dc, _leftRect);
+            DrawRectangle(dc, _topRect);
+            DrawRectangle(dc, _rightRect);
+            DrawRectangle(dc, _bottomRect);
             dc.Close();
+        }
+
+        private void DrawRectangle(DrawingContext dc, Rect rect)
+        {
+            if (rect.Width * rect.Height > 0)
+            {
+                dc.DrawRectangle(Background, null, rect);
+            }
         }
 
         protected override int VisualChildrenCount => _children.Count;

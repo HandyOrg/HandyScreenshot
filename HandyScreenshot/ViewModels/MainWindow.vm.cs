@@ -166,22 +166,46 @@ namespace HandyScreenshot.ViewModels
                     }
                     else if (Status == ClipBoxStatus.ResizingLeftEdge)
                     {
-                        var (displayX, displayY) = ToDisplayPoint(physicalX, physicalY);
+                        var displayX = ToDisplayX(physicalX);
+                        if (displayX > RectOperation.X + RectOperation.Width)
+                        {
+                            Status = ClipBoxStatus.ResizingRightEdge;
+                            break;
+                        }
+
                         RectOperation.SetLeft(displayX);
                     }
                     else if (Status == ClipBoxStatus.ResizingTopEdge)
                     {
-                        var (displayX, displayY) = ToDisplayPoint(physicalX, physicalY);
+                        var displayY = ToDisplayY(physicalY);
+                        if (displayY > RectOperation.Y + RectOperation.Height)
+                        {
+                            Status = ClipBoxStatus.ResizingBottomEdge;
+                            break;
+                        }
+
                         RectOperation.SetTop(displayY);
                     }
                     else if (Status == ClipBoxStatus.ResizingRightEdge)
                     {
-                        var (displayX, displayY) = ToDisplayPoint(physicalX, physicalY);
+                        var displayX = ToDisplayX(physicalX);
+                        if (displayX < RectOperation.X)
+                        {
+                            Status = ClipBoxStatus.ResizingLeftEdge;
+                            break;
+                        }
+
                         RectOperation.SetRight(displayX);
                     }
                     else if (Status == ClipBoxStatus.ResizingBottomEdge)
                     {
-                        var (displayX, displayY) = ToDisplayPoint(physicalX, physicalY);
+                        var displayY = ToDisplayY(physicalY);
+                        if (displayY < RectOperation.Y)
+                        {
+                            Status = ClipBoxStatus.ResizingTopEdge;
+                            break;
+                        }
+
                         RectOperation.SetBottom(displayY);
                     }
                     else if (Status == ClipBoxStatus.Moving)
@@ -224,6 +248,10 @@ namespace HandyScreenshot.ViewModels
                 (x - MonitorInfo.PhysicalScreenRect.X) * ScaleX,
                 (y - MonitorInfo.PhysicalScreenRect.Y) * ScaleY);
         }
+
+        private double ToDisplayX(double x) => (x - MonitorInfo.PhysicalScreenRect.X) * ScaleX;
+
+        private double ToDisplayY(double y) => (y - MonitorInfo.PhysicalScreenRect.Y) * ScaleY;
 
         private static (double X, double Y) ToPoint(NativeMethods.POINT point) => (point.X, point.Y);
     }
