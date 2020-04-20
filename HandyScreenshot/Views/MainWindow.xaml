@@ -8,14 +8,14 @@
         mc:Ignorable="d"
         Title="MainWindow"
         WindowStyle="None"
-        AllowsTransparency="True"
+        ResizeMode="NoResize"
         ShowInTaskbar="False"
         BorderThickness="0"
         Topmost="True"
         d:DataContext="{d:DesignInstance {x:Type viewModels:MainWindowViewModel}}">
 
     <WindowChrome.WindowChrome>
-        <WindowChrome CaptionHeight="30" />
+        <WindowChrome GlassFrameThickness="-1" />
     </WindowChrome.WindowChrome>
 
     <Window.Background>
