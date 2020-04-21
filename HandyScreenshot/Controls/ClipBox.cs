@@ -4,7 +4,7 @@ using System.Windows.Media;
 
 namespace HandyScreenshot.Controls
 {
-    public class ClipRectControl : FrameworkElement
+    public class ClipBox : FrameworkElement
     {
         private const double MinDisplayPointLimit = 80;
         private const double PointRadius = 4.5;
@@ -15,7 +15,7 @@ namespace HandyScreenshot.Controls
         private static readonly Pen PrimaryPen;
         private static readonly Pen WhitePen;
 
-        static ClipRectControl()
+        static ClipBox()
         {
             MaskBrush = new SolidColorBrush(Color.FromArgb(0xA0, 0, 0, 0));
             MaskBrush.Freeze();
@@ -27,16 +27,16 @@ namespace HandyScreenshot.Controls
             WhitePen.Freeze();
 
             BackgroundProperty = DependencyProperty.Register(
-                "Background", typeof(Brush), typeof(ClipRectControl), new PropertyMetadata(MaskBrush));
+                "Background", typeof(Brush), typeof(ClipBox), new PropertyMetadata(MaskBrush));
         }
 
         public static readonly DependencyProperty RectOperationProperty = DependencyProperty.Register(
-            "RectOperation", typeof(RectOperation), typeof(ClipRectControl), new PropertyMetadata(null, RectOperationChanged));
+            "RectOperation", typeof(RectOperation), typeof(ClipBox), new PropertyMetadata(null, RectOperationChanged));
         public static readonly DependencyProperty BackgroundProperty;
 
         private static void RectOperationChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
-            if (d is ClipRectControl rectMaskControl)
+            if (d is ClipBox rectMaskControl)
             {
                 rectMaskControl.Attach();
             }
@@ -72,7 +72,7 @@ namespace HandyScreenshot.Controls
         private Point _leftBottomPoint = PointZero;
         private Point _leftPoint = PointZero;
 
-        public ClipRectControl()
+        public ClipBox()
         {
             var children = new VisualCollection(this) { new DrawingVisual() };
             _drawingVisual = (DrawingVisual)children[0];

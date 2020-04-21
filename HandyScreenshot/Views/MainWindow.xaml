@@ -37,11 +37,12 @@
             <RowDefinition />
         </Grid.RowDefinitions>
 
-        <controls:ClipRectControl Grid.Column="0"
-                                  Grid.Row="0"
-                                  Grid.ColumnSpan="2"
-                                  Grid.RowSpan="2"
-                                  RectOperation="{Binding RectOperation}" />
+        <controls:ClipBox Grid.Column="0"
+                          Grid.Row="0"
+                          Grid.ColumnSpan="2"
+                          Grid.RowSpan="2"
+                          Cursor="AppStarting"
+                          RectOperation="{Binding RectOperation}" />
 
         <TextBlock Grid.Column="1"
                    Grid.Row="0"
