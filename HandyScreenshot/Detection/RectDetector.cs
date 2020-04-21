@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Windows;
 using System.Windows.Automation;
 using HandyScreenshot.Common;
 using Condition = System.Windows.Automation.Condition;

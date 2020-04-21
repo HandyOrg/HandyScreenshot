@@ -2,10 +2,12 @@
 
 namespace HandyScreenshot.Controls
 {
-    public delegate void SetRect(double x, double y, double width, double height);
+    public delegate void RectChangedEventHandler(double x, double y, double width, double height);
 
     public class RectOperation
     {
+        public event RectChangedEventHandler RectChanged;
+
         public double X { get; private set; }
 
         public double Y { get; private set; }
@@ -14,19 +16,13 @@ namespace HandyScreenshot.Controls
 
         public double Height { get; private set; }
 
-        private SetRect _setRect = (x, y, w, h) => { };
-
-        public void Attach(SetRect setRect) => _setRect += setRect;
-
         public bool Contains(double x, double y) => X <= x && Y <= y && x <= X + Width && y <= Y + Height;
-
-        private void Submit() => _setRect(X, Y, Width, Height);
 
         public void Offset(double x1, double y1, double x2, double y2)
         {
             X = X + x2 - x1;
             Y = Y + y2 - y1;
-            Submit();
+            OnRectChanged();
         }
 
         public void Union(double x, double y)
@@ -35,7 +31,7 @@ namespace HandyScreenshot.Controls
             Height = Math.Max(Height, Y < y ? y - Y : Y - y + Height);
             X = Math.Min(X, x);
             Y = Math.Min(Y, y);
-            Submit();
+            OnRectChanged();
         }
 
         public void Set(double x, double y, double width, double height)
@@ -44,7 +40,7 @@ namespace HandyScreenshot.Controls
             Y = y;
             Width = width;
             Height = height;
-            Submit();
+            OnRectChanged();
         }
 
         public void SetLeft(double left)
@@ -53,7 +49,7 @@ namespace HandyScreenshot.Controls
 
             Width = X + Width - left;
             X = left;
-            Submit();
+            OnRectChanged();
         }
 
         public void SetRight(double right)
@@ -61,7 +57,7 @@ namespace HandyScreenshot.Controls
             if (right < X) return;
 
             Width = right - X;
-            Submit();
+            OnRectChanged();
         }
 
         public void SetTop(double top)
@@ -70,7 +66,7 @@ namespace HandyScreenshot.Controls
 
             Height = Y + Height - top;
             Y = top;
-            Submit();
+            OnRectChanged();
         }
 
         public void SetBottom(double bottom)
@@ -78,7 +74,9 @@ namespace HandyScreenshot.Controls
             if (bottom < Y) return;
 
             Height = bottom - Y;
-            Submit();
+            OnRectChanged();
         }
+
+        protected virtual void OnRectChanged() => RectChanged?.Invoke(X, Y, Width, Height);
     }
 }

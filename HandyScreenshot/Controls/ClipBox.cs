@@ -72,7 +72,15 @@ namespace HandyScreenshot.Controls
 
         private void Attach()
         {
-            RectOperation?.Attach((x, y, w, h) => Dispatcher.Invoke(() =>
+            if (RectOperation != null)
+            {
+                RectOperation.RectChanged += OnRectChanged;
+            }
+        }
+
+        private void OnRectChanged(double x, double y, double w, double h)
+        {
+            Dispatcher.Invoke(() =>
             {
                 var h0 = Math.Max(h, 0);
                 var r = x + w;
@@ -128,7 +136,7 @@ namespace HandyScreenshot.Controls
                 }
 
                 RefreshDrawingVisual();
-            }));
+            });
         }
 
         private void OnSizeChanged(object sender, SizeChangedEventArgs e)
@@ -141,11 +149,11 @@ namespace HandyScreenshot.Controls
         {
             var dc = _drawingVisual.RenderOpen();
 
-            DrawRectangle(dc, _leftRect, MaskBrush);
-            DrawRectangle(dc, _topRect, MaskBrush);
-            DrawRectangle(dc, _rightRect, MaskBrush);
-            DrawRectangle(dc, _bottomRect, MaskBrush);
-            DrawRectangle(dc, _centralRect, Brushes.Transparent, PrimaryPen);
+            dc.DrawRectangle(MaskBrush, null, _leftRect);
+            dc.DrawRectangle(MaskBrush, null, _topRect);
+            dc.DrawRectangle(MaskBrush, null, _rightRect);
+            dc.DrawRectangle(MaskBrush, null, _bottomRect);
+            dc.DrawRectangle(Brushes.Transparent, PrimaryPen, _centralRect);
 
             if (_centralRect.Width > MinDisplayPointLimit && _centralRect.Height > MinDisplayPointLimit)
             {
@@ -160,14 +168,6 @@ namespace HandyScreenshot.Controls
             }
 
             dc.Close();
-        }
-
-        private static void DrawRectangle(DrawingContext dc, Rect rect, Brush background, Pen pen = null)
-        {
-            if (rect.Width * rect.Height > 0)
-            {
-                dc.DrawRectangle(background, pen, rect);
-            }
         }
 
         private static void DrawPoint(DrawingContext dc, Point point)

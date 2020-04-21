@@ -179,17 +179,6 @@ namespace HandyScreenshot.ViewModels
 
                         RectOperation.SetLeft(displayX);
                     }
-                    else if (Status == ClipBoxStatus.ResizingTopEdge)
-                    {
-                        var displayY = ToDisplayY(physicalY);
-                        if (displayY > RectOperation.Y + RectOperation.Height)
-                        {
-                            Status = ClipBoxStatus.ResizingBottomEdge;
-                            break;
-                        }
-
-                        RectOperation.SetTop(displayY);
-                    }
                     else if (Status == ClipBoxStatus.ResizingRightEdge)
                     {
                         var displayX = ToDisplayX(physicalX);
@@ -200,6 +189,17 @@ namespace HandyScreenshot.ViewModels
                         }
 
                         RectOperation.SetRight(displayX);
+                    }
+                    else if (Status == ClipBoxStatus.ResizingTopEdge)
+                    {
+                        var displayY = ToDisplayY(physicalY);
+                        if (displayY > RectOperation.Y + RectOperation.Height)
+                        {
+                            Status = ClipBoxStatus.ResizingBottomEdge;
+                            break;
+                        }
+
+                        RectOperation.SetTop(displayY);
                     }
                     else if (Status == ClipBoxStatus.ResizingBottomEdge)
                     {
