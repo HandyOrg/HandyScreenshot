@@ -8,6 +8,7 @@ namespace HandyScreenshot.Controls
     {
         private const double MinDisplayPointLimit = 80;
         private const double PointRadius = 4.5;
+
         private static readonly Rect RectZero = new Rect(0, 0, 0, 0);
         private static readonly Point PointZero = new Point(0, 0);
         private static readonly Brush MaskBrush;
@@ -25,14 +26,10 @@ namespace HandyScreenshot.Controls
             PrimaryPen.Freeze();
             WhitePen = new Pen(Brushes.White, 1.5);
             WhitePen.Freeze();
-
-            BackgroundProperty = DependencyProperty.Register(
-                "Background", typeof(Brush), typeof(ClipBox), new PropertyMetadata(MaskBrush));
         }
 
         public static readonly DependencyProperty RectOperationProperty = DependencyProperty.Register(
             "RectOperation", typeof(RectOperation), typeof(ClipBox), new PropertyMetadata(null, RectOperationChanged));
-        public static readonly DependencyProperty BackgroundProperty;
 
         private static void RectOperationChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
@@ -47,12 +44,6 @@ namespace HandyScreenshot.Controls
         {
             get => (RectOperation)GetValue(RectOperationProperty);
             set => SetValue(RectOperationProperty, value);
-        }
-
-        public Brush Background
-        {
-            get => (Brush)GetValue(BackgroundProperty);
-            set => SetValue(BackgroundProperty, value);
         }
 
         private readonly DrawingVisual _drawingVisual;
@@ -150,10 +141,10 @@ namespace HandyScreenshot.Controls
         {
             var dc = _drawingVisual.RenderOpen();
 
-            DrawRectangle(dc, _leftRect, Background);
-            DrawRectangle(dc, _topRect, Background);
-            DrawRectangle(dc, _rightRect, Background);
-            DrawRectangle(dc, _bottomRect, Background);
+            DrawRectangle(dc, _leftRect, MaskBrush);
+            DrawRectangle(dc, _topRect, MaskBrush);
+            DrawRectangle(dc, _rightRect, MaskBrush);
+            DrawRectangle(dc, _bottomRect, MaskBrush);
             DrawRectangle(dc, _centralRect, Brushes.Transparent, PrimaryPen);
 
             if (_centralRect.Width > MinDisplayPointLimit && _centralRect.Height > MinDisplayPointLimit)
