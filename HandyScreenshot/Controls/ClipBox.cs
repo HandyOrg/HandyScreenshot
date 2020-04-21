@@ -33,9 +33,9 @@ namespace HandyScreenshot.Controls
 
         private static void RectOperationChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
-            if (d is ClipBox rectMaskControl)
+            if (d is ClipBox clipBox)
             {
-                rectMaskControl.Attach();
+                clipBox.Attach();
             }
         }
 
