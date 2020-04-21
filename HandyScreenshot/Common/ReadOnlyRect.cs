@@ -39,28 +39,19 @@ namespace HandyScreenshot.Common
 
         public ReadOnlyRect Intersect(ReadOnlyRect rect)
         {
-            if (!IntersectsWith(rect))
-            {
-                return Empty;
-            }
+            if (!IntersectsWith(rect)) return Empty;
 
             double x = Math.Max(X, rect.X);
             double y = Math.Max(Y, rect.Y);
             double width = Math.Max(Math.Min(X + Width, rect.X + rect.Width) - x, 0.0);
             double height = Math.Max(Math.Min(Y + Height, rect.Y + rect.Height) - y, 0.0);
             return (x, y, width, height);
-
-
         }
 
         public ReadOnlyRect Union(ReadOnlyRect rect)
         {
-            if (IsEmpty)
-            {
-                return Empty;
-            }
+            if (IsEmpty || rect.IsEmpty) return Empty;
 
-            if (rect.IsEmpty) return Empty;
             double x = Math.Min(X, rect.X);
             double y = Math.Min(Y, rect.Y);
             // ReSharper disable CompareOfFloatsByEqualityOperator
@@ -74,10 +65,7 @@ namespace HandyScreenshot.Common
             return (x, y, width, height);
         }
 
-        public ReadOnlyRect Offset(double x, double y)
-        {
-            return (X - x, Y - y, Width, Height);
-        }
+        public ReadOnlyRect Offset(double x, double y) => (X - x, Y - y, Width, Height);
 
         public ReadOnlyRect Scale(double scaleX, double scaleY)
         {
@@ -100,20 +88,14 @@ namespace HandyScreenshot.Common
             return new ReadOnlyRect(x, y, w, h);
         }
 
-        public static implicit operator ReadOnlyRect(Rect rect)
-        {
-            return new ReadOnlyRect(rect.X, rect.Y, rect.Width, rect.Height);
-        }
+        public static implicit operator ReadOnlyRect(Rect rect) => new ReadOnlyRect(rect.X, rect.Y, rect.Width, rect.Height);
 
         public bool Equals(ReadOnlyRect other)
         {
             return X.Equals(other.X) && Y.Equals(other.Y) && Width.Equals(other.Width) && Height.Equals(other.Height);
         }
 
-        public override bool Equals(object obj)
-        {
-            return obj is ReadOnlyRect other && Equals(other);
-        }
+        public override bool Equals(object obj) => obj is ReadOnlyRect other && Equals(other);
 
         public override int GetHashCode()
         {
@@ -127,14 +109,8 @@ namespace HandyScreenshot.Common
             }
         }
 
-        public static bool operator ==(ReadOnlyRect left, ReadOnlyRect right)
-        {
-            return left.Equals(right);
-        }
+        public static bool operator ==(ReadOnlyRect left, ReadOnlyRect right) => left.Equals(right);
 
-        public static bool operator !=(ReadOnlyRect left, ReadOnlyRect right)
-        {
-            return !(left == right);
-        }
+        public static bool operator !=(ReadOnlyRect left, ReadOnlyRect right) => !(left == right);
     }
 }

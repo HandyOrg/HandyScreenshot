@@ -37,6 +37,12 @@
             <RowDefinition />
         </Grid.RowDefinitions>
 
+        <controls:ClipRectControl Grid.Column="0"
+                                  Grid.Row="0"
+                                  Grid.ColumnSpan="2"
+                                  Grid.RowSpan="2"
+                                  RectOperation="{Binding RectOperation}" />
+
         <TextBlock Grid.Column="1"
                    Grid.Row="0"
                    Background="#AA000000"
@@ -55,16 +61,5 @@
             Dpi:
             <Run Text="{Binding Path=DpiString, Mode=OneWay}" />
         </TextBlock>
-
-        <controls:ClipRectControl Grid.Column="0"
-                                  Grid.Row="0"
-                                  Grid.ColumnSpan="2"
-                                  Grid.RowSpan="2"
-                                  RectOperation="{Binding RectOperation}" />
-        <!--<controls:RectCanvas Grid.Column="0"
-                             Grid.Row="0"
-                             Grid.ColumnSpan="2"
-                             Grid.RowSpan="2"
-                             RectOperation="{Binding RectOperation}" />-->
     </Grid>
 </Window>

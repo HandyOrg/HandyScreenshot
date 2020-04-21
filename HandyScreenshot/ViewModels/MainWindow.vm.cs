@@ -8,16 +8,14 @@ using HandyScreenshot.Common;
 using HandyScreenshot.Controls;
 using HandyScreenshot.Detection;
 using HandyScreenshot.Helpers;
-using HandyScreenshot.Interop;
 using HandyScreenshot.Mvvm;
 
 namespace HandyScreenshot.ViewModels
 {
     public class MainWindowViewModel : BindableBase
     {
-        private ClipBoxStatus _status;
-
         private string _dpiString;
+        private ClipBoxStatus _status;
 
         public string DpiString
         {
@@ -25,13 +23,13 @@ namespace HandyScreenshot.ViewModels
             set => SetProperty(ref _dpiString, value);
         }
 
-        public RectOperation RectOperation { get; } = new RectOperation();
-
         public ClipBoxStatus Status
         {
             get => _status;
             set => SetProperty(ref _status, value);
         }
+
+        public RectOperation RectOperation { get; } = new RectOperation();
 
         public RectDetector Detector { get; set; }
 
@@ -50,8 +48,8 @@ namespace HandyScreenshot.ViewModels
             var disposable = Observable.Create<(MouseMessage message, double x, double y)>(o =>
                     Win32Helper.SubscribeMouseHook((message, info) =>
                     {
-                        var (x, y) = ToPoint(Win32Helper.GetPhysicalMousePosition());
-                        o.OnNext((message, x, y));
+                        var p = Win32Helper.GetPhysicalMousePosition();
+                        o.OnNext((message, p.X, p.Y));
                     }))
                 .ObserveOn(NewThreadScheduler.Default)
                 .Subscribe(item => SetState(item.message, item.x, item.y));
@@ -59,10 +57,16 @@ namespace HandyScreenshot.ViewModels
             SharedProperties.Disposables.Enqueue(disposable);
         }
 
+        public void Initialize()
+        {
+            var initPoint = Win32Helper.GetPhysicalMousePosition();
+            SetState(MouseMessage.MouseMove, initPoint.X, initPoint.Y);
+        }
+
         private double _displayStartPointX;
         private double _displayStartPointY;
 
-        public void SetState(MouseMessage mouseMessage, double physicalX, double physicalY)
+        private void SetState(MouseMessage mouseMessage, double physicalX, double physicalY)
         {
             switch (mouseMessage)
             {
@@ -161,7 +165,7 @@ namespace HandyScreenshot.ViewModels
                     {
                         // Update Rect
                         var (displayX, displayY) = ToDisplayPoint(physicalX, physicalY);
-                        var (x, y, w, h) = CalculateRect(_displayStartPointX, _displayStartPointY, displayX, displayY);
+                        var (x, y, w, h) = CalculateRectByTwoPoint(_displayStartPointX, _displayStartPointY, displayX, displayY);
                         RectOperation.Set(x, y, w, h);
                     }
                     else if (Status == ClipBoxStatus.ResizingLeftEdge)
@@ -226,7 +230,7 @@ namespace HandyScreenshot.ViewModels
                 : ReadOnlyRect.Zero;
         }
 
-        private static ReadOnlyRect CalculateRect(double x1, double y1, double x2, double y2)
+        private static ReadOnlyRect CalculateRectByTwoPoint(double x1, double y1, double x2, double y2)
         {
             var x = Math.Min(x1, x2);
             var y = Math.Min(y1, y2);
@@ -252,7 +256,5 @@ namespace HandyScreenshot.ViewModels
         private double ToDisplayX(double x) => (x - MonitorInfo.PhysicalScreenRect.X) * ScaleX;
 
         private double ToDisplayY(double y) => (y - MonitorInfo.PhysicalScreenRect.Y) * ScaleY;
-
-        private static (double X, double Y) ToPoint(NativeMethods.POINT point) => (point.X, point.Y);
     }
 }

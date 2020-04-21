@@ -28,12 +28,9 @@ namespace HandyScreenshot.Helpers
 
             foreach (var monitorInfo in monitorInfos)
             {
-                var window = new MainWindow();
-
                 var (scaleX, scaleY) = MonitorHelper.GetScaleFactorFromMonitor(monitorInfo.Handle);
-                SetWindowRect(window, monitorInfo.PhysicalScreenRect.Scale(primaryScreenScaleX, primaryScreenScaleY));
 
-                window.DataContext = new MainWindowViewModel
+                var vm = new MainWindowViewModel
                 {
                     MonitorInfo = monitorInfo,
                     ScaleX = scaleX,
@@ -42,9 +39,12 @@ namespace HandyScreenshot.Helpers
                     Detector = detector
                 };
 
+                var window = new MainWindow { DataContext = vm };
+                SetWindowRect(window, monitorInfo.PhysicalScreenRect.Scale(primaryScreenScaleX, primaryScreenScaleY));
                 window.Loaded += WindowOnLoaded;
-
                 window.Show();
+
+                vm.Initialize();
             }
         }
 
@@ -90,7 +90,6 @@ namespace HandyScreenshot.Helpers
             var bitmap = image.ToBitmapSource();
             //bitmap = Imaging.CreateBitmapSourceFromHBitmap(hBitmap, IntPtr.Zero, Int32Rect.Empty,
             //    BitmapSizeOptions.FromEmptyOptions());
-            bitmap.Freeze();
 
             DeleteObject(hBitmap);
             DeleteDC(hdcDest);
@@ -110,6 +109,7 @@ namespace HandyScreenshot.Helpers
             bitmapImage.CacheOption = BitmapCacheOption.OnLoad;
             bitmapImage.StreamSource = memoryStream;
             bitmapImage.EndInit();
+            bitmapImage.Freeze();
 
             return bitmapImage;
         }

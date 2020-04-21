@@ -7,23 +7,41 @@ namespace HandyScreenshot.Controls
     public class ClipRectControl : FrameworkElement
     {
         private const double MinDisplayPointLimit = 80;
-        private static readonly Brush MaskBrush = new SolidColorBrush(Color.FromArgb(0xA0, 0, 0, 0));
-        private static readonly Brush PrimaryBrush = new SolidColorBrush(Color.FromRgb(0x20, 0x80, 0xf0));
-        private static readonly Pen PrimaryPen = new Pen(PrimaryBrush, 2.5);
-        private static readonly Pen WhitePen = new Pen(Brushes.White, 1.5);
+        private const double PointRadius = 4.5;
         private static readonly Rect RectZero = new Rect(0, 0, 0, 0);
         private static readonly Point PointZero = new Point(0, 0);
+        private static readonly Brush MaskBrush;
+        private static readonly Brush PrimaryBrush;
+        private static readonly Pen PrimaryPen;
+        private static readonly Pen WhitePen;
+
+        static ClipRectControl()
+        {
+            MaskBrush = new SolidColorBrush(Color.FromArgb(0xA0, 0, 0, 0));
+            MaskBrush.Freeze();
+            PrimaryBrush = new SolidColorBrush(Color.FromRgb(0x20, 0x80, 0xf0));
+            PrimaryBrush.Freeze();
+            PrimaryPen = new Pen(PrimaryBrush, 2);
+            PrimaryPen.Freeze();
+            WhitePen = new Pen(Brushes.White, 1.5);
+            WhitePen.Freeze();
+
+            BackgroundProperty = DependencyProperty.Register(
+                "Background", typeof(Brush), typeof(ClipRectControl), new PropertyMetadata(MaskBrush));
+        }
 
         public static readonly DependencyProperty RectOperationProperty = DependencyProperty.Register(
-            "RectOperation", typeof(RectOperation), typeof(ClipRectControl), new PropertyMetadata(null, (o, args) =>
+            "RectOperation", typeof(RectOperation), typeof(ClipRectControl), new PropertyMetadata(null, RectOperationChanged));
+        public static readonly DependencyProperty BackgroundProperty;
+
+        private static void RectOperationChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            if (d is ClipRectControl rectMaskControl)
             {
-                if (o is ClipRectControl rectMaskControl)
-                {
-                    rectMaskControl.Attach();
-                }
-            }));
-        public static readonly DependencyProperty BackgroundProperty = DependencyProperty.Register(
-            "Background", typeof(Brush), typeof(ClipRectControl), new PropertyMetadata(MaskBrush));
+                rectMaskControl.Attach();
+            }
+        }
+
 
         public RectOperation RectOperation
         {
@@ -65,27 +83,28 @@ namespace HandyScreenshot.Controls
         {
             RectOperation?.Attach((x, y, w, h) => Dispatcher.Invoke(() =>
             {
+                var h0 = Math.Max(h, 0);
                 var r = x + w;
                 var b = y + h;
 
-                _leftRect.Y = Math.Max(y, 0);
+                _leftRect.Y = y;
                 _leftRect.Width = Math.Max(x, 0);
-                _leftRect.Height = Math.Max(h, 0);
+                _leftRect.Height = h0;
 
                 _topRect.Height = Math.Max(y, 0);
 
-                _rightRect.X = Math.Max(r, 0);
-                _rightRect.Y = Math.Max(y, 0);
+                _rightRect.X = r;
+                _rightRect.Y = y;
                 _rightRect.Width = Math.Max(ActualWidth - r, 0);
-                _rightRect.Height = Math.Max(h, 0);
+                _rightRect.Height = h0;
 
-                _bottomRect.Y = Math.Max(b, 0);
+                _bottomRect.Y = b;
                 _bottomRect.Height = Math.Max(ActualHeight - b, 0);
 
                 _centralRect.X = x;
                 _centralRect.Y = y;
-                _centralRect.Width = w;
-                _centralRect.Height = h;
+                _centralRect.Width = Math.Max(w, 0);
+                _centralRect.Height = h0;
 
                 if (_centralRect.Width > MinDisplayPointLimit && _centralRect.Height > MinDisplayPointLimit)
                 {
@@ -162,7 +181,7 @@ namespace HandyScreenshot.Controls
 
         private static void DrawPoint(DrawingContext dc, Point point)
         {
-            dc.DrawEllipse(PrimaryBrush, WhitePen, point, 5, 5);
+            dc.DrawEllipse(PrimaryBrush, WhitePen, point, PointRadius, PointRadius);
         }
 
         protected override int VisualChildrenCount => 1;
