@@ -63,6 +63,18 @@ namespace HandyScreenshot.ViewModels
             SetState(MouseMessage.MouseMove, initPoint.X, initPoint.Y);
         }
 
+        private void SetMagnifierState(MouseMessage mouseMessage, double physicalX, double physicalY)
+        {
+            if (mouseMessage == MouseMessage.MouseMove)
+            {
+                var (displayX, displayY) = ToDisplayPoint(physicalX, physicalY);
+                if (ClipBoxRect.Contains(displayX, displayY))
+                {
+
+                }
+            }
+        }
+
         private double _displayStartPointX;
         private double _displayStartPointY;
 
