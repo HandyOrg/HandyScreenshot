@@ -31,6 +31,8 @@ namespace HandyScreenshot.ViewModels
 
         public RectProxy ClipBoxRect { get; } = new RectProxy();
 
+        public PointProxy MousePoint { get; } = new PointProxy();
+
         public RectDetector Detector { get; set; }
 
         public BitmapSource Background { get; set; }
@@ -52,7 +54,12 @@ namespace HandyScreenshot.ViewModels
                         o.OnNext((message, p.X, p.Y));
                     }))
                 .ObserveOn(NewThreadScheduler.Default)
-                .Subscribe(item => SetState(item.message, item.x, item.y));
+                .Subscribe(item =>
+                {
+                    (MouseMessage message, double x, double y) = item;
+                    SetState(message, x, y);
+                    SetMagnifierState(message, x, y);
+                });
 
             SharedProperties.Disposables.Enqueue(disposable);
         }
@@ -70,7 +77,7 @@ namespace HandyScreenshot.ViewModels
                 var (displayX, displayY) = ToDisplayPoint(physicalX, physicalY);
                 if (ClipBoxRect.Contains(displayX, displayY))
                 {
-
+                    MousePoint.Set(displayX, displayY);
                 }
             }
         }

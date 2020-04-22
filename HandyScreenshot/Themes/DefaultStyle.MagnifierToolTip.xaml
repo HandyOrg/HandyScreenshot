@@ -2,25 +2,80 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:controls="clr-namespace:HandyScreenshot.Controls">
 
+    <SolidColorBrush x:Key="Brush">#802080f0</SolidColorBrush>
+
     <Style TargetType="{x:Type controls:MagnifierToolTip}">
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type controls:MagnifierToolTip}">
-                    <Border>
-                        <Border BorderBrush="Black"
-                                BorderThickness="1">
-                            <Border BorderBrush="White"
+                    <Canvas UseLayoutRounding="True">
+                        <Grid Canvas.Left="{Binding Path=Position.X, Mode=OneWay, RelativeSource={RelativeSource TemplatedParent}}"
+                              Canvas.Top="{Binding Path=Position.Y, Mode=OneWay, RelativeSource={RelativeSource TemplatedParent}}">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+
+                            <Border BorderBrush="Black"
                                     BorderThickness="1">
-                                <Border>
-                                    <Border.Background>
-                                        <VisualBrush ViewboxUnits="Absolute"
-                                                     Visual="{Binding Path=Target, Mode=OneWay, RelativeSource={RelativeSource TemplatedParent}}"
-                                                     Viewbox="{Binding Path=Region, Mode=OneWay, RelativeSource={RelativeSource TemplatedParent}}" />
-                                    </Border.Background>
+                                <Border BorderBrush="White"
+                                        BorderThickness="1">
+                                    <Grid>
+                                        <Border Width="144"
+                                                Height="90">
+                                            <Border.Background>
+                                                <VisualBrush x:Name="PART_VisualBrush"
+                                                             ViewboxUnits="Absolute"
+                                                             Visual="{Binding Path=Target, Mode=OneWay, RelativeSource={RelativeSource TemplatedParent}}"
+                                                             Viewbox="{Binding Path=Region, Mode=OneWay, RelativeSource={RelativeSource TemplatedParent}}" />
+                                            </Border.Background>
+                                        </Border>
+                                        <Rectangle HorizontalAlignment="Left"
+                                                   VerticalAlignment="Center"
+                                                   Width="68"
+                                                   Height="8"
+                                                   Fill="{StaticResource Brush}" />
+                                        <Rectangle HorizontalAlignment="Right"
+                                                   VerticalAlignment="Center"
+                                                   Width="68"
+                                                   Height="8"
+                                                   Fill="{StaticResource Brush}" />
+                                        <Rectangle HorizontalAlignment="Center"
+                                                   VerticalAlignment="Top"
+                                                   Width="8"
+                                                   Height="41"
+                                                   Fill="{StaticResource Brush}" />
+                                        <Rectangle HorizontalAlignment="Center"
+                                                   VerticalAlignment="Bottom"
+                                                   Width="8"
+                                                   Height="41"
+                                                   Fill="{StaticResource Brush}" />
+                                        <Border HorizontalAlignment="Center"
+                                                VerticalAlignment="Center"
+                                                Width="10"
+                                                Height="10"
+                                                BorderBrush="Black"
+                                                BorderThickness="1"
+                                                Background="Transparent">
+                                            <Border BorderBrush="White"
+                                                    BorderThickness="1"
+                                                    Background="Transparent" />
+                                        </Border>
+                                    </Grid>
                                 </Border>
                             </Border>
-                        </Border>
-                    </Border>
+
+                            <Grid Grid.Row="1"
+                                  Background="#C0000000">
+                                <TextBlock Foreground="White"
+                                           HorizontalAlignment="Center"
+                                           Margin="0 4">
+                                    (<Run Text="{Binding Path=MousePoint.X, StringFormat='{}{0:0}', Mode=OneWay, RelativeSource={RelativeSource TemplatedParent}}" />,
+                                    <Run Text="{Binding Path=MousePoint.Y, StringFormat='{}{0:0}', Mode=OneWay, RelativeSource={RelativeSource TemplatedParent}}" />)
+                                </TextBlock>
+                            </Grid>
+                        </Grid>
+                    </Canvas>
                 </ControlTemplate>
             </Setter.Value>
         </Setter>

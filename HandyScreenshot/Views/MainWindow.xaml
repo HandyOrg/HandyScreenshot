@@ -15,13 +15,8 @@
         d:DataContext="{d:DesignInstance {x:Type viewModels:MainWindowViewModel}}">
 
     <WindowChrome.WindowChrome>
-        <WindowChrome CaptionHeight="0"
-                      GlassFrameThickness="-1" />
+        <WindowChrome GlassFrameThickness="-1" />
     </WindowChrome.WindowChrome>
-
-    <Window.Background>
-        <ImageBrush ImageSource="{Binding Background}" />
-    </Window.Background>
 
     <Window.InputBindings>
         <KeyBinding Key="Escape"
@@ -38,11 +33,26 @@
             <RowDefinition />
         </Grid.RowDefinitions>
 
+        <Image x:Name="Screenshot"
+               Grid.Column="0"
+               Grid.Row="0"
+               Grid.ColumnSpan="2"
+               Grid.RowSpan="2"
+               RenderOptions.BitmapScalingMode="NearestNeighbor"
+               Source="{Binding Background}" />
+
         <controls:ClipBox Grid.Column="0"
                           Grid.Row="0"
                           Grid.ColumnSpan="2"
                           Grid.RowSpan="2"
                           RectProxy="{Binding ClipBoxRect}" />
+
+        <controls:MagnifierToolTip Grid.Column="0"
+                                   Grid.Row="0"
+                                   Grid.ColumnSpan="2"
+                                   Grid.RowSpan="2"
+                                   Target="{Binding ElementName=Screenshot}"
+                                   PointProxy="{Binding MousePoint}" />
 
         <TextBlock Grid.Column="1"
                    Grid.Row="0"
