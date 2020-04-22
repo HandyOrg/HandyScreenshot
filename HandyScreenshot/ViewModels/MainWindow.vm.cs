@@ -29,7 +29,7 @@ namespace HandyScreenshot.ViewModels
             set => SetProperty(ref _status, value);
         }
 
-        public RectOperation RectOperation { get; } = new RectOperation();
+        public RectProxy ClipBoxRect { get; } = new RectProxy();
 
         public RectDetector Detector { get; set; }
 
@@ -79,42 +79,42 @@ namespace HandyScreenshot.ViewModels
                     else if (Status == ClipBoxStatus.Static)
                     {
                         (double displayX, double displayY) = ToDisplayPoint(physicalX, physicalY);
-                        if (RectOperation.Contains(displayX, displayY))
+                        if (ClipBoxRect.Contains(displayX, displayY))
                         {
                             Status = ClipBoxStatus.Moving;
                             (_displayStartPointX, _displayStartPointY) = ToDisplayPoint(physicalX, physicalY);
                         }
                         else
                         {
-                            var right = RectOperation.X + RectOperation.Width;
-                            var bottom = RectOperation.Y + RectOperation.Height;
-                            if (displayX < RectOperation.X && displayY < RectOperation.Y)
+                            var right = ClipBoxRect.X + ClipBoxRect.Width;
+                            var bottom = ClipBoxRect.Y + ClipBoxRect.Height;
+                            if (displayX < ClipBoxRect.X && displayY < ClipBoxRect.Y)
                             {
                                 Status = ClipBoxStatus.ResizingVertex;
                                 _displayStartPointX = right;
                                 _displayStartPointY = bottom;
                             }
-                            else if (displayX > right && displayY < RectOperation.Y)
+                            else if (displayX > right && displayY < ClipBoxRect.Y)
                             {
                                 Status = ClipBoxStatus.ResizingVertex;
-                                _displayStartPointX = RectOperation.X;
+                                _displayStartPointX = ClipBoxRect.X;
                                 _displayStartPointY = bottom;
                             }
-                            else if (displayX < RectOperation.X && displayY > bottom)
+                            else if (displayX < ClipBoxRect.X && displayY > bottom)
                             {
                                 Status = ClipBoxStatus.ResizingVertex;
                                 _displayStartPointX = right;
-                                _displayStartPointY = RectOperation.Y;
+                                _displayStartPointY = ClipBoxRect.Y;
                             }
                             else if (displayX > right && displayY > bottom)
                             {
                                 Status = ClipBoxStatus.ResizingVertex;
-                                _displayStartPointX = RectOperation.X;
-                                _displayStartPointY = RectOperation.Y;
+                                _displayStartPointX = ClipBoxRect.X;
+                                _displayStartPointY = ClipBoxRect.Y;
                             }
-                            else if (displayX > RectOperation.X && displayX < right)
+                            else if (displayX > ClipBoxRect.X && displayX < right)
                             {
-                                if (displayY < RectOperation.Y)
+                                if (displayY < ClipBoxRect.Y)
                                 {
                                     Status = ClipBoxStatus.ResizingTopEdge;
                                 }
@@ -123,9 +123,9 @@ namespace HandyScreenshot.ViewModels
                                     Status = ClipBoxStatus.ResizingBottomEdge;
                                 }
                             }
-                            else if (displayY > RectOperation.Y && displayY < bottom)
+                            else if (displayY > ClipBoxRect.Y && displayY < bottom)
                             {
-                                if (displayX < RectOperation.X)
+                                if (displayX < ClipBoxRect.X)
                                 {
                                     Status = ClipBoxStatus.ResizingLeftEdge;
                                 }
@@ -135,7 +135,7 @@ namespace HandyScreenshot.ViewModels
                                 }
                             }
 
-                            RectOperation.Union(displayX, displayY);
+                            ClipBoxRect.Union(displayX, displayY);
                         }
                     }
                     break;
@@ -147,7 +147,7 @@ namespace HandyScreenshot.ViewModels
                     {
                         Status = ClipBoxStatus.AutoDetect;
                         var (x, y, w, h) = DetectRectFromPhysicalPoint(physicalX, physicalY);
-                        RectOperation.Set(x, y, w, h);
+                        ClipBoxRect.Set(x, y, w, h);
                     }
                     else if (Status == ClipBoxStatus.AutoDetect)
                     {
@@ -159,63 +159,63 @@ namespace HandyScreenshot.ViewModels
                     if (Status == ClipBoxStatus.AutoDetect)
                     {
                         var (x, y, w, h) = DetectRectFromPhysicalPoint(physicalX, physicalY);
-                        RectOperation.Set(x, y, w, h);
+                        ClipBoxRect.Set(x, y, w, h);
                     }
                     else if (Status == ClipBoxStatus.ResizingVertex)
                     {
                         // Update Rect
                         var (displayX, displayY) = ToDisplayPoint(physicalX, physicalY);
                         var (x, y, w, h) = CalculateRectByTwoPoint(_displayStartPointX, _displayStartPointY, displayX, displayY);
-                        RectOperation.Set(x, y, w, h);
+                        ClipBoxRect.Set(x, y, w, h);
                     }
                     else if (Status == ClipBoxStatus.ResizingLeftEdge)
                     {
                         var displayX = ToDisplayX(physicalX);
-                        if (displayX > RectOperation.X + RectOperation.Width)
+                        if (displayX > ClipBoxRect.X + ClipBoxRect.Width)
                         {
                             Status = ClipBoxStatus.ResizingRightEdge;
                             break;
                         }
 
-                        RectOperation.SetLeft(displayX);
+                        ClipBoxRect.SetLeft(displayX);
                     }
                     else if (Status == ClipBoxStatus.ResizingRightEdge)
                     {
                         var displayX = ToDisplayX(physicalX);
-                        if (displayX < RectOperation.X)
+                        if (displayX < ClipBoxRect.X)
                         {
                             Status = ClipBoxStatus.ResizingLeftEdge;
                             break;
                         }
 
-                        RectOperation.SetRight(displayX);
+                        ClipBoxRect.SetRight(displayX);
                     }
                     else if (Status == ClipBoxStatus.ResizingTopEdge)
                     {
                         var displayY = ToDisplayY(physicalY);
-                        if (displayY > RectOperation.Y + RectOperation.Height)
+                        if (displayY > ClipBoxRect.Y + ClipBoxRect.Height)
                         {
                             Status = ClipBoxStatus.ResizingBottomEdge;
                             break;
                         }
 
-                        RectOperation.SetTop(displayY);
+                        ClipBoxRect.SetTop(displayY);
                     }
                     else if (Status == ClipBoxStatus.ResizingBottomEdge)
                     {
                         var displayY = ToDisplayY(physicalY);
-                        if (displayY < RectOperation.Y)
+                        if (displayY < ClipBoxRect.Y)
                         {
                             Status = ClipBoxStatus.ResizingTopEdge;
                             break;
                         }
 
-                        RectOperation.SetBottom(displayY);
+                        ClipBoxRect.SetBottom(displayY);
                     }
                     else if (Status == ClipBoxStatus.Moving)
                     {
                         (double x2, double y2) = ToDisplayPoint(physicalX, physicalY);
-                        RectOperation.Offset(_displayStartPointX, _displayStartPointY, x2, y2);
+                        ClipBoxRect.Offset(_displayStartPointX, _displayStartPointY, x2, y2);
                         (_displayStartPointX, _displayStartPointY) = (x2, y2);
                     }
                     break;

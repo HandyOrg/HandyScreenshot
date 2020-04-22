@@ -42,7 +42,7 @@
                           Grid.Row="0"
                           Grid.ColumnSpan="2"
                           Grid.RowSpan="2"
-                          RectOperation="{Binding RectOperation}" />
+                          RectProxy="{Binding ClipBoxRect}" />
 
         <TextBlock Grid.Column="1"
                    Grid.Row="0"

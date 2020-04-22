@@ -4,7 +4,7 @@ namespace HandyScreenshot.Controls
 {
     public delegate void RectChangedEventHandler(double x, double y, double width, double height);
 
-    public class RectOperation
+    public class RectProxy
     {
         public event RectChangedEventHandler RectChanged;
 

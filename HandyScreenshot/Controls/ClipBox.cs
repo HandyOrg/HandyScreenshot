@@ -28,10 +28,10 @@ namespace HandyScreenshot.Controls
             WhitePen.Freeze();
         }
 
-        public static readonly DependencyProperty RectOperationProperty = DependencyProperty.Register(
-            "RectOperation", typeof(RectOperation), typeof(ClipBox), new PropertyMetadata(null, RectOperationChanged));
+        public static readonly DependencyProperty RectProxyProperty = DependencyProperty.Register(
+            "RectProxy", typeof(RectProxy), typeof(ClipBox), new PropertyMetadata(null, RectProxyChanged));
 
-        private static void RectOperationChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        private static void RectProxyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
             if (d is ClipBox clipBox)
             {
@@ -40,10 +40,10 @@ namespace HandyScreenshot.Controls
         }
 
 
-        public RectOperation RectOperation
+        public RectProxy RectProxy
         {
-            get => (RectOperation)GetValue(RectOperationProperty);
-            set => SetValue(RectOperationProperty, value);
+            get => (RectProxy)GetValue(RectProxyProperty);
+            set => SetValue(RectProxyProperty, value);
         }
 
         private readonly DrawingVisual _drawingVisual;
@@ -72,9 +72,9 @@ namespace HandyScreenshot.Controls
 
         private void Attach()
         {
-            if (RectOperation != null)
+            if (RectProxy != null)
             {
-                RectOperation.RectChanged += OnRectChanged;
+                RectProxy.RectChanged += OnRectChanged;
             }
         }
 
