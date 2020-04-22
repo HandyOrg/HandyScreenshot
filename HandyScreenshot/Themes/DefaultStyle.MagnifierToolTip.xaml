@@ -2,13 +2,13 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:controls="clr-namespace:HandyScreenshot.Controls">
 
-    <SolidColorBrush x:Key="Brush">#802080f0</SolidColorBrush>
+    <SolidColorBrush x:Key="Brush">#602080f0</SolidColorBrush>
 
     <Style TargetType="{x:Type controls:MagnifierToolTip}">
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type controls:MagnifierToolTip}">
-                    <Canvas UseLayoutRounding="True">
+                    <Canvas>
                         <Grid Canvas.Left="{Binding Path=Position.X, Mode=OneWay, RelativeSource={RelativeSource TemplatedParent}}"
                               Canvas.Top="{Binding Path=Position.Y, Mode=OneWay, RelativeSource={RelativeSource TemplatedParent}}">
                             <Grid.RowDefinitions>
@@ -21,7 +21,7 @@
                                 <Border BorderBrush="White"
                                         BorderThickness="1">
                                     <Grid>
-                                        <Border Width="144"
+                                        <Border Width="150"
                                                 Height="90">
                                             <Border.Background>
                                                 <VisualBrush x:Name="PART_VisualBrush"
@@ -32,23 +32,23 @@
                                         </Border>
                                         <Rectangle HorizontalAlignment="Left"
                                                    VerticalAlignment="Center"
-                                                   Width="68"
+                                                   Width="70"
                                                    Height="8"
                                                    Fill="{StaticResource Brush}" />
                                         <Rectangle HorizontalAlignment="Right"
                                                    VerticalAlignment="Center"
-                                                   Width="68"
+                                                   Width="70"
                                                    Height="8"
                                                    Fill="{StaticResource Brush}" />
                                         <Rectangle HorizontalAlignment="Center"
                                                    VerticalAlignment="Top"
                                                    Width="8"
-                                                   Height="41"
+                                                   Height="40"
                                                    Fill="{StaticResource Brush}" />
                                         <Rectangle HorizontalAlignment="Center"
                                                    VerticalAlignment="Bottom"
                                                    Width="8"
-                                                   Height="41"
+                                                   Height="40"
                                                    Fill="{StaticResource Brush}" />
                                         <Border HorizontalAlignment="Center"
                                                 VerticalAlignment="Center"

@@ -11,6 +11,8 @@
         ResizeMode="NoResize"
         ShowInTaskbar="False"
         BorderThickness="0"
+        UseLayoutRounding="True"
+        SnapsToDevicePixels="True"
         Topmost="True"
         d:DataContext="{d:DesignInstance {x:Type viewModels:MainWindowViewModel}}">
 
