@@ -69,12 +69,41 @@
 
                             <Grid Grid.Row="1"
                                   Background="#C0000000">
-                                <TextBlock Foreground="White"
-                                           HorizontalAlignment="Center"
-                                           Margin="0 4">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="8" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="8" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="8" />
+                                </Grid.RowDefinitions>
+                                <TextBlock Grid.Row="1"
+                                           Foreground="White"
+                                           HorizontalAlignment="Center">
                                     (<Run Text="{Binding Path=MousePointX, StringFormat='{}{0:0}', Mode=OneWay, RelativeSource={RelativeSource TemplatedParent}}" />,
                                     <Run Text="{Binding Path=MousePointY, StringFormat='{}{0:0}', Mode=OneWay, RelativeSource={RelativeSource TemplatedParent}}" />)
                                 </TextBlock>
+                                <Grid Grid.Row="3"
+                                      HorizontalAlignment="Center">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="8" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <Border Width="16"
+                                            Height="16"
+                                            BorderBrush="Black"
+                                            BorderThickness="1">
+                                        <Border BorderBrush="White"
+                                                BorderThickness="1">
+                                            <Border.Background>
+                                                <SolidColorBrush Color="{Binding Path=Color, Mode=OneWay, RelativeSource={RelativeSource TemplatedParent}}" />
+                                            </Border.Background>
+                                        </Border>
+                                    </Border>
+                                    <TextBlock Grid.Column="2"
+                                               Foreground="White"
+                                               Text="{Binding Path=ColorString, Mode=OneWay, RelativeSource={RelativeSource TemplatedParent}}" />
+                                </Grid>
                             </Grid>
                         </Grid>
                     </Canvas>

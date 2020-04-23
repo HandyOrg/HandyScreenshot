@@ -4,6 +4,7 @@ using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using System.Windows.Media.Imaging;
 
 namespace HandyScreenshot.Controls
 {
@@ -15,6 +16,8 @@ namespace HandyScreenshot.Controls
             "PointProxy", typeof(PointProxy), typeof(MagnifierToolTip), new PropertyMetadata(null, PointProxyChanged));
         public static readonly DependencyProperty ScaleProperty = DependencyProperty.Register(
             "Scale", typeof(double), typeof(MagnifierToolTip), new PropertyMetadata(1D, ScaleChanged));
+        public static readonly DependencyProperty BitmapSourceProperty = DependencyProperty.Register(
+            "BitmapSource", typeof(BitmapSource), typeof(MagnifierToolTip), new PropertyMetadata(default(BitmapSource)));
 
         private static void ScaleChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
@@ -50,6 +53,11 @@ namespace HandyScreenshot.Controls
             set => SetValue(ScaleProperty, value);
         }
 
+        public BitmapSource BitmapSource
+        {
+            get => (BitmapSource)GetValue(BitmapSourceProperty);
+            set => SetValue(BitmapSourceProperty, value);
+        }
 
         private double _positionX;
         private double _positionY;
@@ -57,6 +65,8 @@ namespace HandyScreenshot.Controls
         private double _mousePointY;
         private Rect _region;
         private MagnifierToolTipSizes _sizes;
+        private string _colorString;
+        private Color _color;
 
         public double PositionX
         {
@@ -88,6 +98,18 @@ namespace HandyScreenshot.Controls
             set => SetProperty(ref _region, value);
         }
 
+        public string ColorString
+        {
+            get => _colorString;
+            set => SetProperty(ref _colorString, value);
+        }
+
+        public Color Color
+        {
+            get => _color;
+            set => SetProperty(ref _color, value);
+        }
+
         public MagnifierToolTipSizes Sizes
         {
             get => _sizes;
@@ -115,6 +137,20 @@ namespace HandyScreenshot.Controls
             MousePointX = x;
             MousePointY = y;
             Region = new Rect(x - Sizes.HalfRegionWidth, y - Sizes.HalfRegionHeight, Sizes.RegionWidth, Sizes.RegionHeight);
+            var (r, g, b) = Dispatcher.Invoke(() => GetRgb(BitmapSource, x, y));
+            ColorString = $"#{r:X2}{g:X2}{b:X2}";
+            Color = Color.FromRgb(r, g, b);
+        }
+
+        private static Int32Rect _sampleRect = new Int32Rect(0, 0, 1, 1);
+        private static readonly byte[] _sampleBytes = new byte[4];
+
+        private static (byte r, byte g, byte b) GetRgb(BitmapSource source, double x, double y)
+        {
+            _sampleRect.X = (int)(x / 0.8);
+            _sampleRect.Y = (int)(y / 0.8);
+            source.CopyPixels(_sampleRect, _sampleBytes, 4, 0);
+            return (_sampleBytes[2], _sampleBytes[1], _sampleBytes[0]);
         }
 
         static MagnifierToolTip()

@@ -33,6 +33,7 @@
         <controls:ClipBox RectProxy="{Binding ClipBoxRect}" />
 
         <controls:MagnifierToolTip Target="{Binding ElementName=Screenshot}"
+                                   BitmapSource="{Binding Background}"
                                    PointProxy="{Binding MousePoint}"
                                    Scale="{Binding Scale}" />
 
