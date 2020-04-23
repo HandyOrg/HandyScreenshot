@@ -3,7 +3,6 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
-using System.Reactive.Concurrency;
 using System.Reactive.Linq;
 using System.Windows;
 using System.Windows.Media.Imaging;
@@ -39,6 +38,7 @@ namespace HandyScreenshot.Helpers
                     MonitorInfo = monitorInfo,
                     ScaleX = scaleX,
                     ScaleY = scaleY,
+                    Scale = scaleX / primaryScreenScaleX,
                     Background = CaptureScreen(monitorInfo.PhysicalScreenRect),
                     Detector = detector
                 };

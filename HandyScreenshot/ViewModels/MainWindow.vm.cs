@@ -43,6 +43,8 @@ namespace HandyScreenshot.ViewModels
 
         public double ScaleY { get; set; }
 
+        public double Scale { get; set; }
+
         public ICommand CloseCommand { get; } = new RelayCommand(() => Application.Current.Shutdown());
 
         public MainWindowViewModel(IObservable<(MouseMessage message, double x, double y)> mouseEventSource)
