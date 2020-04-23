@@ -68,7 +68,7 @@ namespace HandyScreenshot.Controls
             Dispatcher.Invoke(() =>
             {
                 Position = new Point(x + 20, y + 20);
-                Region = new Rect(x - 7, y - 4, 15, 9);
+                Region = new Rect(x - 9, y - 6, 19, 13);
                 MousePoint = new Point(x, y);
             });
         }

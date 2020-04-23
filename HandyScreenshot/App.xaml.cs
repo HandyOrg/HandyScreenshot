@@ -20,9 +20,9 @@ namespace HandyScreenshot
 
         protected override void OnExit(ExitEventArgs e)
         {
-            foreach (var disposable in SharedProperties.Disposables)
+            while (SharedProperties.Disposables.Count > 0)
             {
-                disposable.Dispose();
+                SharedProperties.Disposables.Pop().Dispose();
             }
 
             base.OnExit(e);

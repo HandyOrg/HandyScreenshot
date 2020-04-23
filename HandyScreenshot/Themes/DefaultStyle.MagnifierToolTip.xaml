@@ -1,8 +1,10 @@
 ﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-                    xmlns:controls="clr-namespace:HandyScreenshot.Controls">
+                    xmlns:controls="clr-namespace:HandyScreenshot.Controls"
+                    xmlns:system="clr-namespace:System;assembly=mscorlib">
 
-    <SolidColorBrush x:Key="Brush">#602080f0</SolidColorBrush>
+    <SolidColorBrush x:Key="Brush.Baseline">#602080f0</SolidColorBrush>
+    <system:Double x:Key="Double.Baseline">6</system:Double>
 
     <Style TargetType="{x:Type controls:MagnifierToolTip}">
         <Setter Property="Template">
@@ -20,9 +22,9 @@
                                     BorderThickness="1">
                                 <Border BorderBrush="White"
                                         BorderThickness="1">
-                                    <Grid>
-                                        <Border Width="150"
-                                                Height="90">
+                                    <controls:ZStackPanel>
+                                        <Border Width="152"
+                                                Height="104">
                                             <Border.Background>
                                                 <VisualBrush x:Name="PART_VisualBrush"
                                                              ViewboxUnits="Absolute"
@@ -30,38 +32,40 @@
                                                              Viewbox="{Binding Path=Region, Mode=OneWay, RelativeSource={RelativeSource TemplatedParent}}" />
                                             </Border.Background>
                                         </Border>
-                                        <Rectangle HorizontalAlignment="Left"
-                                                   VerticalAlignment="Center"
-                                                   Width="70"
-                                                   Height="8"
-                                                   Fill="{StaticResource Brush}" />
-                                        <Rectangle HorizontalAlignment="Right"
-                                                   VerticalAlignment="Center"
-                                                   Width="70"
-                                                   Height="8"
-                                                   Fill="{StaticResource Brush}" />
-                                        <Rectangle HorizontalAlignment="Center"
-                                                   VerticalAlignment="Top"
-                                                   Width="8"
-                                                   Height="40"
-                                                   Fill="{StaticResource Brush}" />
-                                        <Rectangle HorizontalAlignment="Center"
-                                                   VerticalAlignment="Bottom"
-                                                   Width="8"
-                                                   Height="40"
-                                                   Fill="{StaticResource Brush}" />
-                                        <Border HorizontalAlignment="Center"
-                                                VerticalAlignment="Center"
-                                                Width="10"
-                                                Height="10"
-                                                BorderBrush="Black"
-                                                BorderThickness="1"
-                                                Background="Transparent">
-                                            <Border BorderBrush="White"
+                                        <Canvas>
+                                            <Border Canvas.Left="71"
+                                                    Canvas.Top="47"
+                                                    Width="8"
+                                                    Height="8"
+                                                    BorderBrush="Black"
                                                     BorderThickness="1"
-                                                    Background="Transparent" />
-                                        </Border>
-                                    </Grid>
+                                                    Background="Transparent">
+                                                <Border BorderBrush="White"
+                                                        BorderThickness="1"
+                                                        Background="Transparent" />
+                                            </Border>
+                                            <Rectangle Canvas.Left="0"
+                                                       Canvas.Top="48"
+                                                       Width="71"
+                                                       Height="{StaticResource Double.Baseline}"
+                                                       Fill="{StaticResource Brush.Baseline}" />
+                                            <Rectangle Canvas.Right="0"
+                                                       Canvas.Top="48"
+                                                       Width="73"
+                                                       Height="{StaticResource Double.Baseline}"
+                                                       Fill="{StaticResource Brush.Baseline}" />
+                                            <Rectangle Canvas.Top="0"
+                                                       Canvas.Left="72"
+                                                       Width="{StaticResource Double.Baseline}"
+                                                       Height="47"
+                                                       Fill="{StaticResource Brush.Baseline}" />
+                                            <Rectangle Canvas.Bottom="0"
+                                                       Canvas.Left="72"
+                                                       Width="{StaticResource Double.Baseline}"
+                                                       Height="49"
+                                                       Fill="{StaticResource Brush.Baseline}" />
+                                        </Canvas>
+                                    </controls:ZStackPanel>
                                 </Border>
                             </Border>
 

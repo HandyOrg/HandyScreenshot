@@ -5,6 +5,6 @@ namespace HandyScreenshot.Common
 {
     public static class SharedProperties
     {
-        public static Queue<IDisposable> Disposables { get; } = new Queue<IDisposable>();
+        public static Stack<IDisposable> Disposables { get; } = new Stack<IDisposable>();
     }
 }

@@ -3,6 +3,8 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
+using System.Reactive.Concurrency;
+using System.Reactive.Linq;
 using System.Windows;
 using System.Windows.Media.Imaging;
 using HandyScreenshot.Common;
@@ -26,11 +28,13 @@ namespace HandyScreenshot.Helpers
                 .Select(item => item.PhysicalScreenRect)
                 .Aggregate((acc, item) => acc.Union(item)));
 
+            var mouseEventSource = CreateMouseEventSource();
+
             foreach (var monitorInfo in monitorInfos)
             {
                 var (scaleX, scaleY) = MonitorHelper.GetScaleFactorFromMonitor(monitorInfo.Handle);
 
-                var vm = new MainWindowViewModel
+                var vm = new MainWindowViewModel(mouseEventSource)
                 {
                     MonitorInfo = monitorInfo,
                     ScaleX = scaleX,
@@ -46,6 +50,22 @@ namespace HandyScreenshot.Helpers
 
                 vm.Initialize();
             }
+        }
+
+        private static IObservable<(MouseMessage message, double x, double y)> CreateMouseEventSource()
+        {
+            var hotSource = Observable.Create<(MouseMessage message, double x, double y)>(o =>
+                    Win32Helper.SubscribeMouseHook((message, info) =>
+                    {
+                        var p = Win32Helper.GetPhysicalMousePosition();
+                        o.OnNext((message, p.X, p.Y));
+                    }))
+                .Publish();
+
+            var disposable = hotSource.Connect();
+            SharedProperties.Disposables.Push(disposable);
+
+            return hotSource;
         }
 
         private static void WindowOnLoaded(object sender, RoutedEventArgs e)

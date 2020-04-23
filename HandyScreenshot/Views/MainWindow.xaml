@@ -25,42 +25,20 @@
                     Command="{Binding CloseCommand}" />
     </Window.InputBindings>
 
-    <Grid>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition />
-            <ColumnDefinition Width="Auto" />
-        </Grid.ColumnDefinitions>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
-            <RowDefinition />
-        </Grid.RowDefinitions>
-
+    <controls:ZStackPanel>
         <Image x:Name="Screenshot"
-               Grid.Column="0"
-               Grid.Row="0"
-               Grid.ColumnSpan="2"
-               Grid.RowSpan="2"
                RenderOptions.BitmapScalingMode="NearestNeighbor"
                Source="{Binding Background}" />
 
-        <controls:ClipBox Grid.Column="0"
-                          Grid.Row="0"
-                          Grid.ColumnSpan="2"
-                          Grid.RowSpan="2"
-                          RectProxy="{Binding ClipBoxRect}" />
+        <controls:ClipBox RectProxy="{Binding ClipBoxRect}" />
 
-        <controls:MagnifierToolTip Grid.Column="0"
-                                   Grid.Row="0"
-                                   Grid.ColumnSpan="2"
-                                   Grid.RowSpan="2"
-                                   Target="{Binding ElementName=Screenshot}"
+        <controls:MagnifierToolTip Target="{Binding ElementName=Screenshot}"
                                    PointProxy="{Binding MousePoint}" />
 
-        <TextBlock Grid.Column="1"
-                   Grid.Row="0"
-                   Background="#AA000000"
+        <TextBlock Background="#AA000000"
                    Foreground="White"
-                   HorizontalAlignment="Left">
+                   HorizontalAlignment="Right"
+                   VerticalAlignment="Top">
             Window Actual Size:
             <Run Text="{Binding Path=ActualWidth, RelativeSource={RelativeSource FindAncestor, AncestorType=Window}, Mode=OneWay}" />
             <Run Text="{Binding Path=ActualHeight, RelativeSource={RelativeSource FindAncestor, AncestorType=Window}, Mode=OneWay}" />
@@ -74,5 +52,5 @@
             Dpi:
             <Run Text="{Binding Path=DpiString, Mode=OneWay}" />
         </TextBlock>
-    </Grid>
+    </controls:ZStackPanel>
 </Window>

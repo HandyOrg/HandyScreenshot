@@ -45,29 +45,24 @@ namespace HandyScreenshot.ViewModels
 
         public ICommand CloseCommand { get; } = new RelayCommand(() => Application.Current.Shutdown());
 
-        public MainWindowViewModel()
+        public MainWindowViewModel(IObservable<(MouseMessage message, double x, double y)> mouseEventSource)
         {
-            var disposable = Observable.Create<(MouseMessage message, double x, double y)>(o =>
-                    Win32Helper.SubscribeMouseHook((message, info) =>
-                    {
-                        var p = Win32Helper.GetPhysicalMousePosition();
-                        o.OnNext((message, p.X, p.Y));
-                    }))
+            var disposable1 = mouseEventSource
                 .ObserveOn(NewThreadScheduler.Default)
-                .Subscribe(item =>
-                {
-                    (MouseMessage message, double x, double y) = item;
-                    SetState(message, x, y);
-                    SetMagnifierState(message, x, y);
-                });
+                .Subscribe(i => SetState(i.message, i.x, i.y));
+            var disposable2 = mouseEventSource
+                .ObserveOn(NewThreadScheduler.Default)
+                .Subscribe(i => SetMagnifierState(i.message, i.x, i.y));
 
-            SharedProperties.Disposables.Enqueue(disposable);
+            SharedProperties.Disposables.Push(disposable1);
+            SharedProperties.Disposables.Push(disposable2);
         }
 
         public void Initialize()
         {
             var initPoint = Win32Helper.GetPhysicalMousePosition();
             SetState(MouseMessage.MouseMove, initPoint.X, initPoint.Y);
+            SetMagnifierState(MouseMessage.MouseMove, initPoint.X, initPoint.Y);
         }
 
         private void SetMagnifierState(MouseMessage mouseMessage, double physicalX, double physicalY)
