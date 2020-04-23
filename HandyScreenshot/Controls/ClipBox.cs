@@ -80,63 +80,60 @@ namespace HandyScreenshot.Controls
 
         private void OnRectChanged(double x, double y, double w, double h)
         {
-            Dispatcher.Invoke(() =>
+            var h0 = Math.Max(h, 0);
+            var r = x + w;
+            var b = y + h;
+
+            _leftRect.Y = y;
+            _leftRect.Width = Math.Max(x, 0);
+            _leftRect.Height = h0;
+
+            _topRect.Height = Math.Max(y, 0);
+
+            _rightRect.X = r;
+            _rightRect.Y = y;
+            _rightRect.Width = Math.Max(ActualWidth - r, 0);
+            _rightRect.Height = h0;
+
+            _bottomRect.Y = b;
+            _bottomRect.Height = Math.Max(ActualHeight - b, 0);
+
+            _centralRect.X = x;
+            _centralRect.Y = y;
+            _centralRect.Width = Math.Max(w, 0);
+            _centralRect.Height = h0;
+
+            if (_centralRect.Width > MinDisplayPointLimit && _centralRect.Height > MinDisplayPointLimit)
             {
-                var h0 = Math.Max(h, 0);
-                var r = x + w;
-                var b = y + h;
+                var halfR = x + w / 2D;
+                var halfB = y + h / 2D;
 
-                _leftRect.Y = y;
-                _leftRect.Width = Math.Max(x, 0);
-                _leftRect.Height = h0;
+                _leftTopPoint.X = x;
+                _leftTopPoint.Y = y;
 
-                _topRect.Height = Math.Max(y, 0);
+                _topPoint.X = halfR;
+                _topPoint.Y = y;
 
-                _rightRect.X = r;
-                _rightRect.Y = y;
-                _rightRect.Width = Math.Max(ActualWidth - r, 0);
-                _rightRect.Height = h0;
+                _rightTopPoint.X = r;
+                _rightTopPoint.Y = y;
 
-                _bottomRect.Y = b;
-                _bottomRect.Height = Math.Max(ActualHeight - b, 0);
+                _rightPoint.X = r;
+                _rightPoint.Y = halfB;
 
-                _centralRect.X = x;
-                _centralRect.Y = y;
-                _centralRect.Width = Math.Max(w, 0);
-                _centralRect.Height = h0;
+                _rightBottomPoint.X = r;
+                _rightBottomPoint.Y = b;
 
-                if (_centralRect.Width > MinDisplayPointLimit && _centralRect.Height > MinDisplayPointLimit)
-                {
-                    var halfR = x + w / 2D;
-                    var halfB = y + h / 2D;
+                _bottomPoint.X = halfR;
+                _bottomPoint.Y = b;
 
-                    _leftTopPoint.X = x;
-                    _leftTopPoint.Y = y;
+                _leftBottomPoint.X = x;
+                _leftBottomPoint.Y = b;
 
-                    _topPoint.X = halfR;
-                    _topPoint.Y = y;
+                _leftPoint.X = x;
+                _leftPoint.Y = halfB;
+            }
 
-                    _rightTopPoint.X = r;
-                    _rightTopPoint.Y = y;
-
-                    _rightPoint.X = r;
-                    _rightPoint.Y = halfB;
-
-                    _rightBottomPoint.X = r;
-                    _rightBottomPoint.Y = b;
-
-                    _bottomPoint.X = halfR;
-                    _bottomPoint.Y = b;
-
-                    _leftBottomPoint.X = x;
-                    _leftBottomPoint.Y = b;
-
-                    _leftPoint.X = x;
-                    _leftPoint.Y = halfB;
-                }
-
-                RefreshDrawingVisual();
-            });
+            Dispatcher.Invoke(RefreshDrawingVisual);
         }
 
         private void OnSizeChanged(object sender, SizeChangedEventArgs e)

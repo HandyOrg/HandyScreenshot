@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Reactive.Concurrency;
-using System.Reactive.Linq;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
@@ -50,10 +48,8 @@ namespace HandyScreenshot.ViewModels
         public MainWindowViewModel(IObservable<(MouseMessage message, double x, double y)> mouseEventSource)
         {
             var disposable1 = mouseEventSource
-                .ObserveOn(NewThreadScheduler.Default)
                 .Subscribe(i => SetState(i.message, i.x, i.y));
             var disposable2 = mouseEventSource
-                .ObserveOn(NewThreadScheduler.Default)
                 .Subscribe(i => SetMagnifierState(i.message, i.x, i.y));
 
             SharedProperties.Disposables.Push(disposable1);

@@ -3,6 +3,7 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
+using System.Reactive.Concurrency;
 using System.Reactive.Linq;
 using System.Windows;
 using System.Windows.Media.Imaging;
@@ -60,6 +61,7 @@ namespace HandyScreenshot.Helpers
                         var p = Win32Helper.GetPhysicalMousePosition();
                         o.OnNext((message, p.X, p.Y));
                     }))
+                .ObserveOn(NewThreadScheduler.Default)
                 .Publish();
 
             var disposable = hotSource.Connect();

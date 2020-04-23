@@ -110,14 +110,11 @@ namespace HandyScreenshot.Controls
 
         private void OnPointChanged(double x, double y)
         {
-            Dispatcher.Invoke(() =>
-            {
-                PositionX = x + Sizes.OffsetFromMouse;
-                PositionY = y + Sizes.OffsetFromMouse;
-                MousePointX = x;
-                MousePointY = y;
-                Region = new Rect(x - Sizes.HalfRegionWidth, y - Sizes.HalfRegionHeight, Sizes.RegionWidth, Sizes.RegionHeight);
-            });
+            PositionX = x + Sizes.OffsetFromMouse;
+            PositionY = y + Sizes.OffsetFromMouse;
+            MousePointX = x;
+            MousePointY = y;
+            Region = new Rect(x - Sizes.HalfRegionWidth, y - Sizes.HalfRegionHeight, Sizes.RegionWidth, Sizes.RegionHeight);
         }
 
         static MagnifierToolTip()
