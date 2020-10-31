@@ -20,6 +20,10 @@
         <WindowChrome GlassFrameThickness="-1" />
     </WindowChrome.WindowChrome>
 
+    <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+    </Window.Resources>
+
     <Window.InputBindings>
         <KeyBinding Key="Escape"
                     Command="{Binding CloseCommand}" />
@@ -35,7 +39,8 @@
         <controls:MagnifierToolTip Target="{Binding ElementName=Screenshot}"
                                    BitmapSource="{Binding Background}"
                                    PointProxy="{Binding MousePoint}"
-                                   Scale="{Binding Scale}" />
+                                   Scale="{Binding Scale}"
+                                   Visibility="{Binding IsClipBoxContainsCursor, Converter={StaticResource BooleanToVisibilityConverter}}" />
 
         <TextBlock Background="#AA000000"
                    Foreground="White"

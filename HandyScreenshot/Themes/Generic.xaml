@@ -3,5 +3,4 @@
     <ResourceDictionary.MergedDictionaries>
         <ResourceDictionary Source="pack://application:,,,/HandyScreenshot;component/Themes/DefaultStyle.MagnifierToolTip.xaml" />
     </ResourceDictionary.MergedDictionaries>
-
 </ResourceDictionary>
