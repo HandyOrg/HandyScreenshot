@@ -14,7 +14,6 @@ namespace HandyScreenshot.ViewModels
     {
         private string _dpiString;
         private ClipBoxStatus _status;
-        private bool _isClipBoxContainsCursor;
 
         public string DpiString
         {
@@ -26,12 +25,6 @@ namespace HandyScreenshot.ViewModels
         {
             get => _status;
             set => SetProperty(ref _status, value);
-        }
-
-        public bool IsClipBoxContainsCursor
-        {
-            get => _isClipBoxContainsCursor;
-            set => SetProperty(ref _isClipBoxContainsCursor, value);
         }
 
         public RectProxy ClipBoxRect { get; } = new RectProxy();
@@ -77,12 +70,7 @@ namespace HandyScreenshot.ViewModels
                 var (displayX, displayY) = ToDisplayPoint(physicalX, physicalY);
                 if (ClipBoxRect.Contains(displayX, displayY))
                 {
-                    IsClipBoxContainsCursor = true;
                     MousePoint.Set(displayX, displayY);
-                }
-                else
-                {
-                    IsClipBoxContainsCursor = false;
                 }
             }
         }

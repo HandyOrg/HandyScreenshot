@@ -4,7 +4,7 @@ using System.Windows.Media;
 
 namespace HandyScreenshot.Controls
 {
-    public class ClipBox : DrawingControlBase
+    public class ClipBox : FrameworkElement
     {
         private const double MinDisplayPointLimit = 80;
         private const double PointRadius = 4.5;
@@ -46,6 +46,8 @@ namespace HandyScreenshot.Controls
             set => SetValue(RectProxyProperty, value);
         }
 
+        private readonly DrawingVisual _drawingVisual;
+
         private Rect _topRect = RectZero;
         private Rect _rightRect = RectZero;
         private Rect _bottomRect = RectZero;
@@ -63,6 +65,8 @@ namespace HandyScreenshot.Controls
 
         public ClipBox()
         {
+            var children = new VisualCollection(this) { new DrawingVisual() };
+            _drawingVisual = (DrawingVisual)children[0];
             SizeChanged += OnSizeChanged;
         }
 
@@ -138,8 +142,10 @@ namespace HandyScreenshot.Controls
             _bottomRect.Width = ActualWidth;
         }
 
-        protected override void DrawingOverride(DrawingContext dc)
+        private void RefreshDrawingVisual()
         {
+            var dc = _drawingVisual.RenderOpen();
+
             dc.DrawRectangle(MaskBrush, null, _leftRect);
             dc.DrawRectangle(MaskBrush, null, _topRect);
             dc.DrawRectangle(MaskBrush, null, _rightRect);
@@ -157,11 +163,23 @@ namespace HandyScreenshot.Controls
                 DrawPoint(dc, _leftBottomPoint);
                 DrawPoint(dc, _leftPoint);
             }
+
+            dc.Close();
         }
 
         private static void DrawPoint(DrawingContext dc, Point point)
         {
             dc.DrawEllipse(PrimaryBrush, WhitePen, point, PointRadius, PointRadius);
+        }
+
+        protected override int VisualChildrenCount => 1;
+
+        protected override Visual GetVisualChild(int index)
+        {
+            if (index != 0)
+                throw new ArgumentOutOfRangeException();
+
+            return _drawingVisual;
         }
     }
 }

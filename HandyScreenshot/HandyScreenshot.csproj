@@ -28,6 +28,5 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="System.Reactive" Version="4.4.1" />
-    <PackageReference Include="WpfExtensions.Xaml" Version="1.1.0" />
   </ItemGroup>
 </Project>
