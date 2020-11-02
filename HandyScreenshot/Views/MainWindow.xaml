@@ -13,7 +13,6 @@
         BorderThickness="0"
         UseLayoutRounding="True"
         SnapsToDevicePixels="True"
-        Topmost="True"
         d:DataContext="{d:DesignInstance {x:Type viewModels:MainWindowViewModel}}">
 
     <WindowChrome.WindowChrome>
@@ -34,13 +33,21 @@
                RenderOptions.BitmapScalingMode="NearestNeighbor"
                Source="{Binding Background}" />
 
-        <controls:ClipBox RectProxy="{Binding ClipBoxRect}" />
+        <controls:ClipBox RectProxy="{Binding ClipBoxRect}"
+                          BackgroundImage="{Binding Background}"
+                          MousePosition="{Binding MousePoint}">
+            <controls:ClipBox.MagnifierBrush>
+                <VisualBrush ViewboxUnits="Absolute"
+                             Visual="{Binding ElementName=Screenshot}"
+                             Viewbox="{Binding Region}" />
+            </controls:ClipBox.MagnifierBrush>
+        </controls:ClipBox>
 
-        <controls:MagnifierToolTip Target="{Binding ElementName=Screenshot}"
+        <!--<controls:MagnifierToolTip Target="{Binding ElementName=Screenshot}"
                                    BitmapSource="{Binding Background}"
                                    PointProxy="{Binding MousePoint}"
                                    Scale="{Binding Scale}"
-                                   Visibility="{Binding IsClipBoxContainsCursor, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                                   Visibility="{Binding IsClipBoxContainsCursor, Converter={StaticResource BooleanToVisibilityConverter}}" />-->
 
         <TextBlock Background="#AA000000"
                    Foreground="White"

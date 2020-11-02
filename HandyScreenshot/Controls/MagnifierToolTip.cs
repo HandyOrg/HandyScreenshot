@@ -23,7 +23,7 @@ namespace HandyScreenshot.Controls
         {
             if (d is MagnifierToolTip self)
             {
-                self.Sizes = new MagnifierToolTipSizes(self.Scale);
+                self.Sizes = new MagnifierSizeSet(self.Scale);
             }
         }
 
@@ -64,7 +64,7 @@ namespace HandyScreenshot.Controls
         private double _mousePointX;
         private double _mousePointY;
         private Rect _region;
-        private MagnifierToolTipSizes _sizes;
+        private MagnifierSizeSet _sizes;
         private string _colorString;
         private Color _color;
 
@@ -110,7 +110,7 @@ namespace HandyScreenshot.Controls
             set => SetProperty(ref _color, value);
         }
 
-        public MagnifierToolTipSizes Sizes
+        public MagnifierSizeSet Sizes
         {
             get => _sizes;
             set => SetProperty(ref _sizes, value);
@@ -119,7 +119,7 @@ namespace HandyScreenshot.Controls
 
         public MagnifierToolTip()
         {
-            Sizes = new MagnifierToolTipSizes(Scale);
+            Sizes = new MagnifierSizeSet(Scale);
         }
 
         private void Attach()

@@ -1,6 +1,6 @@
 ﻿namespace HandyScreenshot.Controls
 {
-    public class MagnifierToolTipSizes
+    public class MagnifierSizeSet
     {
         private const int BaseOffsetFromMouse = 20;
 
@@ -20,7 +20,7 @@
         private const int BaseTopBaselineLength = BaseHorizontalBaselineOffset - 1;
         private const int BaseBottomBaselineLength = BaseHorizontalBaselineOffset + 1;
 
-        public MagnifierToolTipSizes(double scale = 1D)
+        public MagnifierSizeSet(double scale = 1D)
         {
             OffsetFromMouse = BaseOffsetFromMouse * scale;
             RegionWidth = BaseRegionWidth * scale;

@@ -15,6 +15,7 @@ namespace HandyScreenshot.ViewModels
         private string _dpiString;
         private ClipBoxStatus _status;
         private bool _isClipBoxContainsCursor;
+        private Rect _region;
 
         public string DpiString
         {
@@ -26,6 +27,12 @@ namespace HandyScreenshot.ViewModels
         {
             get => _status;
             set => SetProperty(ref _status, value);
+        }
+
+        public Rect Region
+        {
+            get => _region;
+            set => SetProperty(ref _region, value);
         }
 
         public bool IsClipBoxContainsCursor
@@ -50,6 +57,8 @@ namespace HandyScreenshot.ViewModels
 
         public double Scale { get; set; }
 
+        public MagnifierSizeSet Sizes { get; set; }
+
         public ICommand CloseCommand { get; } = new RelayCommand(() => Application.Current.Shutdown());
 
         public MainWindowViewModel(IObservable<(MouseMessage message, double x, double y)> mouseEventSource)
@@ -65,6 +74,7 @@ namespace HandyScreenshot.ViewModels
 
         public void Initialize()
         {
+            Sizes = new MagnifierSizeSet(0.8);
             var initPoint = Win32Helper.GetPhysicalMousePosition();
             SetState(MouseMessage.MouseMove, initPoint.X, initPoint.Y);
             SetMagnifierState(MouseMessage.MouseMove, initPoint.X, initPoint.Y);
@@ -79,9 +89,11 @@ namespace HandyScreenshot.ViewModels
                 {
                     IsClipBoxContainsCursor = true;
                     MousePoint.Set(displayX, displayY);
+                    Region = new Rect(displayX - Sizes.HalfRegionWidth, displayY - Sizes.HalfRegionHeight, Sizes.RegionWidth, Sizes.RegionHeight);
                 }
                 else
                 {
+                    MousePoint.Set(displayX, displayY);
                     IsClipBoxContainsCursor = false;
                 }
             }
