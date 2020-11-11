@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Diagnostics;
+using System.Reactive.Linq;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
@@ -66,6 +68,7 @@ namespace HandyScreenshot.ViewModels
             var disposable1 = mouseEventSource
                 .Subscribe(i => SetState(i.message, i.x, i.y));
             var disposable2 = mouseEventSource
+                .Where(i => MonitorInfo.PhysicalScreenRect.Contains(i.x, i.y))
                 .Subscribe(i => SetMagnifierState(i.message, i.x, i.y));
 
             SharedProperties.Disposables.Push(disposable1);
@@ -74,7 +77,7 @@ namespace HandyScreenshot.ViewModels
 
         public void Initialize()
         {
-            Sizes = new MagnifierSizeSet(0.8);
+            Sizes = new MagnifierSizeSet(ScaleX);
             var initPoint = Win32Helper.GetPhysicalMousePosition();
             SetState(MouseMessage.MouseMove, initPoint.X, initPoint.Y);
             SetMagnifierState(MouseMessage.MouseMove, initPoint.X, initPoint.Y);
@@ -88,14 +91,15 @@ namespace HandyScreenshot.ViewModels
                 if (ClipBoxRect.Contains(displayX, displayY))
                 {
                     IsClipBoxContainsCursor = true;
-                    MousePoint.Set(displayX, displayY);
                     Region = new Rect(displayX - Sizes.HalfRegionWidth, displayY - Sizes.HalfRegionHeight, Sizes.RegionWidth, Sizes.RegionHeight);
                 }
                 else
                 {
-                    MousePoint.Set(displayX, displayY);
                     IsClipBoxContainsCursor = false;
                 }
+
+                Debug.WriteLine($"IsPrimary={MonitorInfo.IsPrimaryScreen}, ({displayX}, {displayY})");
+                MousePoint.Set(displayX, displayY);
             }
         }
 
@@ -187,8 +191,15 @@ namespace HandyScreenshot.ViewModels
                     }
                     else if (Status == ClipBoxStatus.AutoDetect)
                     {
-                        // Exit
-                        Application.Current.Dispatcher.Invoke(Application.Current.Shutdown);
+                        try
+                        {
+                            // Exit
+                            Application.Current.Dispatcher.Invoke(Application.Current.Shutdown);
+                        }
+                        catch (OperationCanceledException)
+                        {
+                            // Ignore
+                        }
                     }
                     break;
                 case MouseMessage.MouseMove:

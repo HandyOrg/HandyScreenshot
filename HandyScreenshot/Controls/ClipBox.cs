@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Diagnostics;
+using System.Globalization;
 using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
@@ -7,6 +9,86 @@ namespace HandyScreenshot.Controls
 {
     public class ClipBox : FrameworkElement
     {
+        private class MognifierDrawingData
+        {
+            public readonly Pen WhiteThinPen;
+            public readonly Pen BlackThinPen;
+            public readonly Pen CrossLinePen;
+
+            private const double MagnifierWidth = 152;
+            private const double MagnifierHeight = 104;
+            private const double CrosshairSize = 8;
+            private const double HalfCrosshairSize = CrosshairSize / 2;
+
+            public Rect MagnifierRect;
+            public Rect MagnifierBorderWhiteRect;
+            public Rect MagnifierBorderBlackRect;
+            public Rect CrosshairWhiteRect;
+            public Rect CrosshairBlackRect;
+            public Point CrossLineTopPoint1 = PointZero;
+            public Point CrossLineTopPoint2 = PointZero;
+            public Point CrossLineLeftPoint1 = PointZero;
+            public Point CrossLineLeftPoint2 = PointZero;
+            public Point CrossLineRightPoint1 = PointZero;
+            public Point CrossLineRightPoint2 = PointZero;
+            public Point CrossLineBottomPoint1 = PointZero;
+            public Point CrossLineBottomPoint2 = PointZero;
+
+            private readonly double _scale;
+
+            public MognifierDrawingData(double scale)
+            {
+                _scale = scale;
+                WhiteThinPen = new Pen(Brushes.White, scale);
+                WhiteThinPen.Freeze();
+                BlackThinPen = new Pen(Brushes.Black, scale);
+                BlackThinPen.Freeze();
+                CrossLinePen = new Pen(new SolidColorBrush(Color.FromArgb(0x60, 0x20, 0x80, 0xf0)), CrosshairSize * scale);
+                CrossLinePen.Freeze();
+
+                MagnifierRect = new Rect(PointZero, new Size(MagnifierWidth * scale, MagnifierHeight * scale));
+                MagnifierBorderWhiteRect = new Rect(PointZero, new Size((MagnifierWidth + 1) * scale, (MagnifierHeight + 1) * scale));
+                MagnifierBorderBlackRect = new Rect(PointZero, new Size((MagnifierWidth + 2) * scale, (MagnifierHeight + 2) * scale));
+                CrosshairWhiteRect = new Rect(PointZero, new Size((CrosshairSize - 1) * scale, (CrosshairSize - 1) * scale));
+                CrosshairBlackRect = new Rect(PointZero, new Size(CrosshairSize * scale, CrosshairSize * scale));
+            }
+
+            public void OnPointChanged(double x, double y)
+            {
+                MagnifierRect.X = x;
+                MagnifierRect.Y = y;
+
+                MagnifierBorderWhiteRect.X = x;
+                MagnifierBorderWhiteRect.Y = y;
+
+                MagnifierBorderBlackRect.X = x - 1;
+                MagnifierBorderBlackRect.Y = y - 1;
+
+                CrosshairWhiteRect.X = x + (MagnifierWidth - CrosshairSize) / 2 * _scale;
+                CrosshairWhiteRect.Y = y + (MagnifierHeight - CrosshairSize) / 2 * _scale;
+
+                CrosshairBlackRect.X = (CrosshairWhiteRect.X - 1) * _scale;
+                CrosshairBlackRect.Y = (CrosshairWhiteRect.Y - 1) * _scale;
+
+                var centralX = x + MagnifierWidth / 2 * _scale;
+                var centralY = y + MagnifierHeight / 2 * _scale;
+
+                CrossLineTopPoint1.X = CrossLineBottomPoint1.X = CrossLineTopPoint2.X = CrossLineBottomPoint2.X = centralX;
+                CrossLineLeftPoint1.X = x;
+                CrossLineRightPoint1.X = x + MagnifierWidth * _scale;
+
+                CrossLineLeftPoint1.Y = CrossLineRightPoint1.Y = CrossLineLeftPoint2.Y = CrossLineRightPoint2.Y = centralY;
+                CrossLineTopPoint1.Y = y;
+                CrossLineBottomPoint1.Y = y + MagnifierHeight * _scale;
+
+                CrossLineLeftPoint2.X = centralX - HalfCrosshairSize * _scale;
+                CrossLineRightPoint2.X = centralX + HalfCrosshairSize * _scale;
+
+                CrossLineTopPoint2.Y = centralY - HalfCrosshairSize * _scale;
+                CrossLineBottomPoint2.Y = centralY + HalfCrosshairSize * _scale;
+            }
+        }
+
         #region Static Members
 
         private const double MinDisplayPointLimit = 80;
@@ -16,12 +98,14 @@ namespace HandyScreenshot.Controls
         private static readonly Point PointZero = new Point(0, 0);
         private static readonly Brush MaskBrush;
         private static readonly Brush PrimaryBrush;
+        private static readonly Brush CrossLineBrush;
         private static readonly Pen PrimaryPen;
         private static readonly Pen WhitePen;
 
         private static readonly Pen WhiteThinPen;
         private static readonly Pen BlackThinPen;
         private static readonly Pen CrossLinePen;
+        private static readonly Brush InfoBackgroundBrush;
 
         static ClipBox()
         {
@@ -33,12 +117,17 @@ namespace HandyScreenshot.Controls
             PrimaryPen.Freeze();
             WhitePen = new Pen(Brushes.White, 1.5);
             WhitePen.Freeze();
-            WhiteThinPen = new Pen(Brushes.White, 0.8);
+
+            WhiteThinPen = new Pen(Brushes.White, 1);
             WhiteThinPen.Freeze();
-            BlackThinPen = new Pen(Brushes.Black, 0.8);
+            BlackThinPen = new Pen(Brushes.Black, 1);
             BlackThinPen.Freeze();
-            CrossLinePen = new Pen(new SolidColorBrush(Color.FromArgb(0x60, 0x20, 0x80, 0xf0)), 6.4);
+            CrossLineBrush = new SolidColorBrush(Color.FromArgb(0x60, 0x20, 0x80, 0xf0));
+            CrossLineBrush.Freeze();
+            CrossLinePen = new Pen(CrossLineBrush, 8);
             CrossLinePen.Freeze();
+            InfoBackgroundBrush = new SolidColorBrush(Color.FromArgb(0xE0, 0, 0, 0));
+            InfoBackgroundBrush.Freeze();
         }
 
         public static readonly DependencyProperty RectProxyProperty = DependencyProperty.Register(
@@ -83,6 +172,22 @@ namespace HandyScreenshot.Controls
         }
 
         #endregion
+
+        public double Scale
+        {
+            get { return (double)GetValue(ScaleProperty); }
+            set { SetValue(ScaleProperty, value); }
+        }
+
+        // Using a DependencyProperty as the backing store for Scale.  This enables animation, styling, binding, etc...
+        public static readonly DependencyProperty ScaleProperty =
+            DependencyProperty.Register("Scale", typeof(double), typeof(ClipBox), new PropertyMetadata(0D, (d, e) =>
+            {
+                if (d is ClipBox clipBox)
+                {
+                    clipBox._data = new MognifierDrawingData(clipBox.Scale);
+                }
+            }));
 
         public RectProxy RectProxy
         {
@@ -137,29 +242,7 @@ namespace HandyScreenshot.Controls
 
         #endregion
 
-        #region Data for drawing magnifier
-
-        private const double MagnifierWidth = 121.6;
-        private const double MagnifierHeight = 83.2;
-        private const double CrosshairSize = 6.4;
-        private const double HalfCrosshairSize = CrosshairSize / 2;
-
-        private Rect _magnifierRect = new Rect(PointZero, new Size(MagnifierWidth, MagnifierHeight));
-        private Rect _magnifierBorderWhiteRect = new Rect(PointZero, new Size(MagnifierWidth + 0.8, MagnifierHeight + 0.8));
-        private Rect _magnifierBorderBlackRect = new Rect(PointZero, new Size(MagnifierWidth + 1.6, MagnifierHeight + 1.6));
-        private Rect _crosshairWhiteRect = new Rect(PointZero, new Size(CrosshairSize - 0.8, CrosshairSize - 0.8));
-        private Rect _crosshairBlackRect = new Rect(PointZero, new Size(CrosshairSize, CrosshairSize));
-
-        private Point _crossLineTopPoint1 = PointZero;
-        private Point _crossLineTopPoint2 = PointZero;
-        private Point _crossLineLeftPoint1 = PointZero;
-        private Point _crossLineLeftPoint2 = PointZero;
-        private Point _crossLineRightPoint1 = PointZero;
-        private Point _crossLineRightPoint2 = PointZero;
-        private Point _crossLineBottomPoint1 = PointZero;
-        private Point _crossLineBottomPoint2 = PointZero;
-
-        #endregion
+        private MognifierDrawingData? _data;
 
         public ClipBox()
         {
@@ -245,37 +328,9 @@ namespace HandyScreenshot.Controls
 
         private void OnPointChanged(double x, double y)
         {
-            _magnifierRect.X = x + 1;
-            _magnifierRect.Y = y + 1;
+            if (_data == null) return;
 
-            _magnifierBorderWhiteRect.X = x;
-            _magnifierBorderWhiteRect.Y = y;
-
-            _magnifierBorderBlackRect.X = x - 1;
-            _magnifierBorderBlackRect.Y = y - 1;
-
-            _crosshairWhiteRect.X = x + (MagnifierWidth - CrosshairSize) / 2;
-            _crosshairWhiteRect.Y = y + (MagnifierHeight - CrosshairSize) / 2;
-
-            _crosshairBlackRect.X = _crosshairWhiteRect.X - 1;
-            _crosshairBlackRect.Y = _crosshairWhiteRect.Y - 1;
-
-            var centralX = x + MagnifierWidth / 2;
-            var centralY = y + MagnifierHeight / 2;
-
-            _crossLineTopPoint1.X = _crossLineBottomPoint1.X = _crossLineTopPoint2.X = _crossLineBottomPoint2.X = centralX;
-            _crossLineLeftPoint1.X = x;
-            _crossLineRightPoint1.X = x + MagnifierWidth;
-
-            _crossLineLeftPoint1.Y = _crossLineRightPoint1.Y = _crossLineLeftPoint2.Y = _crossLineRightPoint2.Y = centralY;
-            _crossLineTopPoint1.Y = y;
-            _crossLineBottomPoint1.Y = y + MagnifierHeight;
-
-            _crossLineLeftPoint2.X = centralX - HalfCrosshairSize;
-            _crossLineRightPoint2.X = centralX + HalfCrosshairSize;
-
-            _crossLineTopPoint2.Y = centralY - HalfCrosshairSize;
-            _crossLineBottomPoint2.Y = centralY + HalfCrosshairSize;
+            _data.OnPointChanged(x, y);
 
             Dispatcher.Invoke(RefreshMagnifier);
         }
@@ -311,48 +366,100 @@ namespace HandyScreenshot.Controls
             }
         }
 
-        private bool inRect = false;
-
         private void DrawMagnifier(DrawingContext dc)
         {
             if (!RectProxy.Contains(MousePosition.X, MousePosition.Y))
             {
-                if (inRect)
-                {
-                    dc.DrawRectangle(Brushes.Transparent, null, new Rect(0, 0, 5000, 5000));
-                    inRect = false;
-                }
                 return;
             }
 
-            inRect = true;
+            var rect = _data!.MagnifierRect;
+            Debug.WriteLine(rect);
+            DrawMagnifier(dc, rect.X, rect.Y, rect.Width, rect.Height);
+        }
 
+        private void DrawMagnifier(DrawingContext dc, double x, double y, double width, double height)
+        {
+            var magnifierRect = new Rect(x, y, width, height);
+            var innerRect = new Rect(x - Scale, y - Scale, width + 2 * Scale, height + 2 * Scale);
+            var outlineRect = new Rect(x - 2 * Scale, y - 2 * Scale, width + 4 * Scale, height + 4 * Scale);
 
-            var m = PresentationSource.FromVisual(this).CompositionTarget.TransformToDevice;
-            var dpiFactor = 1 / m.M11;
-            var scale = new ScaleTransform(dpiFactor, dpiFactor);
+            var guidelines = new GuidelineSet();
+            var halfPixel = Scale / 2;
 
+            guidelines.GuidelinesX.Add(outlineRect.Left);
+            guidelines.GuidelinesX.Add(outlineRect.Right);
+            guidelines.GuidelinesY.Add(outlineRect.Top);
+            guidelines.GuidelinesY.Add(outlineRect.Bottom);
 
-            var group = new DrawingGroup();
-            RenderOptions.SetEdgeMode(group, EdgeMode.Aliased);
-            var crossLineDC = group.Open();
+            var halfPixelMagnified = _data.CrossLinePen.Thickness / 2;
+            var centerLineX = (innerRect.Left + innerRect.Right) / 2;
+            var centerLineY = (innerRect.Top + innerRect.Bottom) / 2;
+            guidelines.GuidelinesX.Add(centerLineX + halfPixelMagnified);
+            guidelines.GuidelinesX.Add(centerLineX - halfPixelMagnified);
+            guidelines.GuidelinesY.Add(centerLineY + halfPixelMagnified);
+            guidelines.GuidelinesY.Add(centerLineY - halfPixelMagnified);
 
-            //crossLineDC.PushTransform(scale);
+            var centerInnerRect = new Rect(
+                centerLineX - halfPixelMagnified + halfPixel - Scale,
+                centerLineY - halfPixelMagnified + halfPixel - Scale,
+                2 * (halfPixelMagnified - halfPixel) + 2 * Scale,
+                2 * (halfPixelMagnified - halfPixel) + 2 * Scale);
+            var centerOutlineRect = new Rect(
+                centerLineX - halfPixelMagnified + halfPixel - 2 * Scale,
+                centerLineY - halfPixelMagnified + halfPixel - 2 * Scale,
+                2 * (halfPixelMagnified - halfPixel) + 4 * Scale,
+                2 * (halfPixelMagnified - halfPixel) + 4 * Scale);
 
-            crossLineDC.DrawRectangle(MagnifierBrush, null, _magnifierRect);
-            crossLineDC.DrawRectangle(Brushes.Transparent, WhiteThinPen, _magnifierBorderWhiteRect);
-            crossLineDC.DrawRectangle(Brushes.Transparent, BlackThinPen, _magnifierBorderBlackRect);
-            //crossLineDC.DrawRectangle(Brushes.Transparent, WhiteThinPen, _crosshairWhiteRect);
-            //crossLineDC.DrawRectangle(Brushes.Transparent, BlackThinPen, _crosshairBlackRect);
-            crossLineDC.DrawLine(CrossLinePen, _crossLineTopPoint1, _crossLineTopPoint2);
-            crossLineDC.DrawLine(CrossLinePen, _crossLineRightPoint1, _crossLineRightPoint2);
-            crossLineDC.DrawLine(CrossLinePen, _crossLineBottomPoint1, _crossLineBottomPoint2);
-            crossLineDC.DrawLine(CrossLinePen, _crossLineLeftPoint1, _crossLineLeftPoint2);
+            guidelines.GuidelinesX.Add(centerInnerRect.Left - halfPixel);
+            guidelines.GuidelinesX.Add(centerInnerRect.Right + halfPixel);
+            guidelines.GuidelinesY.Add(centerInnerRect.Top - halfPixel);
+            guidelines.GuidelinesY.Add(centerInnerRect.Bottom + halfPixel);
 
-            //crossLineDC.Pop();
-            crossLineDC.Close();
+            var infoBackgroundRect = new Rect(outlineRect.Left, outlineRect.Bottom, outlineRect.Width, 80 * Scale);
 
-            dc.DrawDrawing(group);
+            dc.PushGuidelineSet(guidelines);
+
+            dc.DrawRectangle(Brushes.Black, null, outlineRect);
+            dc.DrawRectangle(Brushes.White, null, innerRect);
+
+            if (MagnifierBrush != null)
+            {
+                dc.DrawRectangle(MagnifierBrush, null, magnifierRect);
+            }
+
+            dc.DrawLine(
+                _data.CrossLinePen,
+                new Point(centerLineX, innerRect.Top),
+                new Point(centerLineX, centerLineY - halfPixelMagnified - 2 * Scale));
+            dc.DrawLine(
+                _data.CrossLinePen,
+                new Point(centerLineX, innerRect.Bottom),
+                new Point(centerLineX, centerLineY + halfPixelMagnified + 2 * Scale));
+            dc.DrawLine(
+                _data.CrossLinePen,
+                new Point(innerRect.Left, centerLineY),
+                new Point(centerLineX - halfPixelMagnified - 2 * Scale, centerLineY));
+            dc.DrawLine(
+                _data.CrossLinePen,
+                new Point(innerRect.Right, centerLineY),
+                new Point(centerLineX + halfPixelMagnified + 2 * Scale, centerLineY));
+
+            dc.DrawRectangle(Brushes.Transparent, _data.BlackThinPen, centerOutlineRect);
+            dc.DrawRectangle(Brushes.Transparent, _data.WhiteThinPen, centerInnerRect);
+
+            dc.DrawRectangle(InfoBackgroundBrush, null, infoBackgroundRect);
+            var formattedText = new FormattedText("#ffffff", CultureInfo.InvariantCulture, FlowDirection.LeftToRight, new Typeface("Microsoft YaHei"), 12, Brushes.White, 1);
+            dc.DrawText(
+                formattedText,
+                new Point(centerLineX - formattedText.Width / 2, outlineRect.Bottom + 32));
+
+            var formattedText2 = new FormattedText($"({x / Scale:0}, {y / Scale:0})", CultureInfo.InvariantCulture, FlowDirection.LeftToRight, new Typeface("Microsoft YaHei"), 12, Brushes.White, 1);
+            dc.DrawText(
+                formattedText2,
+                new Point(centerLineX - formattedText2.Width / 2, outlineRect.Bottom + 16));
+
+            dc.Pop();
         }
 
         private static void UsingDrawingContext(Visual visual, Action<DrawingContext> callback)
