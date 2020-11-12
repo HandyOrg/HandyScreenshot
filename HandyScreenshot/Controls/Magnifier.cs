@@ -171,6 +171,8 @@ namespace HandyScreenshot.Controls
             var guidelines = new GuidelineSet();
             var halfPixel = Scale / 2;
 
+            // Draw magnified region box
+
             var magnifierRect = new Rect(x, y, width, height);
             var innerRect = new Rect(x - Scale, y - Scale, width + 2 * Scale, height + 2 * Scale);
             var outlineRect = new Rect(x - 2 * Scale, y - 2 * Scale, width + 4 * Scale, height + 4 * Scale);
@@ -180,6 +182,8 @@ namespace HandyScreenshot.Controls
             guidelines.GuidelinesY.Add(outlineRect.Top);
             guidelines.GuidelinesY.Add(outlineRect.Bottom);
 
+            // Draw cross line * 4
+
             var centerLineX = (innerRect.Left + innerRect.Right) / 2;
             var centerLineY = (innerRect.Top + innerRect.Bottom) / 2;
 
@@ -187,6 +191,8 @@ namespace HandyScreenshot.Controls
             guidelines.GuidelinesX.Add(centerLineX - _halfPixelMagnified);
             guidelines.GuidelinesY.Add(centerLineY + _halfPixelMagnified);
             guidelines.GuidelinesY.Add(centerLineY - _halfPixelMagnified);
+
+            // Draw center point box
 
             var centerInnerRect = new Rect(
                 centerLineX - _halfPixelMagnified + halfPixel - Scale,
@@ -204,7 +210,28 @@ namespace HandyScreenshot.Controls
             guidelines.GuidelinesY.Add(centerInnerRect.Top - halfPixel);
             guidelines.GuidelinesY.Add(centerInnerRect.Bottom + halfPixel);
 
-            var infoBackgroundRect = new Rect(outlineRect.Left, outlineRect.Bottom, outlineRect.Width, 80 * Scale);
+            var infoBackgroundRect = new Rect(outlineRect.Left, outlineRect.Bottom, outlineRect.Width, 72 * Scale);
+            var color = ColorGetter(MousePosition.X, MousePosition.Y);
+            var colorText = GetText($"#{color.R:X2}{color.G:X2}{color.B:X2}", 1 / Scale);
+            var positionText = GetText($"({x / Scale:0}, {y / Scale:0})", 1 / Scale);
+
+            var positionTextX = centerLineX - positionText.Width / 2;
+            var positionTextY = outlineRect.Bottom + 12 * Scale;
+            var colorBlockSize = 14 * Scale;
+            var colorComponentWidth = colorBlockSize + 8 * Scale + colorText.Width;
+            var colorX = centerLineX - colorComponentWidth / 2;
+            var colorTextX = colorX + colorComponentWidth - colorText.Width;
+            var colorY = positionTextY + positionText.Height + 12 * Scale;
+            var colorTextY = colorY + (colorBlockSize - colorText.Height) / 2;
+            var positionTextPoint = new Point(positionTextX, positionTextY);
+            var colorTextPoint = new Point(colorTextX, colorTextY);
+            var colorBlockRect = new Rect(colorX, colorY, colorBlockSize, colorBlockSize);
+
+            guidelines.GuidelinesX.Add(infoBackgroundRect.Bottom);
+            guidelines.GuidelinesX.Add(colorBlockRect.Left - halfPixel);
+            guidelines.GuidelinesX.Add(colorBlockRect.Right + halfPixel);
+            guidelines.GuidelinesY.Add(colorBlockRect.Top - halfPixel);
+            guidelines.GuidelinesY.Add(colorBlockRect.Bottom + halfPixel);
 
             // 3. Start Drawing
 
@@ -243,25 +270,23 @@ namespace HandyScreenshot.Controls
             // Draw info board
 
             dc.DrawRectangle(InfoBackgroundBrush, null, infoBackgroundRect);
-
-            var formattedText2 = new FormattedText($"({x / Scale:0}, {y / Scale:0})", CultureInfo.InvariantCulture, FlowDirection.LeftToRight, new Typeface("Consolas"), 12, Brushes.White, 1);
-            dc.DrawText(
-                formattedText2,
-                new Point(centerLineX - formattedText2.Width / 2, outlineRect.Bottom + 16));
-
-            var color = ColorGetter(MousePosition.X, MousePosition.Y);
-            var formattedText = new FormattedText($"#{color.R:X2}{color.G:X2}{color.B:X2}", CultureInfo.InvariantCulture, FlowDirection.LeftToRight, new Typeface("Consolas"), 12, Brushes.White, 1);
-
-            dc.DrawRectangle(
-                new SolidColorBrush(color),
-                _whiteThinPen,
-                new Rect(centerLineX - formattedText.Width / 2 - 10 - 8, outlineRect.Bottom + 32, 10, 10));
-
-            dc.DrawText(
-                formattedText,
-                new Point(centerLineX - formattedText.Width / 2, outlineRect.Bottom + 32));
+            dc.DrawText(positionText, positionTextPoint);
+            dc.DrawRectangle(new SolidColorBrush(color), _whiteThinPen, colorBlockRect);
+            dc.DrawText(colorText, colorTextPoint);
 
             dc.Pop();
+        }
+
+        private static FormattedText GetText(string text, double pixelsPerDip)
+        {
+            return new FormattedText(
+                text,
+                CultureInfo.InvariantCulture,
+                FlowDirection.LeftToRight,
+                new Typeface("Consolas"),
+                12,
+                Brushes.White,
+                pixelsPerDip);
         }
     }
 }
