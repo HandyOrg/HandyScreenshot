@@ -213,7 +213,7 @@ namespace HandyScreenshot.Controls
             var infoBackgroundRect = new Rect(outlineRect.Left, outlineRect.Bottom, outlineRect.Width, 72 * Scale);
             var color = ColorGetter(MousePosition.X, MousePosition.Y);
             var colorText = GetText($"#{color.R:X2}{color.G:X2}{color.B:X2}", 1 / Scale);
-            var positionText = GetText($"({x / Scale:0}, {y / Scale:0})", 1 / Scale);
+            var positionText = GetText($"({MousePosition.X / Scale:0}, {MousePosition.Y / Scale:0})", 1 / Scale);
 
             var positionTextX = centerLineX - positionText.Width / 2;
             var positionTextY = outlineRect.Bottom + 12 * Scale;
