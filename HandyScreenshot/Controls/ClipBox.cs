@@ -9,7 +9,7 @@ namespace HandyScreenshot.Controls
 {
     public class ClipBox : FrameworkElement
     {
-        private class MognifierDrawingData
+        private class MagnifierDrawingData
         {
             public readonly Pen WhiteThinPen;
             public readonly Pen BlackThinPen;
@@ -36,7 +36,7 @@ namespace HandyScreenshot.Controls
 
             private readonly double _scale;
 
-            public MognifierDrawingData(double scale)
+            public MagnifierDrawingData(double scale)
             {
                 _scale = scale;
                 WhiteThinPen = new Pen(Brushes.White, scale);
@@ -185,7 +185,7 @@ namespace HandyScreenshot.Controls
             {
                 if (d is ClipBox clipBox)
                 {
-                    clipBox._data = new MognifierDrawingData(clipBox.Scale);
+                    clipBox._data = new MagnifierDrawingData(clipBox.Scale);
                 }
             }));
 
@@ -242,7 +242,7 @@ namespace HandyScreenshot.Controls
 
         #endregion
 
-        private MognifierDrawingData? _data;
+        private MagnifierDrawingData? _data;
 
         public ClipBox()
         {
