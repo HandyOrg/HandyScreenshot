@@ -3,7 +3,7 @@ using System.Windows;
 
 namespace HandyScreenshot.Common
 {
-    public struct ReadOnlyRect
+    public readonly struct ReadOnlyRect
     {
         public static readonly ReadOnlyRect Zero = (0D, 0D, 0D, 0D);
         public static readonly ReadOnlyRect Empty = (double.PositiveInfinity, double.PositiveInfinity, double.NegativeInfinity, double.NegativeInfinity);

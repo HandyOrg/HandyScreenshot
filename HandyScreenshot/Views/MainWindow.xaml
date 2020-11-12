@@ -19,10 +19,6 @@
         <WindowChrome GlassFrameThickness="-1" />
     </WindowChrome.WindowChrome>
 
-    <Window.Resources>
-        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
-    </Window.Resources>
-
     <Window.InputBindings>
         <KeyBinding Key="Escape"
                     Command="{Binding CloseCommand}" />
@@ -33,22 +29,14 @@
                RenderOptions.BitmapScalingMode="NearestNeighbor"
                Source="{Binding Background}" />
 
-        <controls:ClipBox RectProxy="{Binding ClipBoxRect}"
-                          BackgroundImage="{Binding Background}"
-                          MousePosition="{Binding MousePoint}"
-                          Scale="{Binding ScaleX}">
-            <controls:ClipBox.MagnifierBrush>
-                <VisualBrush ViewboxUnits="Absolute"
-                             Visual="{Binding ElementName=Screenshot}"
-                             Viewbox="{Binding Region}" />
-            </controls:ClipBox.MagnifierBrush>
-        </controls:ClipBox>
+        <controls:ClipBox RectProxy="{Binding ClipBoxRect}" />
 
-        <!--<controls:MagnifierToolTip Target="{Binding ElementName=Screenshot}"
-                                   BitmapSource="{Binding Background}"
-                                   PointProxy="{Binding MousePoint}"
-                                   Scale="{Binding Scale}"
-                                   Visibility="{Binding IsClipBoxContainsCursor, Converter={StaticResource BooleanToVisibilityConverter}}" />-->
+        <controls:Magnifier MousePosition="{Binding MousePoint}"
+                            MagnifiedTarget="{Binding ElementName=Screenshot}"
+                            Scale="{Binding ScaleX}"
+                            ColorGetter="{Binding ColorGetter}"
+                            ClipBoxRect="{Binding ClipBoxRect}"
+                            MonitorInfo="{Binding MonitorInfo}" />
 
         <TextBlock Background="#AA000000"
                    Foreground="White"
@@ -66,9 +54,6 @@
             <LineBreak />
             Dpi:
             <Run Text="{Binding Path=DpiString, Mode=OneWay}" />
-            <LineBreak />
-            Viewbox:
-            <Run Text="{Binding Path=Region, Mode=OneWay}" />
             <LineBreak />
             Scale:
             <Run Text="{Binding Path=Scale, Mode=OneWay}" />

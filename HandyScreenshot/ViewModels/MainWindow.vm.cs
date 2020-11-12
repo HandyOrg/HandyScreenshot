@@ -1,8 +1,7 @@
 ﻿using System;
-using System.Diagnostics;
-using System.Reactive.Linq;
 using System.Windows;
 using System.Windows.Input;
+using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using HandyScreenshot.Common;
 using HandyScreenshot.Controls;
@@ -16,8 +15,6 @@ namespace HandyScreenshot.ViewModels
     {
         private string _dpiString;
         private ClipBoxStatus _status;
-        private bool _isClipBoxContainsCursor;
-        private Rect _region;
 
         public string DpiString
         {
@@ -31,17 +28,7 @@ namespace HandyScreenshot.ViewModels
             set => SetProperty(ref _status, value);
         }
 
-        public Rect Region
-        {
-            get => _region;
-            set => SetProperty(ref _region, value);
-        }
-
-        public bool IsClipBoxContainsCursor
-        {
-            get => _isClipBoxContainsCursor;
-            set => SetProperty(ref _isClipBoxContainsCursor, value);
-        }
+        public Func<double, double, Color> ColorGetter { get; }
 
         public RectProxy ClipBoxRect { get; } = new RectProxy();
 
@@ -59,17 +46,31 @@ namespace HandyScreenshot.ViewModels
 
         public double Scale { get; set; }
 
-        public MagnifierSizeSet Sizes { get; set; }
-
         public ICommand CloseCommand { get; } = new RelayCommand(() => Application.Current.Shutdown());
+
+        private static readonly byte[] SampleBytes = new byte[4];
 
         public MainWindowViewModel(IObservable<(MouseMessage message, double x, double y)> mouseEventSource)
         {
             var disposable1 = mouseEventSource
                 .Subscribe(i => SetState(i.message, i.x, i.y));
             var disposable2 = mouseEventSource
-                .Where(i => MonitorInfo.PhysicalScreenRect.Contains(i.x, i.y))
                 .Subscribe(i => SetMagnifierState(i.message, i.x, i.y));
+
+            ColorGetter = (x, y) =>
+            {
+                var physicalX = (int)(x / ScaleX);
+                var physicalY = (int)(y / ScaleX);
+
+                if (physicalX < 0 || physicalX >= Background.PixelWidth ||
+                    physicalY < 0 || physicalY >= Background.PixelHeight) return Colors.Transparent;
+
+                Background.CopyPixels(
+                    new Int32Rect(physicalX, physicalY, 1, 1),
+                    SampleBytes, 4, 0);
+
+                return Color.FromArgb(SampleBytes[3], SampleBytes[2], SampleBytes[1], SampleBytes[0]);
+            };
 
             SharedProperties.Disposables.Push(disposable1);
             SharedProperties.Disposables.Push(disposable2);
@@ -77,7 +78,6 @@ namespace HandyScreenshot.ViewModels
 
         public void Initialize()
         {
-            Sizes = new MagnifierSizeSet(ScaleX);
             var initPoint = Win32Helper.GetPhysicalMousePosition();
             SetState(MouseMessage.MouseMove, initPoint.X, initPoint.Y);
             SetMagnifierState(MouseMessage.MouseMove, initPoint.X, initPoint.Y);
@@ -88,17 +88,6 @@ namespace HandyScreenshot.ViewModels
             if (mouseMessage == MouseMessage.MouseMove)
             {
                 var (displayX, displayY) = ToDisplayPoint(physicalX, physicalY);
-                if (ClipBoxRect.Contains(displayX, displayY))
-                {
-                    IsClipBoxContainsCursor = true;
-                    Region = new Rect(displayX - Sizes.HalfRegionWidth, displayY - Sizes.HalfRegionHeight, Sizes.RegionWidth, Sizes.RegionHeight);
-                }
-                else
-                {
-                    IsClipBoxContainsCursor = false;
-                }
-
-                Debug.WriteLine($"IsPrimary={MonitorInfo.IsPrimaryScreen}, ({displayX}, {displayY})");
                 MousePoint.Set(displayX, displayY);
             }
         }

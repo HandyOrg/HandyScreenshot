@@ -10,7 +10,7 @@
     <Product>HandyScreenshot</Product>
     <Copyright>Copyright ©  2020</Copyright>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-    <LangVersion>latest</LangVersion>
+    <LangVersion>preview</LangVersion>
     <OutputPath>bin\$(Configuration)\</OutputPath>
     <UseWPF>true</UseWPF>
     <Nullable>enable</Nullable>

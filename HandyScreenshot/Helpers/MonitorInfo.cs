@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Diagnostics;
-using System.Windows;
 using HandyScreenshot.Common;
 
 namespace HandyScreenshot.Helpers
