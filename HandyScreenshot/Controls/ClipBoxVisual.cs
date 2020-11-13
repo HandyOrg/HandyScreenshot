@@ -2,6 +2,7 @@
 using System.Windows;
 using System.Windows.Media;
 using HandyScreenshot.Helpers;
+using static HandyScreenshot.Controls.ClipBox;
 
 namespace HandyScreenshot.Controls
 {
@@ -14,6 +15,8 @@ namespace HandyScreenshot.Controls
             "RectProxy", typeof(RectProxy), typeof(ClipBoxVisual), new PropertyMetadata(default(RectProxy), OnRectProxyChanged));
         public static readonly DependencyProperty BackgroundProperty = DependencyProperty.Register(
             "Background", typeof(ImageSource), typeof(ClipBoxVisual), new PropertyMetadata(default(ImageSource), OnBackgroundChanged));
+        public static readonly DependencyProperty ScaleProperty = DependencyProperty.Register(
+            "Scale", typeof(double), typeof(ClipBoxVisual), new PropertyMetadata(default(double), OnScaleChanged));
 
         private static void OnRectProxyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
@@ -28,6 +31,12 @@ namespace HandyScreenshot.Controls
                 (self, newValue) => self.RefreshBackground());
         }
 
+        private static void OnScaleChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            d.UpdateDependencyProperty<ClipBoxVisual, double>(e,
+                (self, newValue) => self._primaryPen = CreatePrimaryPen(newValue));
+        }
+
         public RectProxy RectProxy
         {
             get => (RectProxy)GetValue(RectProxyProperty);
@@ -40,17 +49,11 @@ namespace HandyScreenshot.Controls
             set => SetValue(BackgroundProperty, value);
         }
 
-        private readonly Brush MaskBrush;
-        private readonly Pen PrimaryPen;
+        private Pen _primaryPen;
 
         public ClipBoxVisual() : base(2)
         {
-            MaskBrush = new SolidColorBrush(Color.FromArgb(0xA0, 0, 0, 0));
-            MaskBrush.Freeze();
-            Brush primaryBrush = new SolidColorBrush(Color.FromRgb(0x20, 0x80, 0xf0));
-            primaryBrush.Freeze();
-            PrimaryPen = new Pen(primaryBrush, 1.6);
-            PrimaryPen.Freeze();
+            _primaryPen = CreatePrimaryPen(1);
         }
 
         private void OnRectChanged(double x, double y, double w, double h)
@@ -75,12 +78,12 @@ namespace HandyScreenshot.Controls
 
         private void DrawClipBox(DrawingContext dc)
         {
-            var halfPenThickness = PrimaryPen.Thickness / 2;
+            var halfPenThickness = _primaryPen.Thickness / 2;
 
             var x = RectProxy.X - halfPenThickness;
             var y = RectProxy.Y - halfPenThickness;
-            var w = RectProxy.Width + PrimaryPen.Thickness + halfPenThickness;
-            var h = RectProxy.Height + PrimaryPen.Thickness + halfPenThickness;
+            var w = RectProxy.Width + _primaryPen.Thickness + halfPenThickness;
+            var h = RectProxy.Height + _primaryPen.Thickness + halfPenThickness;
 
             var x0 = Math.Max(x, 0);
             var y0 = Math.Max(y, 0);
@@ -97,8 +100,16 @@ namespace HandyScreenshot.Controls
             var centralRect = new Rect(x, y, w0, h0);
 
             var guidelines = new GuidelineSet(
-                new[] { centralRect.Left + halfPenThickness, centralRect.Right - halfPenThickness },
-                new[] { centralRect.Top + halfPenThickness, centralRect.Bottom - halfPenThickness });
+                new[]
+                {
+                    centralRect.Left + halfPenThickness,
+                    centralRect.Right - halfPenThickness
+                },
+                new[]
+                {
+                    centralRect.Top + halfPenThickness,
+                    centralRect.Bottom - halfPenThickness
+                });
 
             dc.PushGuidelineSet(guidelines);
 
@@ -106,7 +117,7 @@ namespace HandyScreenshot.Controls
             dc.DrawRectangle(MaskBrush, null, topRect);
             dc.DrawRectangle(MaskBrush, null, rightRect);
             dc.DrawRectangle(MaskBrush, null, bottomRect);
-            dc.DrawRectangle(Brushes.Transparent, PrimaryPen, centralRect);
+            dc.DrawRectangle(Brushes.Transparent, _primaryPen, centralRect);
 
             dc.Pop();
         }

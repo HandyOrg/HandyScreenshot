@@ -26,6 +26,7 @@
 
     <controls:ZStackPanel>
         <controls:ClipBox x:Name="ClipBox"
+                          Scale="{Binding ScaleX}"
                           RectProxy="{Binding ClipBoxRect}"
                           Background="{Binding Background}" />
 

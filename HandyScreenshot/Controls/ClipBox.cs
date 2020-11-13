@@ -11,6 +11,8 @@ namespace HandyScreenshot.Controls
             "RectProxy", typeof(RectProxy), typeof(ClipBox), new PropertyMetadata(null));
         public static readonly DependencyProperty BackgroundProperty = DependencyProperty.Register(
             "Background", typeof(ImageSource), typeof(ClipBox), new PropertyMetadata(default(ImageSource)));
+        public static readonly DependencyProperty ScaleProperty = DependencyProperty.Register(
+            "Scale", typeof(double), typeof(ClipBox), new PropertyMetadata(default(double)));
 
         public RectProxy RectProxy
         {
@@ -22,6 +24,12 @@ namespace HandyScreenshot.Controls
         {
             get => (ImageSource)GetValue(BackgroundProperty);
             set => SetValue(BackgroundProperty, value);
+        }
+
+        public double Scale
+        {
+            get => (double)GetValue(ScaleProperty);
+            set => SetValue(ScaleProperty, value);
         }
 
         public Visual Visual { get; }
@@ -37,11 +45,17 @@ namespace HandyScreenshot.Controls
             BindingOperations.SetBinding(Visual,
                 ClipBoxVisual.BackgroundProperty,
                 new Binding(nameof(Background)) { Source = this });
+            BindingOperations.SetBinding(Visual,
+                ClipBoxVisual.ScaleProperty,
+                new Binding(nameof(Scale)) { Source = this });
 
             var clipBoxPointVisual = new ClipBoxPointVisual();
             BindingOperations.SetBinding(clipBoxPointVisual,
                 ClipBoxPointVisual.RectProxyProperty,
                 new Binding(nameof(RectProxy)) { Source = this });
+            BindingOperations.SetBinding(clipBoxPointVisual,
+                ClipBoxPointVisual.ScaleProperty,
+                new Binding(nameof(Scale)) { Source = this });
 
             _visualCollection = new VisualCollection(this)
             {
@@ -73,6 +87,29 @@ namespace HandyScreenshot.Controls
             }
 
             return _visualCollection[index];
+        }
+
+
+        internal const int PrimaryPenThickness = 2;
+        internal static readonly Brush PrimaryBrush;
+        internal static readonly Brush MaskBrush;
+        internal static readonly Pen WhitePen;
+
+        static ClipBox()
+        {
+            PrimaryBrush = new SolidColorBrush(Color.FromRgb(0x20, 0x80, 0xf0));
+            PrimaryBrush.Freeze();
+            MaskBrush = new SolidColorBrush(Color.FromArgb(0xA0, 0, 0, 0));
+            MaskBrush.Freeze();
+            WhitePen = new Pen(Brushes.White, 1.5);
+            WhitePen.Freeze();
+        }
+
+        internal static Pen CreatePrimaryPen(double scale)
+        {
+            var result = new Pen(PrimaryBrush, PrimaryPenThickness * scale);
+            result.Freeze();
+            return result;
         }
     }
 }
