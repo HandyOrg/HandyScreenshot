@@ -7,13 +7,14 @@ namespace HandyScreenshot.Controls
 {
     public class ClipBox : DrawingControlBase
     {
+        private const int BackgroundIndex = 0;
+        private const int ClipBoxIndex = 1;
+
         #region Static Members
 
         private const double MinDisplayPointLimit = 80;
         private const double PointRadius = 4.5;
 
-        private static readonly Rect RectZero = new Rect(0, 0, 0, 0);
-        private static readonly Point PointZero = new Point(0, 0);
         private static readonly Brush MaskBrush;
         private static readonly Brush PrimaryBrush;
         private static readonly Pen PrimaryPen;
@@ -25,20 +26,28 @@ namespace HandyScreenshot.Controls
             MaskBrush.Freeze();
             PrimaryBrush = new SolidColorBrush(Color.FromRgb(0x20, 0x80, 0xf0));
             PrimaryBrush.Freeze();
-            PrimaryPen = new Pen(PrimaryBrush, 2);
+            PrimaryPen = new Pen(PrimaryBrush, 1.6);
             PrimaryPen.Freeze();
             WhitePen = new Pen(Brushes.White, 1.5);
             WhitePen.Freeze();
         }
 
         public static readonly DependencyProperty RectProxyProperty = DependencyProperty.Register(
-            "RectProxy", typeof(RectProxy), typeof(ClipBox), new PropertyMetadata(null, RectProxyChanged));
+            "RectProxy", typeof(RectProxy), typeof(ClipBox), new PropertyMetadata(null, OnRectProxyChanged));
+        public static readonly DependencyProperty BackgroundProperty = DependencyProperty.Register(
+            "Background", typeof(ImageSource), typeof(ClipBox), new PropertyMetadata(default(ImageSource), OnBackgroundChanged));
 
-        private static void RectProxyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        private static void OnRectProxyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
             d.UpdateDependencyProperty<ClipBox, RectProxy>(e,
                 (magnifier, newValue) => newValue.RectChanged += magnifier.OnRectChanged,
                 (magnifier, oldValue) => oldValue.RectChanged -= magnifier.OnRectChanged);
+        }
+
+        private static void OnBackgroundChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            d.UpdateDependencyProperty<ClipBox, ImageSource>(e,
+                (magnifier, newValue) => magnifier.RefreshBackground());
         }
 
         #endregion
@@ -49,114 +58,93 @@ namespace HandyScreenshot.Controls
             set => SetValue(RectProxyProperty, value);
         }
 
-        #region Data for drawing clip box
-
-        private Rect _topRect = RectZero;
-        private Rect _rightRect = RectZero;
-        private Rect _bottomRect = RectZero;
-        private Rect _leftRect = RectZero;
-        private Rect _centralRect = RectZero;
-
-        private Point _leftTopPoint = PointZero;
-        private Point _topPoint = PointZero;
-        private Point _rightTopPoint = PointZero;
-        private Point _rightPoint = PointZero;
-        private Point _rightBottomPoint = PointZero;
-        private Point _bottomPoint = PointZero;
-        private Point _leftBottomPoint = PointZero;
-        private Point _leftPoint = PointZero;
-
-        #endregion
-
-        public ClipBox() : base(2)
+        public ImageSource Background
         {
-            SizeChanged += OnSizeChanged;
+            get => (ImageSource)GetValue(BackgroundProperty);
+            set => SetValue(BackgroundProperty, value);
         }
+
+        public ClipBox() : base(2) { }
 
         private void OnRectChanged(double x, double y, double w, double h)
         {
-            var h0 = Math.Max(h, 0);
-            var r = x + w;
-            var b = y + h;
-
-            _leftRect.Y = y;
-            _leftRect.Width = Math.Max(x, 0);
-            _leftRect.Height = h0;
-
-            _topRect.Height = Math.Max(y, 0);
-
-            _rightRect.X = r;
-            _rightRect.Y = y;
-            _rightRect.Width = Math.Max(ActualWidth - r, 0);
-            _rightRect.Height = h0;
-
-            _bottomRect.Y = b;
-            _bottomRect.Height = Math.Max(ActualHeight - b, 0);
-
-            _centralRect.X = x;
-            _centralRect.Y = y;
-            _centralRect.Width = Math.Max(w, 0);
-            _centralRect.Height = h0;
-
-            if (_centralRect.Width > MinDisplayPointLimit && _centralRect.Height > MinDisplayPointLimit)
-            {
-                var halfR = x + w / 2D;
-                var halfB = y + h / 2D;
-
-                _leftTopPoint.X = x;
-                _leftTopPoint.Y = y;
-
-                _topPoint.X = halfR;
-                _topPoint.Y = y;
-
-                _rightTopPoint.X = r;
-                _rightTopPoint.Y = y;
-
-                _rightPoint.X = r;
-                _rightPoint.Y = halfB;
-
-                _rightBottomPoint.X = r;
-                _rightBottomPoint.Y = b;
-
-                _bottomPoint.X = halfR;
-                _bottomPoint.Y = b;
-
-                _leftBottomPoint.X = x;
-                _leftBottomPoint.Y = b;
-
-                _leftPoint.X = x;
-                _leftPoint.Y = halfB;
-            }
-
             Dispatcher.Invoke(RefreshClipBox);
         }
 
-        private void OnSizeChanged(object sender, SizeChangedEventArgs e)
-        {
-            _topRect.Width = ActualWidth;
-            _bottomRect.Width = ActualWidth;
-        }
+        // ReSharper disable once RedundantArgumentDefaultValue
+        private void RefreshBackground() => GetDrawingVisual(BackgroundIndex).Using(DrawBackground);
 
-        private void RefreshClipBox() => GetDrawingVisual().Using(DrawClipBox);
+        private void RefreshClipBox() => GetDrawingVisual(ClipBoxIndex).Using(DrawClipBox);
+
+        private void DrawBackground(DrawingContext dc)
+        {
+            var group = new DrawingGroup();
+            RenderOptions.SetBitmapScalingMode(group, BitmapScalingMode.NearestNeighbor);
+            var groupDc = group.Open();
+            groupDc.DrawImage(Background, new Rect(0, 0, ActualWidth, ActualHeight));
+            groupDc.Close();
+            dc.DrawDrawing(group);
+        }
 
         private void DrawClipBox(DrawingContext dc)
         {
-            dc.DrawRectangle(MaskBrush, null, _leftRect);
-            dc.DrawRectangle(MaskBrush, null, _topRect);
-            dc.DrawRectangle(MaskBrush, null, _rightRect);
-            dc.DrawRectangle(MaskBrush, null, _bottomRect);
-            dc.DrawRectangle(Brushes.Transparent, PrimaryPen, _centralRect);
+            var halfPenThickness = PrimaryPen.Thickness / 2;
 
-            if (_centralRect.Width > MinDisplayPointLimit && _centralRect.Height > MinDisplayPointLimit)
+            var x = RectProxy.X - halfPenThickness;
+            var y = RectProxy.Y - halfPenThickness;
+            var w = RectProxy.Width + PrimaryPen.Thickness + halfPenThickness;
+            var h = RectProxy.Height + PrimaryPen.Thickness + halfPenThickness;
+
+            var x0 = Math.Max(x, 0);
+            var y0 = Math.Max(y, 0);
+            var w0 = Math.Max(w, 0);
+            var h0 = Math.Max(h, 0);
+
+            var r = x + w;
+            var b = y + h;
+
+            var leftRect = new Rect(0, y, x0, h0);
+            var topRect = new Rect(0, 0, ActualWidth, y0);
+            var rightRect = new Rect(r, y, Math.Max(ActualWidth - r, 0), h0);
+            var bottomRect = new Rect(0, b, ActualWidth, Math.Max(ActualHeight - b, 0));
+            var centralRect = new Rect(x, y, w0, h0);
+
+            var guidelines = new GuidelineSet(
+                new[] { centralRect.Left + halfPenThickness, centralRect.Right - halfPenThickness },
+                new[] { centralRect.Top + halfPenThickness, centralRect.Bottom - halfPenThickness });
+
+            dc.PushGuidelineSet(guidelines);
+
+            dc.DrawRectangle(MaskBrush, null, leftRect);
+            dc.DrawRectangle(MaskBrush, null, topRect);
+            dc.DrawRectangle(MaskBrush, null, rightRect);
+            dc.DrawRectangle(MaskBrush, null, bottomRect);
+            dc.DrawRectangle(Brushes.Transparent, PrimaryPen, centralRect);
+
+            dc.Pop();
+
+            if (centralRect.Width > MinDisplayPointLimit && centralRect.Height > MinDisplayPointLimit)
             {
-                DrawPoint(dc, _leftTopPoint);
-                DrawPoint(dc, _topPoint);
-                DrawPoint(dc, _rightTopPoint);
-                DrawPoint(dc, _rightPoint);
-                DrawPoint(dc, _rightBottomPoint);
-                DrawPoint(dc, _bottomPoint);
-                DrawPoint(dc, _leftBottomPoint);
-                DrawPoint(dc, _leftPoint);
+                var halfR = x + w / 2;
+                var halfB = y + h / 2;
+
+                var leftTopPoint = new Point(x, y);
+                var topPoint = new Point(halfR, y);
+                var rightTopPoint = new Point(r, y);
+                var rightPoint = new Point(r, halfB);
+                var rightBottomPoint = new Point(r, b);
+                var bottomPoint = new Point(halfR, b);
+                var leftBottomPoint = new Point(x, b);
+                var leftPoint = new Point(x, halfB);
+
+                DrawPoint(dc, leftTopPoint);
+                DrawPoint(dc, topPoint);
+                DrawPoint(dc, rightTopPoint);
+                DrawPoint(dc, rightPoint);
+                DrawPoint(dc, rightBottomPoint);
+                DrawPoint(dc, bottomPoint);
+                DrawPoint(dc, leftBottomPoint);
+                DrawPoint(dc, leftPoint);
             }
         }
 

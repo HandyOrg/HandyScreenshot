@@ -25,14 +25,16 @@
     </Window.InputBindings>
 
     <controls:ZStackPanel>
-        <Image x:Name="Screenshot"
+        <!--<Image x:Name="Screenshot"
                RenderOptions.BitmapScalingMode="NearestNeighbor"
-               Source="{Binding Background}" />
+               Source="{Binding Background}" />-->
 
-        <controls:ClipBox RectProxy="{Binding ClipBoxRect}" />
+        <controls:ClipBox x:Name="ClipBox"
+                          RectProxy="{Binding ClipBoxRect}"
+                          Background="{Binding Background}" />
 
         <controls:Magnifier MousePosition="{Binding MousePoint}"
-                            MagnifiedTarget="{Binding ElementName=Screenshot}"
+                            MagnifiedTarget="{Binding ElementName=ClipBox}"
                             Scale="{Binding ScaleX}"
                             ColorGetter="{Binding ColorGetter}"
                             ClipBoxRect="{Binding ClipBoxRect}"
