@@ -1,4 +1,4 @@
-﻿namespace HandyScreenshot.Controls
+﻿namespace HandyScreenshot.Common
 {
     public delegate void PointChangedEventHandler(double x, double y);
 

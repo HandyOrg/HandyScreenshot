@@ -1,5 +1,6 @@
 ﻿using System.Windows;
 using System.Windows.Media;
+using HandyScreenshot.Common;
 using HandyScreenshot.Helpers;
 using static HandyScreenshot.Controls.ClipBox;
 

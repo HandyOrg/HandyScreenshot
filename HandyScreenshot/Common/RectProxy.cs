@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace HandyScreenshot.Controls
+namespace HandyScreenshot.Common
 {
     public delegate void RectChangedEventHandler(double x, double y, double width, double height);
 

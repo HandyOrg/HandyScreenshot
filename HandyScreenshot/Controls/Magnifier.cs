@@ -2,6 +2,7 @@
 using System.Globalization;
 using System.Windows;
 using System.Windows.Media;
+using HandyScreenshot.Common;
 using HandyScreenshot.Helpers;
 
 namespace HandyScreenshot.Controls

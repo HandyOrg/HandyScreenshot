@@ -14,7 +14,7 @@ namespace HandyScreenshot.ViewModels
     public class MainWindowViewModel : BindableBase
     {
         private string _dpiString;
-        private ClipBoxStatus _status;
+        private ScreenshotMode _status;
 
         public string DpiString
         {
@@ -22,7 +22,7 @@ namespace HandyScreenshot.ViewModels
             set => SetProperty(ref _dpiString, value);
         }
 
-        public ClipBoxStatus Status
+        public ScreenshotMode Status
         {
             get => _status;
             set => SetProperty(ref _status, value);
@@ -100,17 +100,17 @@ namespace HandyScreenshot.ViewModels
             switch (mouseMessage)
             {
                 case MouseMessage.LeftButtonDown:
-                    if (Status == ClipBoxStatus.AutoDetect)
+                    if (Status == ScreenshotMode.AutoDetect)
                     {
-                        Status = ClipBoxStatus.ResizingVertex;
+                        Status = ScreenshotMode.ResizingVertex;
                         (_displayStartPointX, _displayStartPointY) = ToDisplayPoint(physicalX, physicalY);
                     }
-                    else if (Status == ClipBoxStatus.Static)
+                    else if (Status == ScreenshotMode.Fixed)
                     {
                         (double displayX, double displayY) = ToDisplayPoint(physicalX, physicalY);
                         if (ClipBoxRect.Contains(displayX, displayY))
                         {
-                            Status = ClipBoxStatus.Moving;
+                            Status = ScreenshotMode.Moving;
                             (_displayStartPointX, _displayStartPointY) = ToDisplayPoint(physicalX, physicalY);
                         }
                         else
@@ -119,25 +119,25 @@ namespace HandyScreenshot.ViewModels
                             var bottom = ClipBoxRect.Y + ClipBoxRect.Height;
                             if (displayX < ClipBoxRect.X && displayY < ClipBoxRect.Y)
                             {
-                                Status = ClipBoxStatus.ResizingVertex;
+                                Status = ScreenshotMode.ResizingVertex;
                                 _displayStartPointX = right;
                                 _displayStartPointY = bottom;
                             }
                             else if (displayX > right && displayY < ClipBoxRect.Y)
                             {
-                                Status = ClipBoxStatus.ResizingVertex;
+                                Status = ScreenshotMode.ResizingVertex;
                                 _displayStartPointX = ClipBoxRect.X;
                                 _displayStartPointY = bottom;
                             }
                             else if (displayX < ClipBoxRect.X && displayY > bottom)
                             {
-                                Status = ClipBoxStatus.ResizingVertex;
+                                Status = ScreenshotMode.ResizingVertex;
                                 _displayStartPointX = right;
                                 _displayStartPointY = ClipBoxRect.Y;
                             }
                             else if (displayX > right && displayY > bottom)
                             {
-                                Status = ClipBoxStatus.ResizingVertex;
+                                Status = ScreenshotMode.ResizingVertex;
                                 _displayStartPointX = ClipBoxRect.X;
                                 _displayStartPointY = ClipBoxRect.Y;
                             }
@@ -145,22 +145,22 @@ namespace HandyScreenshot.ViewModels
                             {
                                 if (displayY < ClipBoxRect.Y)
                                 {
-                                    Status = ClipBoxStatus.ResizingTopEdge;
+                                    Status = ScreenshotMode.ResizingTop;
                                 }
                                 else if (displayY > bottom)
                                 {
-                                    Status = ClipBoxStatus.ResizingBottomEdge;
+                                    Status = ScreenshotMode.ResizingBottom;
                                 }
                             }
                             else if (displayY > ClipBoxRect.Y && displayY < bottom)
                             {
                                 if (displayX < ClipBoxRect.X)
                                 {
-                                    Status = ClipBoxStatus.ResizingLeftEdge;
+                                    Status = ScreenshotMode.ResizingLeft;
                                 }
                                 else if (displayX > right)
                                 {
-                                    Status = ClipBoxStatus.ResizingRightEdge;
+                                    Status = ScreenshotMode.ResizingRight;
                                 }
                             }
 
@@ -169,16 +169,16 @@ namespace HandyScreenshot.ViewModels
                     }
                     break;
                 case MouseMessage.LeftButtonUp:
-                    Status = ClipBoxStatus.Static;
+                    Status = ScreenshotMode.Fixed;
                     break;
                 case MouseMessage.RightButtonDown:
-                    if (Status == ClipBoxStatus.Static)
+                    if (Status == ScreenshotMode.Fixed)
                     {
-                        Status = ClipBoxStatus.AutoDetect;
+                        Status = ScreenshotMode.AutoDetect;
                         var (x, y, w, h) = DetectRectFromPhysicalPoint(physicalX, physicalY);
                         ClipBoxRect.Set(x, y, w, h);
                     }
-                    else if (Status == ClipBoxStatus.AutoDetect)
+                    else if (Status == ScreenshotMode.AutoDetect)
                     {
                         try
                         {
@@ -192,63 +192,63 @@ namespace HandyScreenshot.ViewModels
                     }
                     break;
                 case MouseMessage.MouseMove:
-                    if (Status == ClipBoxStatus.AutoDetect)
+                    if (Status == ScreenshotMode.AutoDetect)
                     {
                         var (x, y, w, h) = DetectRectFromPhysicalPoint(physicalX, physicalY);
                         ClipBoxRect.Set(x, y, w, h);
                     }
-                    else if (Status == ClipBoxStatus.ResizingVertex)
+                    else if (Status == ScreenshotMode.ResizingVertex)
                     {
                         // Update Rect
                         var (displayX, displayY) = ToDisplayPoint(physicalX, physicalY);
                         var (x, y, w, h) = CalculateRectByTwoPoint(_displayStartPointX, _displayStartPointY, displayX, displayY);
                         ClipBoxRect.Set(x, y, w, h);
                     }
-                    else if (Status == ClipBoxStatus.ResizingLeftEdge)
+                    else if (Status == ScreenshotMode.ResizingLeft)
                     {
                         var displayX = ToDisplayX(physicalX);
                         if (displayX > ClipBoxRect.X + ClipBoxRect.Width)
                         {
-                            Status = ClipBoxStatus.ResizingRightEdge;
+                            Status = ScreenshotMode.ResizingRight;
                             break;
                         }
 
                         ClipBoxRect.SetLeft(displayX);
                     }
-                    else if (Status == ClipBoxStatus.ResizingRightEdge)
+                    else if (Status == ScreenshotMode.ResizingRight)
                     {
                         var displayX = ToDisplayX(physicalX);
                         if (displayX < ClipBoxRect.X)
                         {
-                            Status = ClipBoxStatus.ResizingLeftEdge;
+                            Status = ScreenshotMode.ResizingLeft;
                             break;
                         }
 
                         ClipBoxRect.SetRight(displayX);
                     }
-                    else if (Status == ClipBoxStatus.ResizingTopEdge)
+                    else if (Status == ScreenshotMode.ResizingTop)
                     {
                         var displayY = ToDisplayY(physicalY);
                         if (displayY > ClipBoxRect.Y + ClipBoxRect.Height)
                         {
-                            Status = ClipBoxStatus.ResizingBottomEdge;
+                            Status = ScreenshotMode.ResizingBottom;
                             break;
                         }
 
                         ClipBoxRect.SetTop(displayY);
                     }
-                    else if (Status == ClipBoxStatus.ResizingBottomEdge)
+                    else if (Status == ScreenshotMode.ResizingBottom)
                     {
                         var displayY = ToDisplayY(physicalY);
                         if (displayY < ClipBoxRect.Y)
                         {
-                            Status = ClipBoxStatus.ResizingTopEdge;
+                            Status = ScreenshotMode.ResizingTop;
                             break;
                         }
 
                         ClipBoxRect.SetBottom(displayY);
                     }
-                    else if (Status == ClipBoxStatus.Moving)
+                    else if (Status == ScreenshotMode.Moving)
                     {
                         (double x2, double y2) = ToDisplayPoint(physicalX, physicalY);
                         ClipBoxRect.Offset(_displayStartPointX, _displayStartPointY, x2, y2);
@@ -292,5 +292,27 @@ namespace HandyScreenshot.ViewModels
         private double ToDisplayX(double x) => (x - MonitorInfo.PhysicalScreenRect.X) * ScaleX;
 
         private double ToDisplayY(double y) => (y - MonitorInfo.PhysicalScreenRect.Y) * ScaleY;
+
+        private static PointOrientation GetPointOrientation(
+            double pointX,
+            double pointY,
+            double rectX,
+            double rectY,
+            double rectWidth,
+            double rectHeight)
+        {
+            var horizontal = pointX <= rectX
+                ? PointOrientation.Left
+                : pointX < rectX + rectWidth
+                    ? PointOrientation.Center
+                    : PointOrientation.Right;
+            var vertical = pointY <= rectY
+                ? PointOrientation.Top
+                : pointY < rectY + rectHeight
+                    ? PointOrientation.Center
+                    : PointOrientation.Bottom;
+
+            return horizontal | vertical;
+        }
     }
 }
