@@ -27,14 +27,14 @@
     <controls:ZStackPanel>
         <controls:ClipBox x:Name="ClipBox"
                           Scale="{Binding ScaleX}"
-                          RectProxy="{Binding ClipBoxRect}"
+                          RectProxy="{Binding State.ScreenshotRect}"
                           Background="{Binding Background}" />
 
-        <controls:Magnifier MousePosition="{Binding MousePoint}"
+        <controls:Magnifier MousePosition="{Binding State.MousePosition}"
                             MagnifiedTarget="{Binding ElementName=ClipBox, Path=Visual}"
                             Scale="{Binding ScaleX}"
                             ColorGetter="{Binding ColorGetter}"
-                            ClipBoxRect="{Binding ClipBoxRect}"
+                            ClipBoxRect="{Binding State.ScreenshotRect}"
                             MonitorInfo="{Binding MonitorInfo}" />
 
         <TextBlock Background="#AA000000"
@@ -48,8 +48,11 @@
             Monitor Pixel Size:
             <Run Text="{Binding Path=MonitorInfo.PhysicalScreenRect, Mode=OneWay}" />
             <LineBreak />
-            Status:
-            <Run Text="{Binding Path=Status, Mode=OneWay}" />
+            Mode:
+            <Run Text="{Binding Path=State.Mode, Mode=OneWay}" />
+            <LineBreak />
+            Orientation:
+            <Run Text="{Binding Path=State.Orientation, Mode=OneWay}" />
             <LineBreak />
             Dpi:
             <Run Text="{Binding Path=DpiString, Mode=OneWay}" />

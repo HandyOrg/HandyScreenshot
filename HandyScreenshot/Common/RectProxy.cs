@@ -6,7 +6,7 @@ namespace HandyScreenshot.Common
 
     public class RectProxy
     {
-        public event RectChangedEventHandler RectChanged;
+        public event RectChangedEventHandler? RectChanged;
 
         public double X { get; private set; }
 

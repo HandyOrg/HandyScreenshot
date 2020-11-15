@@ -144,7 +144,14 @@ namespace HandyScreenshot.Controls
 
         private void OnMousePositionChanged(double x, double y)
         {
-            Dispatcher.Invoke(RefreshMagnifier);
+            try
+            {
+                Dispatcher.Invoke(RefreshMagnifier);
+            }
+            catch (OperationCanceledException)
+            {
+                // Ignore
+            }
         }
 
         private void RefreshMagnifier()

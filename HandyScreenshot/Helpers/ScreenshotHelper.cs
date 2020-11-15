@@ -34,14 +34,15 @@ namespace HandyScreenshot.Helpers
             {
                 var (scaleX, scaleY) = MonitorHelper.GetScaleFactorFromMonitor(monitorInfo.Handle);
 
-                var vm = new MainWindowViewModel(mouseEventSource)
+                var vm = new MainWindowViewModel(
+                    mouseEventSource,
+                    CaptureScreen(monitorInfo.PhysicalScreenRect),
+                    monitorInfo,
+                    detector)
                 {
-                    MonitorInfo = monitorInfo,
                     ScaleX = scaleX,
                     ScaleY = scaleY,
                     Scale = scaleX / primaryScreenScaleX,
-                    Background = CaptureScreen(monitorInfo.PhysicalScreenRect),
-                    Detector = detector
                 };
 
                 var window = new MainWindow { DataContext = vm };

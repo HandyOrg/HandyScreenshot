@@ -4,7 +4,7 @@
 
     public class PointProxy
     {
-        public event PointChangedEventHandler PointChanged;
+        public event PointChangedEventHandler? PointChanged;
 
         public double X { get; private set; }
 

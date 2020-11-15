@@ -1,4 +1,5 @@
-﻿using System.Windows;
+﻿using System;
+using System.Windows;
 using System.Windows.Media;
 using HandyScreenshot.Common;
 using HandyScreenshot.Helpers;
@@ -45,7 +46,14 @@ namespace HandyScreenshot.Controls
 
         private void OnRectChanged(double x, double y, double w, double h)
         {
-            Dispatcher.Invoke(RefreshClipBoxPoint);
+            try
+            {
+                Dispatcher.Invoke(RefreshClipBoxPoint);
+            }
+            catch (OperationCanceledException)
+            {
+                // Ignore
+            }
         }
 
         private void RefreshClipBoxPoint() => GetDrawingVisual().Using(DrawClipBoxPoint);
