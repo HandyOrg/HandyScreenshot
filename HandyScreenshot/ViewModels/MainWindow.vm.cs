@@ -22,8 +22,6 @@ namespace HandyScreenshot.ViewModels
 
         public Func<double, double, Color> ColorGetter { get; }
 
-        public PointProxy MousePoint { get; } = new PointProxy();
-
         public RectDetector Detector { get; }
 
         public BitmapSource Background { get; }
@@ -57,8 +55,6 @@ namespace HandyScreenshot.ViewModels
 
             var disposable1 = mouseEventSource
                 .Subscribe(i => State.PushState(i.message, i.x, i.y));
-            var disposable2 = mouseEventSource
-                .Subscribe(i => SetMagnifierState(i.message, i.x, i.y));
 
             ColorGetter = (x, y) =>
             {
@@ -76,22 +72,12 @@ namespace HandyScreenshot.ViewModels
             };
 
             SharedProperties.Disposables.Push(disposable1);
-            SharedProperties.Disposables.Push(disposable2);
         }
 
         public void Initialize()
         {
             var initPoint = Win32Helper.GetPhysicalMousePosition();
             State.PushState(MouseMessage.MouseMove, initPoint.X, initPoint.Y);
-            SetMagnifierState(MouseMessage.MouseMove, initPoint.X, initPoint.Y);
-        }
-
-        private void SetMagnifierState(MouseMessage mouseMessage, double physicalX, double physicalY)
-        {
-            if (mouseMessage != MouseMessage.MouseMove) return;
-
-            var (displayX, displayY) = ToDisplayPoint(physicalX, physicalY);
-            MousePoint.Set(displayX, displayY);
         }
 
         private ReadOnlyRect DetectRectFromPhysicalPoint(double physicalX, double physicalY)
