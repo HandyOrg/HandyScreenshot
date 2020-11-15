@@ -5,6 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:controls="clr-namespace:HandyScreenshot.Controls"
         xmlns:viewModels="clr-namespace:HandyScreenshot.ViewModels"
+        xmlns:converters="clr-namespace:HandyScreenshot.Converters"
         mc:Ignorable="d"
         Title="MainWindow"
         WindowStyle="None"
@@ -15,8 +16,13 @@
         SnapsToDevicePixels="True"
         d:DataContext="{d:DesignInstance {x:Type viewModels:MainWindowViewModel}}">
 
+    <Window.Resources>
+        <converters:PointOrientationToCursorConverter  x:Key="PointOrientationToCursorConverter" />
+    </Window.Resources>
+
     <WindowChrome.WindowChrome>
-        <WindowChrome GlassFrameThickness="-1" />
+        <WindowChrome GlassFrameThickness="-1"
+                      CaptionHeight="0" />
     </WindowChrome.WindowChrome>
 
     <Window.InputBindings>
@@ -24,7 +30,7 @@
                     Command="{Binding CloseCommand}" />
     </Window.InputBindings>
 
-    <controls:ZStackPanel>
+    <controls:ZStackPanel Cursor="{Binding State.Orientation, Converter={StaticResource PointOrientationToCursorConverter}}">
         <controls:ClipBox x:Name="ClipBox"
                           Scale="{Binding ScaleX}"
                           RectProxy="{Binding State.ScreenshotRect}"
