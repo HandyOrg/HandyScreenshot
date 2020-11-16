@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Windows;
+using System.Windows.Interop;
 using System.Windows.Media;
 using HandyScreenshot.Common;
 using static HandyScreenshot.Interop.NativeMethods;
@@ -53,6 +54,11 @@ namespace HandyScreenshot.Helpers
                     loadNewValue(t, newValue);
                 }
             }
+        }
+
+        public static IntPtr GetHandle(this Window window)
+        {
+            return new WindowInteropHelper(window).EnsureHandle();
         }
     }
 }

@@ -46,7 +46,7 @@ namespace HandyScreenshot.Helpers
                 };
 
                 var window = new MainWindow { DataContext = vm };
-                SetWindowRect(window, monitorInfo.PhysicalScreenRect.Scale(primaryScreenScaleX, primaryScreenScaleY));
+                SetWindowRect(window, monitorInfo.PhysicalScreenRect);
                 window.Loaded += WindowOnLoaded;
                 window.Show();
 
@@ -90,10 +90,14 @@ namespace HandyScreenshot.Helpers
 
         private static void SetWindowRect(Window window, ReadOnlyRect rect)
         {
-            window.Left = rect.X;
-            window.Top = rect.Y;
-            window.Width = rect.Width;
-            window.Height = rect.Height;
+            SetWindowPos(
+                window.GetHandle(),
+                (IntPtr)HWND_TOPMOST,
+                (int)rect.X,
+                (int)rect.Y,
+                (int)rect.Width,
+                (int)rect.Height,
+                SWP_NOZORDER);
         }
 
         public static BitmapSource CaptureScreen(ReadOnlyRect rect)
