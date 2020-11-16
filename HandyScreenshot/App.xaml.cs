@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Windows;
+﻿using System.Windows;
 using HandyScreenshot.Common;
 using HandyScreenshot.Helpers;
 

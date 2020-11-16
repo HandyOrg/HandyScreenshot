@@ -3,12 +3,9 @@
     <OutputType>WinExe</OutputType>
     <TargetFramework>net462</TargetFramework>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
-    <AssemblyTitle>HandyScreenshot</AssemblyTitle>
     <Product>HandyScreenshot</Product>
     <Copyright>Copyright ©  2020</Copyright>
     <AssemblyTitle>HandyScreenshot</AssemblyTitle>
-    <Product>HandyScreenshot</Product>
-    <Copyright>Copyright ©  2020</Copyright>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <LangVersion>preview</LangVersion>
     <OutputPath>bin\$(Configuration)\</OutputPath>

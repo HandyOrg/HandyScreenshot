@@ -19,13 +19,13 @@ namespace HandyScreenshot.ViewModels
         public ScreenshotMode Mode
         {
             get => _mode;
-            set => SetProperty(ref _mode, value);
+            private set => SetProperty(ref _mode, value);
         }
 
         public PointOrientation Orientation
         {
             get => _orientation;
-            set => SetProperty(ref _orientation, value);
+            private set => SetProperty(ref _orientation, value);
         }
 
         public PointProxy MousePosition { get; } = new PointProxy();

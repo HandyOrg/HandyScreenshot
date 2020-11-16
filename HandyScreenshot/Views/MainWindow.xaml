@@ -30,7 +30,7 @@
                     Command="{Binding CloseCommand}" />
     </Window.InputBindings>
 
-    <controls:ZStackPanel Cursor="{Binding State.Orientation, Converter={StaticResource PointOrientationToCursorConverter}}">
+    <controls:ZStackPanel Cursor="{Binding State.Orientation, Mode=OneWay, Converter={StaticResource PointOrientationToCursorConverter}}">
         <controls:ClipBox x:Name="ClipBox"
                           Scale="{Binding ScaleX}"
                           RectProxy="{Binding State.ScreenshotRect}"

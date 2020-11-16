@@ -12,6 +12,7 @@ namespace HandyScreenshot.ViewModels
 {
     public class MainWindowViewModel : BindableBase
     {
+        private readonly RectDetector _detector;
         private string _dpiString = string.Empty;
 
         public string DpiString
@@ -21,8 +22,6 @@ namespace HandyScreenshot.ViewModels
         }
 
         public Func<double, double, Color> ColorGetter { get; }
-
-        public RectDetector Detector { get; }
 
         public BitmapSource Background { get; }
 
@@ -49,15 +48,15 @@ namespace HandyScreenshot.ViewModels
                 ToDisplayPoint);
             Background = background;
             MonitorInfo = monitorInfo;
-            Detector = detector;
+            _detector = detector;
 
-            var disposable1 = mouseEventSource
+            var disposable = mouseEventSource
                 .Subscribe(i => State.PushState(i.message, i.x, i.y));
 
             ColorGetter = (x, y) =>
             {
-                var physicalX = (int)(x / ScaleX);
-                var physicalY = (int)(y / ScaleX);
+                var physicalX = (int) (x / ScaleX);
+                var physicalY = (int) (y / ScaleX);
 
                 if (physicalX < 0 || physicalX >= Background.PixelWidth ||
                     physicalY < 0 || physicalY >= Background.PixelHeight) return Colors.Transparent;
@@ -69,7 +68,7 @@ namespace HandyScreenshot.ViewModels
                 return Color.FromArgb(SampleBytes[3], SampleBytes[2], SampleBytes[1], SampleBytes[0]);
             };
 
-            SharedProperties.Disposables.Push(disposable1);
+            SharedProperties.Disposables.Push(disposable);
         }
 
         public void Initialize()
@@ -80,7 +79,7 @@ namespace HandyScreenshot.ViewModels
 
         private ReadOnlyRect DetectRectFromPhysicalPoint(double physicalX, double physicalY)
         {
-            var rect = Detector.GetByPhysicalPoint(physicalX, physicalY);
+            var rect = _detector.GetByPhysicalPoint(physicalX, physicalY);
             return rect != ReadOnlyRect.Empty && MonitorInfo.PhysicalScreenRect.IntersectsWith(rect)
                 ? ToDisplayRect(rect)
                 : ReadOnlyRect.Zero;
