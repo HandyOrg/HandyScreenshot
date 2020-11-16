@@ -60,7 +60,7 @@ namespace HandyScreenshot.Detection
                 result = temp;
                 if (EnsureChildren(result))
                 {
-                    elements = result.Children ?? EmptyChildren;
+                    elements = result.Children!;
                 }
                 else
                 {
