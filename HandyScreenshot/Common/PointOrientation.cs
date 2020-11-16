@@ -13,9 +13,5 @@ namespace HandyScreenshot.Common
         Top = 0b0010,
         Right = 0b0100,
         Bottom = 0b1000,
-        //LeftTop = Left & Top,
-        //RightTop = Right & Top,
-        //LeftBottom = Left & Bottom,
-        //RightBottom = Right & Bottom,
     }
 }

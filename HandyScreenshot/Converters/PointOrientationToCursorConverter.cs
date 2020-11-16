@@ -12,23 +12,18 @@ namespace HandyScreenshot.Converters
         {
             if (!(value is PointOrientation orientation)) return Binding.DoNothing;
 
-            switch (orientation)
+            return orientation switch
             {
-                case PointOrientation.Left:
-                case PointOrientation.Right:
-                    return Cursors.SizeWE;
-                case PointOrientation.Top:
-                case PointOrientation.Bottom:
-                    return Cursors.SizeNS;
-                case PointOrientation.Left | PointOrientation.Top:
-                case PointOrientation.Right | PointOrientation.Bottom:
-                    return Cursors.SizeNWSE;
-                case PointOrientation.Right | PointOrientation.Top:
-                case PointOrientation.Left | PointOrientation.Bottom:
-                    return Cursors.SizeNESW;
-                default:
-                    return Cursors.SizeAll;
-            }
+                PointOrientation.Left => Cursors.SizeWE,
+                PointOrientation.Right => Cursors.SizeWE,
+                PointOrientation.Top => Cursors.SizeNS,
+                PointOrientation.Bottom => Cursors.SizeNS,
+                PointOrientation.Left | PointOrientation.Top => Cursors.SizeNWSE,
+                PointOrientation.Right | PointOrientation.Bottom => Cursors.SizeNWSE,
+                PointOrientation.Right | PointOrientation.Top => Cursors.SizeNESW,
+                PointOrientation.Left | PointOrientation.Bottom => Cursors.SizeNESW,
+                _ => Cursors.SizeAll
+            };
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

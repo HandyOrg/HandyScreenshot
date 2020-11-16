@@ -89,6 +89,7 @@ namespace HandyScreenshot.ViewModels
                     {
                         case ScreenshotMode.Fixed:
                             Mode = ScreenshotMode.AutoDetect;
+                            DetectAutomatically(physicalX, physicalY);
                             break;
                         case ScreenshotMode.AutoDetect:
                             ExitApplication();
@@ -99,8 +100,7 @@ namespace HandyScreenshot.ViewModels
                     switch (Mode)
                     {
                         case ScreenshotMode.AutoDetect:
-                            var (rectX, rectY, rectWidth, rectHeight) = _rectDetector(physicalX, physicalY);
-                            ScreenshotRect.Set(rectX, rectY, rectWidth, rectHeight);
+                            DetectAutomatically(physicalX, physicalY);
                             break;
                         case ScreenshotMode.Resizing:
                             Resize(Orientation, x, y);
@@ -115,6 +115,12 @@ namespace HandyScreenshot.ViewModels
                     }
                     break;
             }
+        }
+
+        private void DetectAutomatically(double physicalX, double physicalY)
+        {
+            var (rectX, rectY, rectWidth, rectHeight) = _rectDetector(physicalX, physicalY);
+            ScreenshotRect.Set(rectX, rectY, rectWidth, rectHeight);
         }
 
         private void Resize(PointOrientation orientation, double x, double y)
