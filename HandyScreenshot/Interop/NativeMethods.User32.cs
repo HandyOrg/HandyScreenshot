@@ -74,7 +74,7 @@ namespace HandyScreenshot.Interop
         [DllImport(DllNames.User32, CharSet = CharSet.Auto, CallingConvention = CallingConvention.StdCall, SetLastError = true)]
         internal static extern int UnhookWindowsHookEx(IntPtr idHook);
 
-        [DllImport("user32.dll", SetLastError = true)]
+        [DllImport(DllNames.User32, SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
         public static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter, int x, int y, int cx, int cy, uint uFlags);
 
