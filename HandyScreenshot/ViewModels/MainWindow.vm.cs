@@ -32,8 +32,6 @@ namespace HandyScreenshot.ViewModels
 
         public double ScaleY { get; set; }
 
-        public double Scale { get; set; }
-
         public ICommand CloseCommand { get; } = new RelayCommand(() => Application.Current.Shutdown());
 
         private static readonly byte[] SampleBytes = new byte[4];

@@ -20,8 +20,6 @@ namespace HandyScreenshot.Helpers
         public static void StartScreenshot()
         {
             var monitorInfos = MonitorHelper.GetMonitorInfos();
-            var primaryScreen = monitorInfos.First(item => item.IsPrimaryScreen);
-            var (primaryScreenScaleX, primaryScreenScaleY) = MonitorHelper.GetScaleFactorFromMonitor(primaryScreen.Handle);
 
             var detector = new RectDetector();
             detector.Snapshot(monitorInfos
@@ -42,7 +40,6 @@ namespace HandyScreenshot.Helpers
                 {
                     ScaleX = scaleX,
                     ScaleY = scaleY,
-                    Scale = scaleX / primaryScreenScaleX,
                 };
 
                 var window = new MainWindow { DataContext = vm };

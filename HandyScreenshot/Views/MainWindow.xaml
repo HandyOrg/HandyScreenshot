@@ -63,9 +63,6 @@
             Dpi:
             <Run Text="{Binding Path=DpiString, Mode=OneWay}" />
             <LineBreak />
-            Scale:
-            <Run Text="{Binding Path=Scale, Mode=OneWay}" />
-            <LineBreak />
             ScaleXY:
             (<Run Text="{Binding Path=ScaleX, Mode=OneWay}" />, <Run Text="{Binding Path=ScaleY, Mode=OneWay}" />)
         </TextBlock>
