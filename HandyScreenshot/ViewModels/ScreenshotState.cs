@@ -90,6 +90,7 @@ namespace HandyScreenshot.ViewModels
                         case ScreenshotMode.Fixed:
                             Mode = ScreenshotMode.AutoDetect;
                             DetectAutomatically(physicalX, physicalY);
+                            Orientation = PointOrientation.Center;
                             break;
                         case ScreenshotMode.AutoDetect:
                             ExitApplication();
