@@ -40,10 +40,10 @@ namespace HandyScreenshot.Interop
 
         #region Methods
 
-        [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+        [DllImport(DllNames.User32, CharSet = CharSet.Auto, SetLastError = true)]
         internal static extern bool RegisterHotKey(IntPtr hWnd, int id, ModifierKeys fsModifiers, int vk);
 
-        [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+        [DllImport(DllNames.User32, CharSet = CharSet.Auto, SetLastError = true)]
         internal static extern bool UnregisterHotKey(IntPtr hWnd, int id);
 
         [DllImport(DllNames.User32)]
