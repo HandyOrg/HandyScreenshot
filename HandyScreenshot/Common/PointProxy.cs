@@ -1,10 +1,10 @@
-﻿namespace HandyScreenshot.Controls
+﻿namespace HandyScreenshot.Common
 {
     public delegate void PointChangedEventHandler(double x, double y);
 
     public class PointProxy
     {
-        public event PointChangedEventHandler PointChanged;
+        public event PointChangedEventHandler? PointChanged;
 
         public double X { get; private set; }
 

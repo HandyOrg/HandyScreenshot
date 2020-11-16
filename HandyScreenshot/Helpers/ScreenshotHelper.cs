@@ -20,8 +20,6 @@ namespace HandyScreenshot.Helpers
         public static void StartScreenshot()
         {
             var monitorInfos = MonitorHelper.GetMonitorInfos();
-            var primaryScreen = monitorInfos.First(item => item.IsPrimaryScreen);
-            var (primaryScreenScaleX, primaryScreenScaleY) = MonitorHelper.GetScaleFactorFromMonitor(primaryScreen.Handle);
 
             var detector = new RectDetector();
             detector.Snapshot(monitorInfos
@@ -34,18 +32,18 @@ namespace HandyScreenshot.Helpers
             {
                 var (scaleX, scaleY) = MonitorHelper.GetScaleFactorFromMonitor(monitorInfo.Handle);
 
-                var vm = new MainWindowViewModel(mouseEventSource)
+                var vm = new MainWindowViewModel(
+                    mouseEventSource,
+                    CaptureScreen(monitorInfo.PhysicalScreenRect),
+                    monitorInfo,
+                    detector)
                 {
-                    MonitorInfo = monitorInfo,
                     ScaleX = scaleX,
                     ScaleY = scaleY,
-                    Scale = scaleX / primaryScreenScaleX,
-                    Background = CaptureScreen(monitorInfo.PhysicalScreenRect),
-                    Detector = detector
                 };
 
                 var window = new MainWindow { DataContext = vm };
-                SetWindowRect(window, monitorInfo.PhysicalScreenRect.Scale(primaryScreenScaleX, primaryScreenScaleY));
+                SetWindowRect(window, monitorInfo.PhysicalScreenRect);
                 window.Loaded += WindowOnLoaded;
                 window.Show();
 
@@ -89,10 +87,14 @@ namespace HandyScreenshot.Helpers
 
         private static void SetWindowRect(Window window, ReadOnlyRect rect)
         {
-            window.Left = rect.X;
-            window.Top = rect.Y;
-            window.Width = rect.Width;
-            window.Height = rect.Height;
+            SetWindowPos(
+                window.GetHandle(),
+                (IntPtr)HWND_TOPMOST,
+                (int)rect.X,
+                (int)rect.Y,
+                (int)rect.Width,
+                (int)rect.Height,
+                SWP_NOZORDER);
         }
 
         public static BitmapSource CaptureScreen(ReadOnlyRect rect)

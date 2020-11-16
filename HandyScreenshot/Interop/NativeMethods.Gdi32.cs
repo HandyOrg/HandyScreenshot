@@ -12,7 +12,7 @@ namespace HandyScreenshot.Interop
         #region Methods
 
         [DllImport(DllNames.Gdi32, CharSet = CharSet.Unicode)]
-        internal static extern IntPtr CreateDC(string lpszDriver, string lpszDevice, string lpszOutput, IntPtr lpInitData);
+        internal static extern IntPtr CreateDC(string lpszDriver, string? lpszDevice, string? lpszOutput, IntPtr lpInitData);
 
         [DllImport(DllNames.Gdi32)]
         internal static extern bool DeleteDC(IntPtr hdc);

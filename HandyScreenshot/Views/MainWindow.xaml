@@ -5,6 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:controls="clr-namespace:HandyScreenshot.Controls"
         xmlns:viewModels="clr-namespace:HandyScreenshot.ViewModels"
+        xmlns:converters="clr-namespace:HandyScreenshot.Converters"
         mc:Ignorable="d"
         Title="MainWindow"
         WindowStyle="None"
@@ -13,11 +14,15 @@
         BorderThickness="0"
         UseLayoutRounding="True"
         SnapsToDevicePixels="True"
-        Topmost="True"
         d:DataContext="{d:DesignInstance {x:Type viewModels:MainWindowViewModel}}">
 
+    <Window.Resources>
+        <converters:PointOrientationToCursorConverter  x:Key="PointOrientationToCursorConverter" />
+    </Window.Resources>
+
     <WindowChrome.WindowChrome>
-        <WindowChrome GlassFrameThickness="-1" />
+        <WindowChrome GlassFrameThickness="-1"
+                      CaptionHeight="0" />
     </WindowChrome.WindowChrome>
 
     <Window.InputBindings>
@@ -25,17 +30,18 @@
                     Command="{Binding CloseCommand}" />
     </Window.InputBindings>
 
-    <controls:ZStackPanel>
-        <Image x:Name="Screenshot"
-               RenderOptions.BitmapScalingMode="NearestNeighbor"
-               Source="{Binding Background}" />
+    <controls:ZStackPanel Cursor="{Binding State.Orientation, Converter={StaticResource PointOrientationToCursorConverter}}">
+        <controls:ClipBox x:Name="ClipBox"
+                          Scale="{Binding ScaleX}"
+                          RectProxy="{Binding State.ScreenshotRect}"
+                          Background="{Binding Background}" />
 
-        <controls:ClipBox RectProxy="{Binding ClipBoxRect}" />
-
-        <controls:MagnifierToolTip Target="{Binding ElementName=Screenshot}"
-                                   BitmapSource="{Binding Background}"
-                                   PointProxy="{Binding MousePoint}"
-                                   Scale="{Binding Scale}" />
+        <controls:Magnifier MousePosition="{Binding State.MousePosition}"
+                            MagnifiedTarget="{Binding ElementName=ClipBox, Path=Visual}"
+                            Scale="{Binding ScaleX}"
+                            ColorGetter="{Binding ColorGetter}"
+                            ClipBoxRect="{Binding State.ScreenshotRect}"
+                            MonitorInfo="{Binding MonitorInfo}" />
 
         <TextBlock Background="#AA000000"
                    Foreground="White"
@@ -48,11 +54,17 @@
             Monitor Pixel Size:
             <Run Text="{Binding Path=MonitorInfo.PhysicalScreenRect, Mode=OneWay}" />
             <LineBreak />
-            Status:
-            <Run Text="{Binding Path=Status, Mode=OneWay}" />
+            Mode:
+            <Run Text="{Binding Path=State.Mode, Mode=OneWay}" />
+            <LineBreak />
+            Orientation:
+            <Run Text="{Binding Path=State.Orientation, Mode=OneWay}" />
             <LineBreak />
             Dpi:
             <Run Text="{Binding Path=DpiString, Mode=OneWay}" />
+            <LineBreak />
+            ScaleXY:
+            (<Run Text="{Binding Path=ScaleX, Mode=OneWay}" />, <Run Text="{Binding Path=ScaleY, Mode=OneWay}" />)
         </TextBlock>
     </controls:ZStackPanel>
 </Window>

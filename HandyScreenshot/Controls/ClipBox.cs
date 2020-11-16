@@ -1,44 +1,19 @@
 ﻿using System;
 using System.Windows;
+using System.Windows.Data;
 using System.Windows.Media;
+using HandyScreenshot.Common;
 
 namespace HandyScreenshot.Controls
 {
     public class ClipBox : FrameworkElement
     {
-        private const double MinDisplayPointLimit = 80;
-        private const double PointRadius = 4.5;
-
-        private static readonly Rect RectZero = new Rect(0, 0, 0, 0);
-        private static readonly Point PointZero = new Point(0, 0);
-        private static readonly Brush MaskBrush;
-        private static readonly Brush PrimaryBrush;
-        private static readonly Pen PrimaryPen;
-        private static readonly Pen WhitePen;
-
-        static ClipBox()
-        {
-            MaskBrush = new SolidColorBrush(Color.FromArgb(0xA0, 0, 0, 0));
-            MaskBrush.Freeze();
-            PrimaryBrush = new SolidColorBrush(Color.FromRgb(0x20, 0x80, 0xf0));
-            PrimaryBrush.Freeze();
-            PrimaryPen = new Pen(PrimaryBrush, 2);
-            PrimaryPen.Freeze();
-            WhitePen = new Pen(Brushes.White, 1.5);
-            WhitePen.Freeze();
-        }
-
         public static readonly DependencyProperty RectProxyProperty = DependencyProperty.Register(
-            "RectProxy", typeof(RectProxy), typeof(ClipBox), new PropertyMetadata(null, RectProxyChanged));
-
-        private static void RectProxyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
-        {
-            if (d is ClipBox clipBox)
-            {
-                clipBox.Attach();
-            }
-        }
-
+            "RectProxy", typeof(RectProxy), typeof(ClipBox), new PropertyMetadata(null));
+        public static readonly DependencyProperty BackgroundProperty = DependencyProperty.Register(
+            "Background", typeof(ImageSource), typeof(ClipBox), new PropertyMetadata(default(ImageSource)));
+        public static readonly DependencyProperty ScaleProperty = DependencyProperty.Register(
+            "Scale", typeof(double), typeof(ClipBox), new PropertyMetadata(default(double)));
 
         public RectProxy RectProxy
         {
@@ -46,140 +21,96 @@ namespace HandyScreenshot.Controls
             set => SetValue(RectProxyProperty, value);
         }
 
-        private readonly DrawingVisual _drawingVisual;
+        public ImageSource Background
+        {
+            get => (ImageSource)GetValue(BackgroundProperty);
+            set => SetValue(BackgroundProperty, value);
+        }
 
-        private Rect _topRect = RectZero;
-        private Rect _rightRect = RectZero;
-        private Rect _bottomRect = RectZero;
-        private Rect _leftRect = RectZero;
-        private Rect _centralRect = RectZero;
+        public double Scale
+        {
+            get => (double)GetValue(ScaleProperty);
+            set => SetValue(ScaleProperty, value);
+        }
 
-        private Point _leftTopPoint = PointZero;
-        private Point _topPoint = PointZero;
-        private Point _rightTopPoint = PointZero;
-        private Point _rightPoint = PointZero;
-        private Point _rightBottomPoint = PointZero;
-        private Point _bottomPoint = PointZero;
-        private Point _leftBottomPoint = PointZero;
-        private Point _leftPoint = PointZero;
+        public Visual Visual { get; }
+
+        private readonly VisualCollection _visualCollection;
 
         public ClipBox()
         {
-            var children = new VisualCollection(this) { new DrawingVisual() };
-            _drawingVisual = (DrawingVisual)children[0];
-            SizeChanged += OnSizeChanged;
+            Visual = new ClipBoxVisual();
+            BindingOperations.SetBinding(Visual,
+                ClipBoxVisual.RectProxyProperty,
+                new Binding(nameof(RectProxy)) { Source = this });
+            BindingOperations.SetBinding(Visual,
+                ClipBoxVisual.BackgroundProperty,
+                new Binding(nameof(Background)) { Source = this });
+            BindingOperations.SetBinding(Visual,
+                ClipBoxVisual.ScaleProperty,
+                new Binding(nameof(Scale)) { Source = this });
+
+            var clipBoxPointVisual = new ClipBoxPointVisual();
+            BindingOperations.SetBinding(clipBoxPointVisual,
+                ClipBoxPointVisual.RectProxyProperty,
+                new Binding(nameof(RectProxy)) { Source = this });
+            BindingOperations.SetBinding(clipBoxPointVisual,
+                ClipBoxPointVisual.ScaleProperty,
+                new Binding(nameof(Scale)) { Source = this });
+
+            _visualCollection = new VisualCollection(this)
+            {
+                Visual,
+                clipBoxPointVisual
+            };
         }
 
-        private void Attach()
+        protected override Size ArrangeOverride(Size finalSize)
         {
-            if (RectProxy != null)
+            foreach (var visual in _visualCollection)
             {
-                RectProxy.RectChanged += OnRectChanged;
-            }
-        }
-
-        private void OnRectChanged(double x, double y, double w, double h)
-        {
-            var h0 = Math.Max(h, 0);
-            var r = x + w;
-            var b = y + h;
-
-            _leftRect.Y = y;
-            _leftRect.Width = Math.Max(x, 0);
-            _leftRect.Height = h0;
-
-            _topRect.Height = Math.Max(y, 0);
-
-            _rightRect.X = r;
-            _rightRect.Y = y;
-            _rightRect.Width = Math.Max(ActualWidth - r, 0);
-            _rightRect.Height = h0;
-
-            _bottomRect.Y = b;
-            _bottomRect.Height = Math.Max(ActualHeight - b, 0);
-
-            _centralRect.X = x;
-            _centralRect.Y = y;
-            _centralRect.Width = Math.Max(w, 0);
-            _centralRect.Height = h0;
-
-            if (_centralRect.Width > MinDisplayPointLimit && _centralRect.Height > MinDisplayPointLimit)
-            {
-                var halfR = x + w / 2D;
-                var halfB = y + h / 2D;
-
-                _leftTopPoint.X = x;
-                _leftTopPoint.Y = y;
-
-                _topPoint.X = halfR;
-                _topPoint.Y = y;
-
-                _rightTopPoint.X = r;
-                _rightTopPoint.Y = y;
-
-                _rightPoint.X = r;
-                _rightPoint.Y = halfB;
-
-                _rightBottomPoint.X = r;
-                _rightBottomPoint.Y = b;
-
-                _bottomPoint.X = halfR;
-                _bottomPoint.Y = b;
-
-                _leftBottomPoint.X = x;
-                _leftBottomPoint.Y = b;
-
-                _leftPoint.X = x;
-                _leftPoint.Y = halfB;
+                if (visual is FrameworkElement frameworkElement)
+                {
+                    frameworkElement.Arrange(new Rect(0, 0, finalSize.Width, finalSize.Height));
+                }
             }
 
-            Dispatcher.Invoke(RefreshDrawingVisual);
+            return base.ArrangeOverride(finalSize);
         }
 
-        private void OnSizeChanged(object sender, SizeChangedEventArgs e)
-        {
-            _topRect.Width = ActualWidth;
-            _bottomRect.Width = ActualWidth;
-        }
-
-        private void RefreshDrawingVisual()
-        {
-            var dc = _drawingVisual.RenderOpen();
-
-            dc.DrawRectangle(MaskBrush, null, _leftRect);
-            dc.DrawRectangle(MaskBrush, null, _topRect);
-            dc.DrawRectangle(MaskBrush, null, _rightRect);
-            dc.DrawRectangle(MaskBrush, null, _bottomRect);
-            dc.DrawRectangle(Brushes.Transparent, PrimaryPen, _centralRect);
-
-            if (_centralRect.Width > MinDisplayPointLimit && _centralRect.Height > MinDisplayPointLimit)
-            {
-                DrawPoint(dc, _leftTopPoint);
-                DrawPoint(dc, _topPoint);
-                DrawPoint(dc, _rightTopPoint);
-                DrawPoint(dc, _rightPoint);
-                DrawPoint(dc, _rightBottomPoint);
-                DrawPoint(dc, _bottomPoint);
-                DrawPoint(dc, _leftBottomPoint);
-                DrawPoint(dc, _leftPoint);
-            }
-
-            dc.Close();
-        }
-
-        private static void DrawPoint(DrawingContext dc, Point point)
-        {
-            dc.DrawEllipse(PrimaryBrush, WhitePen, point, PointRadius, PointRadius);
-        }
-
-        protected override int VisualChildrenCount => 1;
+        protected override int VisualChildrenCount => _visualCollection.Count;
 
         protected override Visual GetVisualChild(int index)
         {
-            if (index != 0)
-                throw new ArgumentOutOfRangeException();
+            if (index < 0 || index >= _visualCollection.Count)
+            {
+                throw new IndexOutOfRangeException();
+            }
 
-            return _drawingVisual;
+            return _visualCollection[index];
+        }
+
+
+        internal const int PrimaryPenThickness = 2;
+        internal static readonly Brush PrimaryBrush;
+        internal static readonly Brush MaskBrush;
+        internal static readonly Pen WhitePen;
+
+        static ClipBox()
+        {
+            PrimaryBrush = new SolidColorBrush(Color.FromRgb(0x20, 0x80, 0xf0));
+            PrimaryBrush.Freeze();
+            MaskBrush = new SolidColorBrush(Color.FromArgb(0xA0, 0, 0, 0));
+            MaskBrush.Freeze();
+            WhitePen = new Pen(Brushes.White, 1.5);
+            WhitePen.Freeze();
+        }
+
+        internal static Pen CreatePrimaryPen(double scale)
+        {
+            var result = new Pen(PrimaryBrush, PrimaryPenThickness * scale);
+            result.Freeze();
+            return result;
         }
     }
 }
