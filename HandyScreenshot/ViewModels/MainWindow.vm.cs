@@ -12,6 +12,8 @@ namespace HandyScreenshot.ViewModels
 {
     public class MainWindowViewModel : BindableBase
     {
+        private static readonly byte[] SampleBytes = new byte[4];
+
         private readonly RectDetector _detector;
         private string _dpiString = string.Empty;
 
@@ -33,8 +35,6 @@ namespace HandyScreenshot.ViewModels
 
         public ICommand CloseCommand { get; } = new RelayCommand(() => Application.Current.Shutdown());
 
-        private static readonly byte[] SampleBytes = new byte[4];
-
         public ScreenshotState State { get; }
 
         public MainWindowViewModel(
@@ -53,20 +53,7 @@ namespace HandyScreenshot.ViewModels
             var disposable = mouseEventSource
                 .Subscribe(i => State.PushState(i.message, i.x, i.y));
 
-            ColorGetter = (x, y) =>
-            {
-                var physicalX = (int) (x / ScaleX);
-                var physicalY = (int) (y / ScaleX);
-
-                if (physicalX < 0 || physicalX >= Background.PixelWidth ||
-                    physicalY < 0 || physicalY >= Background.PixelHeight) return Colors.Transparent;
-
-                Background.CopyPixels(
-                    new Int32Rect(physicalX, physicalY, 1, 1),
-                    SampleBytes, 4, 0);
-
-                return Color.FromArgb(SampleBytes[3], SampleBytes[2], SampleBytes[1], SampleBytes[0]);
-            };
+            ColorGetter = GetColorByCoordinate;
 
             SharedProperties.Disposables.Push(disposable);
         }
@@ -75,6 +62,21 @@ namespace HandyScreenshot.ViewModels
         {
             var initPoint = Win32Helper.GetPhysicalMousePosition();
             State.PushState(MouseMessage.MouseMove, initPoint.X, initPoint.Y);
+        }
+
+        private Color GetColorByCoordinate(double x, double y)
+        {
+            var physicalX = (int) (x / ScaleX);
+            var physicalY = (int) (y / ScaleX);
+
+            if (physicalX < 0 || physicalX >= Background.PixelWidth ||
+                physicalY < 0 || physicalY >= Background.PixelHeight) return Colors.Transparent;
+
+            Background.CopyPixels(
+                new Int32Rect(physicalX, physicalY, 1, 1),
+                SampleBytes, 4, 0);
+
+            return Color.FromArgb(SampleBytes[3], SampleBytes[2], SampleBytes[1], SampleBytes[0]);
         }
 
         private ReadOnlyRect DetectRectFromPhysicalPoint(double physicalX, double physicalY)

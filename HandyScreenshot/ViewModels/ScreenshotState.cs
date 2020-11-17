@@ -83,6 +83,7 @@ namespace HandyScreenshot.ViewModels
                     break;
                 case MouseMessage.LeftButtonUp:
                     Mode = ScreenshotMode.Fixed;
+                    Resize(Orientation, x, y);
                     break;
                 case MouseMessage.RightButtonDown:
                     switch (Mode)

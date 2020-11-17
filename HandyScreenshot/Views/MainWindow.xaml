@@ -36,12 +36,10 @@
                           RectProxy="{Binding State.ScreenshotRect}"
                           Background="{Binding Background}" />
 
-        <controls:Magnifier MousePosition="{Binding State.MousePosition}"
-                            MagnifiedTarget="{Binding ElementName=ClipBox, Path=Visual}"
+        <controls:Magnifier ScreenshotState="{Binding State}"
+                            MagnifiedTarget="{Binding ElementName=ClipBox, Path=Visual, Mode=OneWay}"
                             Scale="{Binding ScaleX}"
-                            ColorGetter="{Binding ColorGetter}"
-                            ClipBoxRect="{Binding State.ScreenshotRect}"
-                            MonitorInfo="{Binding MonitorInfo}" />
+                            ColorGetter="{Binding ColorGetter}" />
 
         <TextBlock Background="#AA000000"
                    Foreground="White"
