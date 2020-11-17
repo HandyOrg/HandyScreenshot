@@ -40,7 +40,7 @@ namespace HandyScreenshot.ViewModels
         public ScreenshotState State { get; }
 
         public MainWindowViewModel(
-            IObservable<(MouseMessage message, double x, double y)> mouseEventSource,
+            IObservable<(MouseMessage message, int x, int y)> mouseEventSource,
             BitmapSource background,
             MonitorInfo monitorInfo,
             RectDetector detector,

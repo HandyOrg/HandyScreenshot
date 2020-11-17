@@ -49,9 +49,9 @@ namespace HandyScreenshot.Helpers
             }
         }
 
-        private static IObservable<(MouseMessage message, double x, double y)> CreateMouseEventSource()
+        private static IObservable<(MouseMessage message, int x, int y)> CreateMouseEventSource()
         {
-            var hotSource = Observable.Create<(MouseMessage message, double x, double y)>(o =>
+            var hotSource = Observable.Create<(MouseMessage message, int x, int y)>(o =>
                     Win32Helper.SubscribeMouseHook((message, info) =>
                     {
                         var p = Win32Helper.GetPhysicalMousePosition();

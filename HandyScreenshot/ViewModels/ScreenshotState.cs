@@ -2,6 +2,7 @@
 using System.Windows;
 using HandyScreenshot.Common;
 using HandyScreenshot.Helpers;
+using HandyScreenshot.Interop;
 using HandyScreenshot.Mvvm;
 
 namespace HandyScreenshot.ViewModels
@@ -15,6 +16,8 @@ namespace HandyScreenshot.ViewModels
         private PointOrientation _orientation;
         private double _previousX;
         private double _previousY;
+        private int _physicalX;
+        private int _physicalY;
 
         public ScreenshotMode Mode
         {
@@ -32,7 +35,6 @@ namespace HandyScreenshot.ViewModels
 
         public RectProxy ScreenshotRect { get; } = new RectProxy();
 
-
         public ScreenshotState(
             Func<double, double, ReadOnlyRect> rectDetector,
             Func<double, double, (double x, double y)> displayXYConvertor)
@@ -41,10 +43,10 @@ namespace HandyScreenshot.ViewModels
             _displayXyConvertor = displayXYConvertor;
         }
 
-        public void PushState(MouseMessage message, double physicalX, double physicalY)
+        public void PushState(MouseMessage message, int physicalX, int physicalY)
         {
             var (x, y) = _displayXyConvertor(physicalX, physicalY);
-            MousePosition.Set(x, y);
+            bool canUpdateMousePosition = true;
 
             switch (message)
             {
@@ -83,7 +85,10 @@ namespace HandyScreenshot.ViewModels
                     break;
                 case MouseMessage.LeftButtonUp:
                     Mode = ScreenshotMode.Fixed;
-                    Resize(Orientation, x, y);
+                    // [防抖]：在截图完成，释放鼠标时，人的手很可能会抖，造成大约一两个像素的偏移，尤其是用触控板时，对强迫症患者造成极大的伤害；
+                    // 所以 Resizing 或 Moving 结束的最后一个鼠标点不应当被绘制（要丢弃掉），这里是指 ClipBox 和 Magnifier 控件都不要绘制。
+                    // P.S. 当然，具体偏移多少，和释放时的手速有关，坐标点毕竟是离散的。
+                    canUpdateMousePosition = false;
                     break;
                 case MouseMessage.RightButtonDown:
                     switch (Mode)
@@ -116,6 +121,20 @@ namespace HandyScreenshot.ViewModels
                             break;
                     }
                     break;
+            }
+
+            if (canUpdateMousePosition)
+            {
+                MousePosition.Set(x, y);
+                _physicalX = physicalX;
+                _physicalY = physicalY;
+            }
+            else
+            {
+                // 接上面的[防抖]所述，最后一个鼠标坐标虽然没有影响绘制，但是实际上 Cursor 还是抖动到了真实的位置，
+                // 这样就会使得 Cursor 与绘制的图像不重合，就很丑，显得十分不专业。
+                // 所以应当重置鼠标位置到上一个鼠标位置上。（我是不是考虑的很细致？（￣︶￣）↗）
+                NativeMethods.SetCursorPos(_physicalX, _physicalY);
             }
         }
 

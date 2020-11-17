@@ -78,6 +78,10 @@ namespace HandyScreenshot.Interop
         [return: MarshalAs(UnmanagedType.Bool)]
         public static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter, int x, int y, int cx, int cy, uint uFlags);
 
+        [DllImport(DllNames.User32)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool SetCursorPos(int x, int y);
+
         #endregion
 
         #region Structs
