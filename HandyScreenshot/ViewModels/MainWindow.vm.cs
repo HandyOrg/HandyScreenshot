@@ -29,9 +29,11 @@ namespace HandyScreenshot.ViewModels
 
         public MonitorInfo MonitorInfo { get; }
 
-        public double ScaleX { get; set; }
+        public Rect ScreenBound { get; }
 
-        public double ScaleY { get; set; }
+        public double ScaleX { get; }
+
+        public double ScaleY { get; }
 
         public ICommand CloseCommand { get; } = new RelayCommand(() => Application.Current.Shutdown());
 
@@ -41,13 +43,21 @@ namespace HandyScreenshot.ViewModels
             IObservable<(MouseMessage message, double x, double y)> mouseEventSource,
             BitmapSource background,
             MonitorInfo monitorInfo,
-            RectDetector detector)
+            RectDetector detector,
+            double scaleX,
+            double scaleY)
         {
             State = new ScreenshotState(
                 DetectRectFromPhysicalPoint,
                 ToDisplayPoint);
             Background = background;
             MonitorInfo = monitorInfo;
+            var screenRect = monitorInfo.PhysicalScreenRect;
+            var screenBound = new Rect(0, 0, screenRect.Width, screenRect.Height);
+            screenBound.Scale(scaleX, scaleY);
+            ScreenBound = screenBound;
+            ScaleX = scaleX;
+            ScaleY = scaleY;
             _detector = detector;
 
             var disposable = mouseEventSource

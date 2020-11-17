@@ -36,13 +36,11 @@ namespace HandyScreenshot.Helpers
                     mouseEventSource,
                     CaptureScreen(monitorInfo.PhysicalScreenRect),
                     monitorInfo,
-                    detector)
-                {
-                    ScaleX = scaleX,
-                    ScaleY = scaleY,
-                };
+                    detector,
+                    scaleX,
+                    scaleY);
 
-                var window = new MainWindow { DataContext = vm };
+                var window = new MainWindow {DataContext = vm};
                 SetWindowRect(window, monitorInfo.PhysicalScreenRect);
                 window.Loaded += WindowOnLoaded;
                 window.Show();
@@ -89,11 +87,11 @@ namespace HandyScreenshot.Helpers
         {
             SetWindowPos(
                 window.GetHandle(),
-                (IntPtr)HWND_TOPMOST,
-                (int)rect.X,
-                (int)rect.Y,
-                (int)rect.Width,
-                (int)rect.Height,
+                (IntPtr) HWND_TOPMOST,
+                (int) rect.X,
+                (int) rect.Y,
+                (int) rect.Width,
+                (int) rect.Height,
                 SWP_NOZORDER);
         }
 
@@ -101,13 +99,13 @@ namespace HandyScreenshot.Helpers
         {
             var hdcSrc = GetAllMonitorsDC();
 
-            var width = (int)rect.Width;
-            var height = (int)rect.Height;
+            var width = (int) rect.Width;
+            var height = (int) rect.Height;
             var hdcDest = CreateCompatibleDC(hdcSrc);
             var hBitmap = CreateCompatibleBitmap(hdcSrc, width, height);
             SelectObject(hdcDest, hBitmap);
 
-            BitBlt(hdcDest, 0, 0, width, height, hdcSrc, (int)rect.X, (int)rect.Y,
+            BitBlt(hdcDest, 0, 0, width, height, hdcSrc, (int) rect.X, (int) rect.Y,
                 TernaryRasterOperations.SRCCOPY | TernaryRasterOperations.CAPTUREBLT);
 
             var image = Image.FromHbitmap(hBitmap);

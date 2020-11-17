@@ -37,6 +37,7 @@
                           Background="{Binding Background}" />
 
         <controls:Magnifier ScreenshotState="{Binding State}"
+                            ScreenBound="{Binding ScreenBound}"
                             MagnifiedTarget="{Binding ElementName=ClipBox, Path=Visual, Mode=OneWay}"
                             Scale="{Binding ScaleX}"
                             ColorGetter="{Binding ColorGetter}" />

@@ -25,6 +25,9 @@ namespace HandyScreenshot.Controls
             "ScreenshotState", typeof(ScreenshotState), typeof(Magnifier),
             new PropertyMetadata(default(ScreenshotState), OnScreenshotStateChanged));
 
+        public static readonly DependencyProperty ScreenBoundProperty = DependencyProperty.Register(
+            "ScreenBound", typeof(Rect), typeof(Magnifier), new PropertyMetadata(default(Rect)));
+
         private static void OnScaleChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
             d.UpdateDependencyProperty<Magnifier, double>(e,
@@ -61,6 +64,12 @@ namespace HandyScreenshot.Controls
             set => SetValue(ScreenshotStateProperty, value);
         }
 
+        public Rect ScreenBound
+        {
+            get => (Rect) GetValue(ScreenBoundProperty);
+            set => SetValue(ScreenBoundProperty, value);
+        }
+
         public Func<double, double, Color> ColorGetter
         {
             get => (Func<double, double, Color>) GetValue(ColorGetterProperty);
@@ -76,6 +85,7 @@ namespace HandyScreenshot.Controls
         private const int HalfTargetRegionHeight = TargetRegionHeight / 2;
         private const int OnePixelMagnified = 8;
         private const int HalfMagnifiedOnePixelSize = OnePixelMagnified / 2;
+        private const int InfoBoardHeight = 72;
 
         private const int MagnifierWidth = TargetRegionWidth * OnePixelMagnified;
         private const int MagnifierHeight = TargetRegionHeight * OnePixelMagnified;
@@ -106,6 +116,7 @@ namespace HandyScreenshot.Controls
         private double _halfPixelMagnified = HalfMagnifiedOnePixelSize;
         private double _magnifierWidth = MagnifierWidth;
         private double _magnifierHeight = MagnifierHeight;
+        private double _infoBoardHeight = InfoBoardHeight;
 
         public Magnifier()
         {
@@ -130,6 +141,7 @@ namespace HandyScreenshot.Controls
             _halfPixelMagnified = HalfMagnifiedOnePixelSize * scale;
             _magnifierWidth = MagnifierWidth * scale;
             _magnifierHeight = MagnifierHeight * scale;
+            _infoBoardHeight = InfoBoardHeight * scale;
         }
 
         private void OnMousePositionChanged(double x, double y)
@@ -157,12 +169,42 @@ namespace HandyScreenshot.Controls
 
         private void DrawMagnifier(DrawingContext dc)
         {
+            if (ScreenshotState.Mode == ScreenshotMode.Fixed &&
+                ScreenshotState.Orientation != PointOrientation.Center) return;
+
             var originalX = ScreenshotState.MousePosition.X;
             var originalY = ScreenshotState.MousePosition.Y;
-            if (ScreenshotState.Mode == ScreenshotMode.Fixed && ScreenshotState.Orientation != PointOrientation.Center) return;
 
-            var x = originalX + _offsetFromMouse;
-            var y = originalY + _offsetFromMouse;
+            if (!ScreenBound.Contains(originalX, originalY)) return;
+
+            var (offsetX, offsetY) = CalculateOffsets(originalX, originalY);
+            DrawMagnifier(dc, originalX, originalY, offsetX, offsetY);
+        }
+
+        private (double offsetX, double offsetY) CalculateOffsets(double originalX, double originalY)
+        {
+            var width = _magnifierWidth;
+            var height = _magnifierHeight + _infoBoardHeight;
+
+            var offsetX = originalX + width + _offsetFromMouse > ScreenBound.Right
+                ? -_offsetFromMouse - width
+                : _offsetFromMouse;
+            var offsetY = originalY + height + _offsetFromMouse > ScreenBound.Bottom
+                ? -_offsetFromMouse - height
+                : _offsetFromMouse;
+
+            return (offsetX, offsetY);
+        }
+
+        private void DrawMagnifier(
+            DrawingContext dc,
+            double originalX,
+            double originalY,
+            double offsetX,
+            double offsetY)
+        {
+            var x = originalX + offsetX;
+            var y = originalY + offsetY;
             var width = _magnifierWidth;
             var height = _magnifierHeight;
 
@@ -210,7 +252,8 @@ namespace HandyScreenshot.Controls
             guidelines.GuidelinesY.Add(centerInnerRect.Top - halfPixel);
             guidelines.GuidelinesY.Add(centerInnerRect.Bottom + halfPixel);
 
-            var infoBackgroundRect = new Rect(outlineRect.Left, outlineRect.Bottom, outlineRect.Width, 72 * Scale);
+            var infoBackgroundRect =
+                new Rect(outlineRect.Left, outlineRect.Bottom, outlineRect.Width, _infoBoardHeight);
             var color = ColorGetter(originalX, originalY);
             var colorText = GetText($"#{color.R:X2}{color.G:X2}{color.B:X2}", 1 / Scale);
             var positionText = GetText($"({originalX / Scale:0}, {originalY / Scale:0})", 1 / Scale);
