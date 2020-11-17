@@ -40,10 +40,10 @@ namespace HandyScreenshot.Interop
 
         #region Methods
 
-        [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+        [DllImport(DllNames.User32, CharSet = CharSet.Auto, SetLastError = true)]
         internal static extern bool RegisterHotKey(IntPtr hWnd, int id, ModifierKeys fsModifiers, int vk);
 
-        [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+        [DllImport(DllNames.User32, CharSet = CharSet.Auto, SetLastError = true)]
         internal static extern bool UnregisterHotKey(IntPtr hWnd, int id);
 
         [DllImport(DllNames.User32)]
@@ -74,9 +74,13 @@ namespace HandyScreenshot.Interop
         [DllImport(DllNames.User32, CharSet = CharSet.Auto, CallingConvention = CallingConvention.StdCall, SetLastError = true)]
         internal static extern int UnhookWindowsHookEx(IntPtr idHook);
 
-        [DllImport("user32.dll", SetLastError = true)]
+        [DllImport(DllNames.User32, SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
         public static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter, int x, int y, int cx, int cy, uint uFlags);
+
+        [DllImport(DllNames.User32)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool SetCursorPos(int x, int y);
 
         #endregion
 

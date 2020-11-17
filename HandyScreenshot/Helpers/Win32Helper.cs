@@ -34,7 +34,7 @@ namespace HandyScreenshot.Helpers
                 if (nCode >= 0)
                 {
                     var mouseHookStruct = (MOUSEHOOKSTRUCT)Marshal.PtrToStructure(lParam, typeof(MOUSEHOOKSTRUCT));
-                    callback?.Invoke((MouseMessage)wParam, mouseHookStruct);
+                    callback((MouseMessage)wParam, mouseHookStruct);
                 }
 
                 return CallNextHookEx(IntPtr.Zero, nCode, wParam, lParam);

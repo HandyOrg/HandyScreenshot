@@ -4,6 +4,7 @@ using System.Windows;
 using System.Windows.Media;
 using HandyScreenshot.Common;
 using HandyScreenshot.Helpers;
+using HandyScreenshot.ViewModels;
 
 namespace HandyScreenshot.Controls
 {
@@ -11,16 +12,21 @@ namespace HandyScreenshot.Controls
     {
         public static readonly DependencyProperty ScaleProperty = DependencyProperty.Register(
             "Scale", typeof(double), typeof(Magnifier), new PropertyMetadata(default(double), OnScaleChanged));
-        public static readonly DependencyProperty MousePositionProperty = DependencyProperty.Register(
-            "MousePosition", typeof(PointProxy), typeof(Magnifier), new PropertyMetadata(default(PointProxy), OnMousePositionChanged));
+
         public static readonly DependencyProperty MagnifiedTargetProperty = DependencyProperty.Register(
-            "MagnifiedTarget", typeof(Visual), typeof(Magnifier), new PropertyMetadata(default(Visual), OnMagnifiedTargetChanged));
+            "MagnifiedTarget", typeof(Visual), typeof(Magnifier),
+            new PropertyMetadata(default(Visual), OnMagnifiedTargetChanged));
+
         public static readonly DependencyProperty ColorGetterProperty = DependencyProperty.Register(
-            "ColorGetter", typeof(Func<double, double, Color>), typeof(Magnifier), new PropertyMetadata(default(Func<double, double, Color>)));
-        public static readonly DependencyProperty ClipBoxRectProperty = DependencyProperty.Register(
-            "ClipBoxRect", typeof(RectProxy), typeof(Magnifier), new PropertyMetadata(default(RectProxy)));
-        public static readonly DependencyProperty MonitorInfoProperty = DependencyProperty.Register(
-            "MonitorInfo", typeof(MonitorInfo), typeof(Magnifier), new PropertyMetadata(default(MonitorInfo)));
+            "ColorGetter", typeof(Func<double, double, Color>), typeof(Magnifier),
+            new PropertyMetadata(default(Func<double, double, Color>)));
+
+        public static readonly DependencyProperty ScreenshotStateProperty = DependencyProperty.Register(
+            "ScreenshotState", typeof(ScreenshotState), typeof(Magnifier),
+            new PropertyMetadata(default(ScreenshotState), OnScreenshotStateChanged));
+
+        public static readonly DependencyProperty ScreenBoundProperty = DependencyProperty.Register(
+            "ScreenBound", typeof(Rect), typeof(Magnifier), new PropertyMetadata(default(Rect)));
 
         private static void OnScaleChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
@@ -34,47 +40,40 @@ namespace HandyScreenshot.Controls
                 (self, newValue) => self._magnifiedRegionBrush.Visual = newValue);
         }
 
-        private static void OnMousePositionChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        private static void OnScreenshotStateChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
-            d.UpdateDependencyProperty<Magnifier, PointProxy>(e,
-                (self, newValue) => newValue.PointChanged += self.OnMousePositionChanged,
-                (self, oldValue) => oldValue.PointChanged -= self.OnMousePositionChanged);
+            d.UpdateDependencyProperty<Magnifier, ScreenshotState>(e,
+                (self, newValue) => newValue.MousePosition.PointChanged += self.OnMousePositionChanged,
+                (self, oldValue) => oldValue.MousePosition.PointChanged -= self.OnMousePositionChanged);
         }
 
         public double Scale
         {
-            get => (double)GetValue(ScaleProperty);
+            get => (double) GetValue(ScaleProperty);
             set => SetValue(ScaleProperty, value);
-        }
-
-        public PointProxy MousePosition
-        {
-            get => (PointProxy)GetValue(MousePositionProperty);
-            set => SetValue(MousePositionProperty, value);
         }
 
         public Visual MagnifiedTarget
         {
-            get => (Visual)GetValue(MagnifiedTargetProperty);
             set => SetValue(MagnifiedTargetProperty, value);
+        }
+
+        public ScreenshotState ScreenshotState
+        {
+            get => (ScreenshotState) GetValue(ScreenshotStateProperty);
+            set => SetValue(ScreenshotStateProperty, value);
+        }
+
+        public Rect ScreenBound
+        {
+            get => (Rect) GetValue(ScreenBoundProperty);
+            set => SetValue(ScreenBoundProperty, value);
         }
 
         public Func<double, double, Color> ColorGetter
         {
-            get => (Func<double, double, Color>)GetValue(ColorGetterProperty);
+            get => (Func<double, double, Color>) GetValue(ColorGetterProperty);
             set => SetValue(ColorGetterProperty, value);
-        }
-
-        public RectProxy ClipBoxRect
-        {
-            get => (RectProxy)GetValue(ClipBoxRectProperty);
-            set => SetValue(ClipBoxRectProperty, value);
-        }
-
-        public MonitorInfo MonitorInfo
-        {
-            get => (MonitorInfo)GetValue(MonitorInfoProperty);
-            set => SetValue(MonitorInfoProperty, value);
         }
 
         #region Constants: Magnifier Drawing Data
@@ -86,6 +85,7 @@ namespace HandyScreenshot.Controls
         private const int HalfTargetRegionHeight = TargetRegionHeight / 2;
         private const int OnePixelMagnified = 8;
         private const int HalfMagnifiedOnePixelSize = OnePixelMagnified / 2;
+        private const int InfoBoardHeight = 72;
 
         private const int MagnifierWidth = TargetRegionWidth * OnePixelMagnified;
         private const int MagnifierHeight = TargetRegionHeight * OnePixelMagnified;
@@ -116,6 +116,7 @@ namespace HandyScreenshot.Controls
         private double _halfPixelMagnified = HalfMagnifiedOnePixelSize;
         private double _magnifierWidth = MagnifierWidth;
         private double _magnifierHeight = MagnifierHeight;
+        private double _infoBoardHeight = InfoBoardHeight;
 
         public Magnifier()
         {
@@ -123,7 +124,7 @@ namespace HandyScreenshot.Controls
             _blackThinPen = new Pen(Brushes.Black, 1);
             _crossLinePen = new Pen(CrossLineBrush, OnePixelMagnified);
 
-            _magnifiedRegionBrush = new VisualBrush { ViewboxUnits = BrushMappingMode.Absolute };
+            _magnifiedRegionBrush = new VisualBrush {ViewboxUnits = BrushMappingMode.Absolute};
         }
 
         private void UpdateScale(double scale)
@@ -140,6 +141,7 @@ namespace HandyScreenshot.Controls
             _halfPixelMagnified = HalfMagnifiedOnePixelSize * scale;
             _magnifierWidth = MagnifierWidth * scale;
             _magnifierHeight = MagnifierHeight * scale;
+            _infoBoardHeight = InfoBoardHeight * scale;
         }
 
         private void OnMousePositionChanged(double x, double y)
@@ -157,8 +159,8 @@ namespace HandyScreenshot.Controls
         private void RefreshMagnifier()
         {
             _magnifiedRegionBrush.Viewbox = new Rect(
-                MousePosition.X - _halfTargetRegionWidth,
-                MousePosition.Y - _halfTargetRegionHeight,
+                ScreenshotState.MousePosition.X - _halfTargetRegionWidth,
+                ScreenshotState.MousePosition.Y - _halfTargetRegionHeight,
                 _targetRegionWidth,
                 _targetRegionHeight);
 
@@ -167,10 +169,42 @@ namespace HandyScreenshot.Controls
 
         private void DrawMagnifier(DrawingContext dc)
         {
-            if (!ClipBoxRect.Contains(MousePosition.X, MousePosition.Y)) return;
+            if (ScreenshotState.Mode == ScreenshotMode.Fixed &&
+                ScreenshotState.Orientation != PointOrientation.Center) return;
 
-            var x = MousePosition.X + _offsetFromMouse;
-            var y = MousePosition.Y + _offsetFromMouse;
+            var originalX = ScreenshotState.MousePosition.X;
+            var originalY = ScreenshotState.MousePosition.Y;
+
+            if (!ScreenBound.Contains(originalX, originalY)) return;
+
+            var (offsetX, offsetY) = CalculateOffsets(originalX, originalY);
+            DrawMagnifier(dc, originalX, originalY, offsetX, offsetY);
+        }
+
+        private (double offsetX, double offsetY) CalculateOffsets(double originalX, double originalY)
+        {
+            var width = _magnifierWidth;
+            var height = _magnifierHeight + _infoBoardHeight;
+
+            var offsetX = originalX + width + _offsetFromMouse > ScreenBound.Right
+                ? -_offsetFromMouse - width
+                : _offsetFromMouse;
+            var offsetY = originalY + height + _offsetFromMouse > ScreenBound.Bottom
+                ? -_offsetFromMouse - height
+                : _offsetFromMouse;
+
+            return (offsetX, offsetY);
+        }
+
+        private void DrawMagnifier(
+            DrawingContext dc,
+            double originalX,
+            double originalY,
+            double offsetX,
+            double offsetY)
+        {
+            var x = originalX + offsetX;
+            var y = originalY + offsetY;
             var width = _magnifierWidth;
             var height = _magnifierHeight;
 
@@ -218,10 +252,11 @@ namespace HandyScreenshot.Controls
             guidelines.GuidelinesY.Add(centerInnerRect.Top - halfPixel);
             guidelines.GuidelinesY.Add(centerInnerRect.Bottom + halfPixel);
 
-            var infoBackgroundRect = new Rect(outlineRect.Left, outlineRect.Bottom, outlineRect.Width, 72 * Scale);
-            var color = ColorGetter(MousePosition.X, MousePosition.Y);
+            var infoBackgroundRect =
+                new Rect(outlineRect.Left, outlineRect.Bottom, outlineRect.Width, _infoBoardHeight);
+            var color = ColorGetter(originalX, originalY);
             var colorText = GetText($"#{color.R:X2}{color.G:X2}{color.B:X2}", 1 / Scale);
-            var positionText = GetText($"({MousePosition.X / Scale:0}, {MousePosition.Y / Scale:0})", 1 / Scale);
+            var positionText = GetText($"({originalX / Scale:0}, {originalY / Scale:0})", 1 / Scale);
 
             var positionTextX = centerLineX - positionText.Width / 2;
             var positionTextY = outlineRect.Bottom + 12 * Scale;

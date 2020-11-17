@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Windows.Automation;
@@ -17,7 +16,7 @@ namespace HandyScreenshot.Detection
 
             public ReadOnlyRect PhysicalRect { get; }
 
-            public IReadOnlyList<CachedRect> Children { get; set; }
+            public IReadOnlyList<CachedRect>? Children { get; set; }
 
             public CachedRect(AutomationElement element, ReadOnlyRect physicalRect)
             {
@@ -26,11 +25,14 @@ namespace HandyScreenshot.Detection
             }
         }
 
-        private static readonly IReadOnlyList<CachedRect> EmptyChildren = Enumerable.Empty<CachedRect>().ToList();
-        private static readonly Condition ChildrenCondition
-            = new NotCondition(new PropertyCondition(WindowPattern.WindowVisualStateProperty, WindowVisualState.Minimized));
+        private static readonly IReadOnlyList<CachedRect> EmptyChildren =
+            Enumerable.Empty<CachedRect>().ToList().AsReadOnly();
 
-        private IReadOnlyList<CachedRect> _elementSnapshot;
+        private static readonly Condition ChildrenCondition
+            = new NotCondition(new PropertyCondition(WindowPattern.WindowVisualStateProperty,
+                WindowVisualState.Minimized));
+
+        private IReadOnlyList<CachedRect> _elementSnapshot = EmptyChildren;
 
         public void Snapshot(ReadOnlyRect physicalFullScreenRect)
         {
@@ -39,15 +41,15 @@ namespace HandyScreenshot.Detection
 
         public ReadOnlyRect GetByPhysicalPoint(double physicalX, double physicalY)
         {
-            if (_elementSnapshot == null)
-                throw new InvalidOperationException("");
-
             return GetAdjustRect(_elementSnapshot, physicalX, physicalY)?.PhysicalRect ?? ReadOnlyRect.Empty;
         }
 
-        private static CachedRect GetAdjustRect(IReadOnlyCollection<CachedRect> elements, double physicalX, double physicalY)
+        private static CachedRect? GetAdjustRect(
+            IReadOnlyCollection<CachedRect> elements,
+            double physicalX,
+            double physicalY)
         {
-            CachedRect result = null;
+            CachedRect? result = null;
 
             while (true)
             {
@@ -58,7 +60,7 @@ namespace HandyScreenshot.Detection
                 result = temp;
                 if (EnsureChildren(result))
                 {
-                    elements = result.Children;
+                    elements = result.Children!;
                 }
                 else
                 {
@@ -71,15 +73,13 @@ namespace HandyScreenshot.Detection
 
         private static bool EnsureChildren(CachedRect cachedRect)
         {
-            if (cachedRect.Children == null)
-            {
-                cachedRect.Children = GetChildren(cachedRect.Element, cachedRect.PhysicalRect);
-            }
+            cachedRect.Children ??= GetChildren(cachedRect.Element, cachedRect.PhysicalRect);
 
             return cachedRect.Children.Count > 0;
         }
 
-        private static IReadOnlyList<CachedRect> GetChildren(AutomationElement parentElement, ReadOnlyRect physicalParentRect)
+        private static IReadOnlyList<CachedRect> GetChildren(AutomationElement parentElement,
+            ReadOnlyRect physicalParentRect)
         {
             try
             {
@@ -91,7 +91,7 @@ namespace HandyScreenshot.Detection
 
                 // * System.Runtime.InteropServices.COMException:
                 // 'An outgoing call cannot be made since the application is dispatching an input-synchronous call.
-                // (Exception from HRESULT: 0x8001010D (RPC_E_CANTCALLOUT_ININPUTSYNCCALL))'
+                // (Exception from HRESULT: 0x8001010D (RPC_E_CANT CALL OUT_IN INPUT SYNC CALL))'
                 // * System.ArgumentException:
                 // 'Value does not fall within the expected range.'
                 // * System.Windows.Automation.ElementNotAvailableException:
@@ -103,7 +103,9 @@ namespace HandyScreenshot.Detection
             }
         }
 
-        private static IReadOnlyList<CachedRect> CriticalGetChildren(AutomationElement parentElement, ReadOnlyRect physicalParentRect)
+        private static IReadOnlyList<CachedRect> CriticalGetChildren(
+            AutomationElement parentElement,
+            ReadOnlyRect physicalParentRect)
         {
             return parentElement.FindAll(TreeScope.Children, ChildrenCondition)
                 .OfType<AutomationElement>()

@@ -12,6 +12,9 @@ namespace HandyScreenshot.ViewModels
 {
     public class MainWindowViewModel : BindableBase
     {
+        private static readonly byte[] SampleBytes = new byte[4];
+
+        private readonly RectDetector _detector;
         private string _dpiString = string.Empty;
 
         public string DpiString
@@ -22,54 +25,47 @@ namespace HandyScreenshot.ViewModels
 
         public Func<double, double, Color> ColorGetter { get; }
 
-        public RectDetector Detector { get; }
-
         public BitmapSource Background { get; }
 
         public MonitorInfo MonitorInfo { get; }
 
-        public double ScaleX { get; set; }
+        public Rect ScreenBound { get; }
 
-        public double ScaleY { get; set; }
+        public double ScaleX { get; }
+
+        public double ScaleY { get; }
 
         public ICommand CloseCommand { get; } = new RelayCommand(() => Application.Current.Shutdown());
-
-        private static readonly byte[] SampleBytes = new byte[4];
 
         public ScreenshotState State { get; }
 
         public MainWindowViewModel(
-            IObservable<(MouseMessage message, double x, double y)> mouseEventSource,
+            IObservable<(MouseMessage message, int x, int y)> mouseEventSource,
             BitmapSource background,
             MonitorInfo monitorInfo,
-            RectDetector detector)
+            RectDetector detector,
+            double scaleX,
+            double scaleY)
         {
             State = new ScreenshotState(
                 DetectRectFromPhysicalPoint,
                 ToDisplayPoint);
             Background = background;
             MonitorInfo = monitorInfo;
-            Detector = detector;
+            var screenRect = monitorInfo.PhysicalScreenRect;
+            var screenBound = new Rect(0, 0, screenRect.Width, screenRect.Height);
+            screenBound.Scale(scaleX, scaleY);
+            ScreenBound = screenBound;
+            ScaleX = scaleX;
+            ScaleY = scaleY;
+            _detector = detector;
 
-            var disposable1 = mouseEventSource
+            var disposable = mouseEventSource
                 .Subscribe(i => State.PushState(i.message, i.x, i.y));
 
-            ColorGetter = (x, y) =>
-            {
-                var physicalX = (int)(x / ScaleX);
-                var physicalY = (int)(y / ScaleX);
+            ColorGetter = GetColorByCoordinate;
 
-                if (physicalX < 0 || physicalX >= Background.PixelWidth ||
-                    physicalY < 0 || physicalY >= Background.PixelHeight) return Colors.Transparent;
-
-                Background.CopyPixels(
-                    new Int32Rect(physicalX, physicalY, 1, 1),
-                    SampleBytes, 4, 0);
-
-                return Color.FromArgb(SampleBytes[3], SampleBytes[2], SampleBytes[1], SampleBytes[0]);
-            };
-
-            SharedProperties.Disposables.Push(disposable1);
+            SharedProperties.Disposables.Push(disposable);
         }
 
         public void Initialize()
@@ -78,9 +74,24 @@ namespace HandyScreenshot.ViewModels
             State.PushState(MouseMessage.MouseMove, initPoint.X, initPoint.Y);
         }
 
+        private Color GetColorByCoordinate(double x, double y)
+        {
+            var physicalX = (int) (x / ScaleX);
+            var physicalY = (int) (y / ScaleX);
+
+            if (physicalX < 0 || physicalX >= Background.PixelWidth ||
+                physicalY < 0 || physicalY >= Background.PixelHeight) return Colors.Transparent;
+
+            Background.CopyPixels(
+                new Int32Rect(physicalX, physicalY, 1, 1),
+                SampleBytes, 4, 0);
+
+            return Color.FromArgb(SampleBytes[3], SampleBytes[2], SampleBytes[1], SampleBytes[0]);
+        }
+
         private ReadOnlyRect DetectRectFromPhysicalPoint(double physicalX, double physicalY)
         {
-            var rect = Detector.GetByPhysicalPoint(physicalX, physicalY);
+            var rect = _detector.GetByPhysicalPoint(physicalX, physicalY);
             return rect != ReadOnlyRect.Empty && MonitorInfo.PhysicalScreenRect.IntersectsWith(rect)
                 ? ToDisplayRect(rect)
                 : ReadOnlyRect.Zero;

@@ -30,18 +30,17 @@
                     Command="{Binding CloseCommand}" />
     </Window.InputBindings>
 
-    <controls:ZStackPanel Cursor="{Binding State.Orientation, Converter={StaticResource PointOrientationToCursorConverter}}">
+    <controls:ZStackPanel Cursor="{Binding State.Orientation, Mode=OneWay, Converter={StaticResource PointOrientationToCursorConverter}}">
         <controls:ClipBox x:Name="ClipBox"
                           Scale="{Binding ScaleX}"
                           RectProxy="{Binding State.ScreenshotRect}"
                           Background="{Binding Background}" />
 
-        <controls:Magnifier MousePosition="{Binding State.MousePosition}"
-                            MagnifiedTarget="{Binding ElementName=ClipBox, Path=Visual}"
+        <controls:Magnifier ScreenshotState="{Binding State}"
+                            ScreenBound="{Binding ScreenBound}"
+                            MagnifiedTarget="{Binding ElementName=ClipBox, Path=Visual, Mode=OneWay}"
                             Scale="{Binding ScaleX}"
-                            ColorGetter="{Binding ColorGetter}"
-                            ClipBoxRect="{Binding State.ScreenshotRect}"
-                            MonitorInfo="{Binding MonitorInfo}" />
+                            ColorGetter="{Binding ColorGetter}" />
 
         <TextBlock Background="#AA000000"
                    Foreground="White"

@@ -13,7 +13,7 @@ namespace HandyScreenshot.Common
     {
         public delegate void Register(ModifierKeys modifier, Key key, Action callback);
 
-        private struct Item
+        private readonly struct Item
         {
             public ModifierKeys ModifierKeys { get; }
 
@@ -30,19 +30,24 @@ namespace HandyScreenshot.Common
         }
 
         private const int WM_HOTKEY = 0x0312;
-        private static readonly IntPtr Hwnd = (IntPtr)(-3);
-        private static HwndSource _hwndSource;
+        private static readonly IntPtr Hwnd = (IntPtr) (-3);
+        private static HwndSource? _hwndSource;
 
         public static IDisposable Start(Action<Register> configure)
         {
             // Register
             var items = new Dictionary<(ModifierKeys modifier, Key key), Item>();
-            configure?.Invoke(GetRegister(items));
+            configure(GetRegister(items));
 
             // Add hook
             var callbackMap = new Dictionary<int, Action>();
             var handler = GetHwndSourceHook(callbackMap);
             AddHook(handler);
+            if (_hwndSource == null)
+            {
+                throw new InvalidOperationException("The hwndSource cannot be null here.");
+            }
+
             foreach (var item in items.Values)
             {
                 callbackMap[item.GetHashCode()] = item.Callback;
