@@ -66,6 +66,7 @@ namespace HandyScreenshot.Helpers
             return hotSource;
         }
 
+        // For DEBUG
         private static void WindowOnLoaded(object sender, RoutedEventArgs e)
         {
             if (sender is Window window &&
