@@ -171,7 +171,14 @@ namespace HandyScreenshot.Controls
                 _targetRegionWidth,
                 _targetRegionHeight);
             var (offsetX, offsetY) = CalculateOffsets(originalX, originalY);
-            DrawMagnifier(dc, originalX, originalY, physicalX, physicalY, offsetX, offsetY);
+            DrawMagnifier(
+                dc,
+                originalX,
+                originalY,
+                physicalX - MonitorInfo.PhysicalScreenRect.X,
+                physicalY - MonitorInfo.PhysicalScreenRect.Y,
+                offsetX,
+                offsetY);
         }
 
         private (double offsetX, double offsetY) CalculateOffsets(double originalX, double originalY)
