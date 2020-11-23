@@ -10,28 +10,26 @@ namespace HandyScreenshot.Controls
 {
     public class Magnifier : DrawingControlBase
     {
-        public static readonly DependencyProperty ScaleProperty = DependencyProperty.Register(
-            "Scale", typeof(double), typeof(Magnifier), new PropertyMetadata(default(double), OnScaleChanged));
-
         public static readonly DependencyProperty MagnifiedTargetProperty = DependencyProperty.Register(
             "MagnifiedTarget", typeof(Visual), typeof(Magnifier),
             new PropertyMetadata(default(Visual), OnMagnifiedTargetChanged));
 
         public static readonly DependencyProperty ColorGetterProperty = DependencyProperty.Register(
-            "ColorGetter", typeof(Func<double, double, Color>), typeof(Magnifier),
-            new PropertyMetadata(default(Func<double, double, Color>)));
+            "ColorGetter", typeof(Func<int, int, Color>), typeof(Magnifier),
+            new PropertyMetadata(default(Func<int, int, Color>)));
 
         public static readonly DependencyProperty ScreenshotStateProperty = DependencyProperty.Register(
             "ScreenshotState", typeof(ScreenshotState), typeof(Magnifier),
             new PropertyMetadata(default(ScreenshotState), OnScreenshotStateChanged));
 
-        public static readonly DependencyProperty ScreenBoundProperty = DependencyProperty.Register(
-            "ScreenBound", typeof(Rect), typeof(Magnifier), new PropertyMetadata(default(Rect)));
+        public static readonly DependencyProperty MonitorInfoProperty = DependencyProperty.Register(
+            "MonitorInfo", typeof(MonitorInfo), typeof(Magnifier),
+            new PropertyMetadata(default(MonitorInfo), OnMonitorInfoChanged));
 
-        private static void OnScaleChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        private static void OnMonitorInfoChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
-            d.UpdateDependencyProperty<Magnifier, double>(e,
-                (self, newValue) => self.UpdateScale(newValue));
+            d.UpdateDependencyProperty<Magnifier, MonitorInfo>(e,
+                (self, newValue) => self.UpdateScale(newValue.ScaleX));
         }
 
         private static void OnMagnifiedTargetChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
@@ -47,12 +45,6 @@ namespace HandyScreenshot.Controls
                 (self, oldValue) => oldValue.MousePosition.PointChanged -= self.OnMousePositionChanged);
         }
 
-        public double Scale
-        {
-            get => (double) GetValue(ScaleProperty);
-            set => SetValue(ScaleProperty, value);
-        }
-
         public Visual MagnifiedTarget
         {
             set => SetValue(MagnifiedTargetProperty, value);
@@ -60,19 +52,19 @@ namespace HandyScreenshot.Controls
 
         public ScreenshotState ScreenshotState
         {
-            get => (ScreenshotState) GetValue(ScreenshotStateProperty);
+            get => (ScreenshotState)GetValue(ScreenshotStateProperty);
             set => SetValue(ScreenshotStateProperty, value);
         }
 
-        public Rect ScreenBound
+        public MonitorInfo MonitorInfo
         {
-            get => (Rect) GetValue(ScreenBoundProperty);
-            set => SetValue(ScreenBoundProperty, value);
+            get => (MonitorInfo)GetValue(MonitorInfoProperty);
+            set => SetValue(MonitorInfoProperty, value);
         }
 
-        public Func<double, double, Color> ColorGetter
+        public Func<int, int, Color> ColorGetter
         {
-            get => (Func<double, double, Color>) GetValue(ColorGetterProperty);
+            get => (Func<int, int, Color>)GetValue(ColorGetterProperty);
             set => SetValue(ColorGetterProperty, value);
         }
 
@@ -124,7 +116,7 @@ namespace HandyScreenshot.Controls
             _blackThinPen = new Pen(Brushes.Black, 1);
             _crossLinePen = new Pen(CrossLineBrush, OnePixelMagnified);
 
-            _magnifiedRegionBrush = new VisualBrush {ViewboxUnits = BrushMappingMode.Absolute};
+            _magnifiedRegionBrush = new VisualBrush { ViewboxUnits = BrushMappingMode.Absolute };
         }
 
         private void UpdateScale(double scale)
@@ -144,7 +136,7 @@ namespace HandyScreenshot.Controls
             _infoBoardHeight = InfoBoardHeight * scale;
         }
 
-        private void OnMousePositionChanged(double x, double y)
+        private void OnMousePositionChanged(int x, int y)
         {
             try
             {
@@ -158,12 +150,6 @@ namespace HandyScreenshot.Controls
 
         private void RefreshMagnifier()
         {
-            _magnifiedRegionBrush.Viewbox = new Rect(
-                ScreenshotState.MousePosition.X - _halfTargetRegionWidth,
-                ScreenshotState.MousePosition.Y - _halfTargetRegionHeight,
-                _targetRegionWidth,
-                _targetRegionHeight);
-
             GetDrawingVisual().Using(DrawMagnifier);
         }
 
@@ -172,24 +158,32 @@ namespace HandyScreenshot.Controls
             if (ScreenshotState.Mode == ScreenshotMode.Fixed &&
                 ScreenshotState.Orientation != PointOrientation.Center) return;
 
-            var originalX = ScreenshotState.MousePosition.X;
-            var originalY = ScreenshotState.MousePosition.Y;
+            var physicalX = ScreenshotState.MousePosition.X;
+            var physicalY = ScreenshotState.MousePosition.Y;
 
-            if (!ScreenBound.Contains(originalX, originalY)) return;
+            if (!MonitorInfo.PhysicalScreenRect.Contains(physicalX, physicalY)) return;
 
+            var (originalX, originalY) = MonitorInfo.ToWpfAxis(physicalX, physicalY);
+
+            _magnifiedRegionBrush.Viewbox = new Rect(
+                originalX - _halfTargetRegionWidth,
+                originalY - _halfTargetRegionHeight,
+                _targetRegionWidth,
+                _targetRegionHeight);
             var (offsetX, offsetY) = CalculateOffsets(originalX, originalY);
-            DrawMagnifier(dc, originalX, originalY, offsetX, offsetY);
+            DrawMagnifier(dc, originalX, originalY, physicalX, physicalY, offsetX, offsetY);
         }
 
         private (double offsetX, double offsetY) CalculateOffsets(double originalX, double originalY)
         {
             var width = _magnifierWidth;
             var height = _magnifierHeight + _infoBoardHeight;
+            var screenBound = MonitorInfo.WpfAxisScreenRect;
 
-            var offsetX = originalX + width + _offsetFromMouse > ScreenBound.Right
+            var offsetX = originalX + width + _offsetFromMouse > screenBound.Right
                 ? -_offsetFromMouse - width
                 : _offsetFromMouse;
-            var offsetY = originalY + height + _offsetFromMouse > ScreenBound.Bottom
+            var offsetY = originalY + height + _offsetFromMouse > screenBound.Bottom
                 ? -_offsetFromMouse - height
                 : _offsetFromMouse;
 
@@ -200,6 +194,8 @@ namespace HandyScreenshot.Controls
             DrawingContext dc,
             double originalX,
             double originalY,
+            int physicalX,
+            int physicalY,
             double offsetX,
             double offsetY)
         {
@@ -211,13 +207,14 @@ namespace HandyScreenshot.Controls
             // 1. and 2. Prepare drawing data and add guidelines.
 
             var guidelines = new GuidelineSet();
-            var halfPixel = Scale / 2;
+            var scale = MonitorInfo.ScaleX;
+            var halfPixel = scale / 2;
 
             // Draw magnified region box
 
             var magnifierRect = new Rect(x, y, width, height);
-            var innerRect = new Rect(x - Scale, y - Scale, width + 2 * Scale, height + 2 * Scale);
-            var outlineRect = new Rect(x - 2 * Scale, y - 2 * Scale, width + 4 * Scale, height + 4 * Scale);
+            var innerRect = new Rect(x - scale, y - scale, width + 2 * scale, height + 2 * scale);
+            var outlineRect = new Rect(x - 2 * scale, y - 2 * scale, width + 4 * scale, height + 4 * scale);
 
             guidelines.GuidelinesX.Add(outlineRect.Left);
             guidelines.GuidelinesX.Add(outlineRect.Right);
@@ -237,15 +234,15 @@ namespace HandyScreenshot.Controls
             // Draw center point box
 
             var centerInnerRect = new Rect(
-                centerLineX - _halfPixelMagnified + halfPixel - Scale,
-                centerLineY - _halfPixelMagnified + halfPixel - Scale,
-                2 * (_halfPixelMagnified - halfPixel) + 2 * Scale,
-                2 * (_halfPixelMagnified - halfPixel) + 2 * Scale);
+                centerLineX - _halfPixelMagnified + halfPixel - scale,
+                centerLineY - _halfPixelMagnified + halfPixel - scale,
+                2 * (_halfPixelMagnified - halfPixel) + 2 * scale,
+                2 * (_halfPixelMagnified - halfPixel) + 2 * scale);
             var centerOutlineRect = new Rect(
-                centerLineX - _halfPixelMagnified + halfPixel - 2 * Scale,
-                centerLineY - _halfPixelMagnified + halfPixel - 2 * Scale,
-                2 * (_halfPixelMagnified - halfPixel) + 4 * Scale,
-                2 * (_halfPixelMagnified - halfPixel) + 4 * Scale);
+                centerLineX - _halfPixelMagnified + halfPixel - 2 * scale,
+                centerLineY - _halfPixelMagnified + halfPixel - 2 * scale,
+                2 * (_halfPixelMagnified - halfPixel) + 4 * scale,
+                2 * (_halfPixelMagnified - halfPixel) + 4 * scale);
 
             guidelines.GuidelinesX.Add(centerInnerRect.Left - halfPixel);
             guidelines.GuidelinesX.Add(centerInnerRect.Right + halfPixel);
@@ -254,17 +251,17 @@ namespace HandyScreenshot.Controls
 
             var infoBackgroundRect =
                 new Rect(outlineRect.Left, outlineRect.Bottom, outlineRect.Width, _infoBoardHeight);
-            var color = ColorGetter(originalX, originalY);
-            var colorText = GetText($"#{color.R:X2}{color.G:X2}{color.B:X2}", 1 / Scale);
-            var positionText = GetText($"({originalX / Scale:0}, {originalY / Scale:0})", 1 / Scale);
+            var color = ColorGetter(physicalX, physicalY);
+            var colorText = GetText($"#{color.R:X2}{color.G:X2}{color.B:X2}", 1 / scale);
+            var positionText = GetText($"({originalX / scale:0}, {originalY / scale:0})", 1 / scale);
 
             var positionTextX = centerLineX - positionText.Width / 2;
-            var positionTextY = outlineRect.Bottom + 12 * Scale;
-            var colorBlockSize = 14 * Scale;
-            var colorComponentWidth = colorBlockSize + 8 * Scale + colorText.Width;
+            var positionTextY = outlineRect.Bottom + 12 * scale;
+            var colorBlockSize = 14 * scale;
+            var colorComponentWidth = colorBlockSize + 8 * scale + colorText.Width;
             var colorX = centerLineX - colorComponentWidth / 2;
             var colorTextX = colorX + colorComponentWidth - colorText.Width;
-            var colorY = positionTextY + positionText.Height + 12 * Scale;
+            var colorY = positionTextY + positionText.Height + 12 * scale;
             var colorTextY = colorY + (colorBlockSize - colorText.Height) / 2;
             var positionTextPoint = new Point(positionTextX, positionTextY);
             var colorTextPoint = new Point(colorTextX, colorTextY);
@@ -291,19 +288,19 @@ namespace HandyScreenshot.Controls
             dc.DrawLine(
                 _crossLinePen,
                 new Point(centerLineX, innerRect.Top),
-                new Point(centerLineX, centerLineY - _halfPixelMagnified - 2 * Scale));
+                new Point(centerLineX, centerLineY - _halfPixelMagnified - 2 * scale));
             dc.DrawLine(
                 _crossLinePen,
                 new Point(centerLineX, innerRect.Bottom),
-                new Point(centerLineX, centerLineY + _halfPixelMagnified + 2 * Scale));
+                new Point(centerLineX, centerLineY + _halfPixelMagnified + 2 * scale));
             dc.DrawLine(
                 _crossLinePen,
                 new Point(innerRect.Left, centerLineY),
-                new Point(centerLineX - _halfPixelMagnified - 2 * Scale, centerLineY));
+                new Point(centerLineX - _halfPixelMagnified - 2 * scale, centerLineY));
             dc.DrawLine(
                 _crossLinePen,
                 new Point(innerRect.Right, centerLineY),
-                new Point(centerLineX + _halfPixelMagnified + 2 * Scale, centerLineY));
+                new Point(centerLineX + _halfPixelMagnified + 2 * scale, centerLineY));
 
             // Draw center point box
 

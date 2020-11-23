@@ -32,14 +32,13 @@
 
     <controls:ZStackPanel Cursor="{Binding State.Orientation, Mode=OneWay, Converter={StaticResource PointOrientationToCursorConverter}}">
         <controls:ClipBox x:Name="ClipBox"
-                          Scale="{Binding ScaleX}"
+                          MonitorInfo="{Binding MonitorInfo}"
                           RectProxy="{Binding State.ScreenshotRect}"
                           Background="{Binding Background}" />
 
         <controls:Magnifier ScreenshotState="{Binding State}"
-                            ScreenBound="{Binding ScreenBound}"
+                            MonitorInfo="{Binding MonitorInfo}"
                             MagnifiedTarget="{Binding ElementName=ClipBox, Path=Visual, Mode=OneWay}"
-                            Scale="{Binding ScaleX}"
                             ColorGetter="{Binding ColorGetter}" />
 
         <TextBlock Background="#AA000000"

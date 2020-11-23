@@ -2,30 +2,30 @@
 
 namespace HandyScreenshot.Common
 {
-    public delegate void RectChangedEventHandler(double x, double y, double width, double height);
+    public delegate void RectChangedEventHandler(int x, int y, int width, int height);
 
     public class RectProxy
     {
         public event RectChangedEventHandler? RectChanged;
 
-        public double X { get; private set; }
+        public int X { get; private set; }
 
-        public double Y { get; private set; }
+        public int Y { get; private set; }
 
-        public double Width { get; private set; }
+        public int Width { get; private set; }
 
-        public double Height { get; private set; }
+        public int Height { get; private set; }
 
-        public bool Contains(double x, double y) => X <= x && Y <= y && x <= X + Width && y <= Y + Height;
+        public bool Contains(int x, int y) => X <= x && Y <= y && x <= X + Width && y <= Y + Height;
 
-        public void Offset(double x1, double y1, double x2, double y2)
+        public void Offset(int x1, int y1, int x2, int y2)
         {
             X = X + x2 - x1;
             Y = Y + y2 - y1;
             OnRectChanged();
         }
 
-        public void Union(double x, double y)
+        public void Union(int x, int y)
         {
             Width = Math.Max(Width, X < x ? x - X : X - x + Width);
             Height = Math.Max(Height, Y < y ? y - Y : Y - y + Height);
@@ -34,7 +34,7 @@ namespace HandyScreenshot.Common
             OnRectChanged();
         }
 
-        public void Set(double x, double y, double width, double height)
+        public void Set(int x, int y, int width, int height)
         {
             X = x;
             Y = y;
@@ -43,7 +43,7 @@ namespace HandyScreenshot.Common
             OnRectChanged();
         }
 
-        public void SetLeft(double left)
+        public void SetLeft(int left)
         {
             if (left > X + Width) return;
 
@@ -52,7 +52,7 @@ namespace HandyScreenshot.Common
             OnRectChanged();
         }
 
-        public void SetRight(double right)
+        public void SetRight(int right)
         {
             if (right < X) return;
 
@@ -60,7 +60,7 @@ namespace HandyScreenshot.Common
             OnRectChanged();
         }
 
-        public void SetTop(double top)
+        public void SetTop(int top)
         {
             if (top > Y + Height) return;
 
@@ -69,7 +69,7 @@ namespace HandyScreenshot.Common
             OnRectChanged();
         }
 
-        public void SetBottom(double bottom)
+        public void SetBottom(int bottom)
         {
             if (bottom < Y) return;
 

@@ -1,20 +1,22 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Windows;
 
 namespace HandyScreenshot.Common
 {
+    [DebuggerDisplay("({X}, {Y}) [{Width}, {Height}]")]
     public readonly struct ReadOnlyRect
     {
-        public static readonly ReadOnlyRect Zero = (0D, 0D, 0D, 0D);
-        public static readonly ReadOnlyRect Empty = (double.PositiveInfinity, double.PositiveInfinity, double.NegativeInfinity, double.NegativeInfinity);
+        public static readonly ReadOnlyRect Zero = (0, 0, 0, 0);
+        public static readonly ReadOnlyRect Empty = (int.MaxValue, int.MaxValue, int.MinValue, int.MinValue);
 
-        public readonly double X;
-        public readonly double Y;
-        public readonly double Width;
-        public readonly double Height;
+        public readonly int X;
+        public readonly int Y;
+        public readonly int Width;
+        public readonly int Height;
         public readonly bool IsEmpty;
 
-        public ReadOnlyRect(double x, double y, double width, double height)
+        public ReadOnlyRect(int x, int y, int width, int height)
         {
             X = x;
             Y = y;
@@ -23,7 +25,7 @@ namespace HandyScreenshot.Common
             IsEmpty = width < 0;
         }
 
-        public bool Contains(double x, double y)
+        public bool Contains(int x, int y)
         {
             return X <= x && Y <= y && x <= X + Width && y <= Y + Height;
         }
@@ -41,10 +43,10 @@ namespace HandyScreenshot.Common
         {
             if (!IntersectsWith(rect)) return Empty;
 
-            double x = Math.Max(X, rect.X);
-            double y = Math.Max(Y, rect.Y);
-            double width = Math.Max(Math.Min(X + Width, rect.X + rect.Width) - x, 0.0);
-            double height = Math.Max(Math.Min(Y + Height, rect.Y + rect.Height) - y, 0.0);
+            int x = Math.Max(X, rect.X);
+            int y = Math.Max(Y, rect.Y);
+            int width = Math.Max(Math.Min(X + Width, rect.X + rect.Width) - x, 0);
+            int height = Math.Max(Math.Min(Y + Height, rect.Y + rect.Height) - y, 0);
             return (x, y, width, height);
         }
 
@@ -52,29 +54,21 @@ namespace HandyScreenshot.Common
         {
             if (IsEmpty || rect.IsEmpty) return Empty;
 
-            double x = Math.Min(X, rect.X);
-            double y = Math.Min(Y, rect.Y);
-            // ReSharper disable CompareOfFloatsByEqualityOperator
-            double width = rect.Width == double.PositiveInfinity || Width == double.PositiveInfinity
-                ? double.PositiveInfinity
-                : Math.Max(Math.Max(X + Width, rect.X + rect.Width) - x, 0.0);
-            double height = rect.Height == double.PositiveInfinity || Height == double.PositiveInfinity
-                ? double.PositiveInfinity
-                : Math.Max(Math.Max(Y + Height, rect.Y + Height) - y, 0.0);
-            // ReSharper restore CompareOfFloatsByEqualityOperator
+            int x = Math.Min(X, rect.X);
+            int y = Math.Min(Y, rect.Y);
+            int width = rect.Width == int.MaxValue || Width == int.MaxValue
+                ? int.MaxValue
+                : Math.Max(Math.Max(X + Width, rect.X + rect.Width) - x, 0);
+            int height = rect.Height == int.MaxValue || Height == int.MaxValue
+                ? int.MaxValue
+                : Math.Max(Math.Max(Y + Height, rect.Y + Height) - y, 0);
+
             return (x, y, width, height);
-        }
-
-        public ReadOnlyRect Offset(double x, double y) => (X - x, Y - y, Width, Height);
-
-        public ReadOnlyRect Scale(double scaleX, double scaleY)
-        {
-            return IsEmpty ? Empty : (X * scaleX, Y * scaleY, Width * scaleX, Height * scaleY);
         }
 
         public override string ToString() => $"({X}, {Y}) [{Width}, {Height}]";
 
-        internal void Deconstruct(out double x, out double y, out double width, out double height)
+        internal void Deconstruct(out int x, out int y, out int width, out int height)
         {
             x = X;
             y = Y;
@@ -82,32 +76,26 @@ namespace HandyScreenshot.Common
             height = Height;
         }
 
-        public static implicit operator ReadOnlyRect((double, double, double, double) rect)
+        public static implicit operator ReadOnlyRect((int, int, int, int) rect)
         {
             var (x, y, w, h) = rect;
             return new ReadOnlyRect(x, y, w, h);
         }
 
-        public static implicit operator ReadOnlyRect(Rect rect) => new ReadOnlyRect(rect.X, rect.Y, rect.Width, rect.Height);
+        public static implicit operator ReadOnlyRect(Rect rect) => new ReadOnlyRect(
+            (int)rect.X,
+            (int)rect.Y,
+            (int)rect.Width,
+            (int)rect.Height);
 
         public bool Equals(ReadOnlyRect other)
         {
             return X.Equals(other.X) && Y.Equals(other.Y) && Width.Equals(other.Width) && Height.Equals(other.Height);
         }
 
-        public override bool Equals(object obj) => obj is ReadOnlyRect other && Equals(other);
+        public override bool Equals(object? obj) => obj is ReadOnlyRect other && Equals(other);
 
-        public override int GetHashCode()
-        {
-            unchecked
-            {
-                int hashCode = X.GetHashCode();
-                hashCode = (hashCode * 397) ^ Y.GetHashCode();
-                hashCode = (hashCode * 397) ^ Width.GetHashCode();
-                hashCode = (hashCode * 397) ^ Height.GetHashCode();
-                return hashCode;
-            }
-        }
+        public override int GetHashCode() => HashCode.Combine(X, Y, Width, Height);
 
         public static bool operator ==(ReadOnlyRect left, ReadOnlyRect right) => left.Equals(right);
 

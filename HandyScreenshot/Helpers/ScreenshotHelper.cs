@@ -30,17 +30,13 @@ namespace HandyScreenshot.Helpers
 
             foreach (var monitorInfo in monitorInfos)
             {
-                var (scaleX, scaleY) = MonitorHelper.GetScaleFactorFromMonitor(monitorInfo.Handle);
-
                 var vm = new MainWindowViewModel(
                     mouseEventSource,
                     CaptureScreen(monitorInfo.PhysicalScreenRect),
                     monitorInfo,
-                    detector,
-                    scaleX,
-                    scaleY);
+                    detector);
 
-                var window = new MainWindow {DataContext = vm};
+                var window = new MainWindow { DataContext = vm };
                 SetWindowRect(window, monitorInfo.PhysicalScreenRect);
                 window.Loaded += WindowOnLoaded;
                 window.Show();
@@ -66,6 +62,7 @@ namespace HandyScreenshot.Helpers
             return hotSource;
         }
 
+        // For DEBUG
         private static void WindowOnLoaded(object sender, RoutedEventArgs e)
         {
             if (sender is Window window &&
@@ -87,11 +84,11 @@ namespace HandyScreenshot.Helpers
         {
             SetWindowPos(
                 window.GetHandle(),
-                (IntPtr) HWND_TOPMOST,
-                (int) rect.X,
-                (int) rect.Y,
-                (int) rect.Width,
-                (int) rect.Height,
+                (IntPtr)HWND_TOPMOST,
+                rect.X,
+                rect.Y,
+                rect.Width,
+                rect.Height,
                 SWP_NOZORDER);
         }
 
@@ -99,13 +96,13 @@ namespace HandyScreenshot.Helpers
         {
             var hdcSrc = GetAllMonitorsDC();
 
-            var width = (int) rect.Width;
-            var height = (int) rect.Height;
+            var width = rect.Width;
+            var height = rect.Height;
             var hdcDest = CreateCompatibleDC(hdcSrc);
             var hBitmap = CreateCompatibleBitmap(hdcSrc, width, height);
-            SelectObject(hdcDest, hBitmap);
+            _ = SelectObject(hdcDest, hBitmap);
 
-            BitBlt(hdcDest, 0, 0, width, height, hdcSrc, (int) rect.X, (int) rect.Y,
+            BitBlt(hdcDest, 0, 0, width, height, hdcSrc, rect.X, rect.Y,
                 TernaryRasterOperations.SRCCOPY | TernaryRasterOperations.CAPTUREBLT);
 
             var image = Image.FromHbitmap(hBitmap);

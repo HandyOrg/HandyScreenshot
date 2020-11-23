@@ -13,11 +13,16 @@ namespace HandyScreenshot.Controls
         private const int ClipBoxIndex = 1;
 
         public static readonly DependencyProperty RectProxyProperty = DependencyProperty.Register(
-            "RectProxy", typeof(RectProxy), typeof(ClipBoxVisual), new PropertyMetadata(default(RectProxy), OnRectProxyChanged));
+            "RectProxy", typeof(RectProxy), typeof(ClipBoxVisual),
+            new PropertyMetadata(default(RectProxy), OnRectProxyChanged));
+
         public static readonly DependencyProperty BackgroundProperty = DependencyProperty.Register(
-            "Background", typeof(ImageSource), typeof(ClipBoxVisual), new PropertyMetadata(default(ImageSource), OnBackgroundChanged));
-        public static readonly DependencyProperty ScaleProperty = DependencyProperty.Register(
-            "Scale", typeof(double), typeof(ClipBoxVisual), new PropertyMetadata(default(double), OnScaleChanged));
+            "Background", typeof(ImageSource), typeof(ClipBoxVisual),
+            new PropertyMetadata(default(ImageSource), OnBackgroundChanged));
+
+        public static readonly DependencyProperty MonitorInfoProperty = DependencyProperty.Register(
+            "MonitorInfo", typeof(MonitorInfo), typeof(ClipBoxVisual),
+            new PropertyMetadata(default(MonitorInfo), OnMonitorInfoChanged));
 
         private static void OnRectProxyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
@@ -32,10 +37,10 @@ namespace HandyScreenshot.Controls
                 (self, newValue) => self.RefreshBackground());
         }
 
-        private static void OnScaleChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        private static void OnMonitorInfoChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
-            d.UpdateDependencyProperty<ClipBoxVisual, double>(e,
-                (self, newValue) => self._primaryPen = CreatePrimaryPen(newValue));
+            d.UpdateDependencyProperty<ClipBoxVisual, MonitorInfo>(e,
+                (self, newValue) => self._primaryPen = CreatePrimaryPen(newValue.ScaleX));
         }
 
         public RectProxy RectProxy
@@ -50,6 +55,8 @@ namespace HandyScreenshot.Controls
             set => SetValue(BackgroundProperty, value);
         }
 
+        public MonitorInfo MonitorInfo => (MonitorInfo)GetValue(MonitorInfoProperty);
+
         private Pen _primaryPen;
 
         public ClipBoxVisual() : base(2)
@@ -57,10 +64,7 @@ namespace HandyScreenshot.Controls
             _primaryPen = CreatePrimaryPen(1);
         }
 
-        private void OnRectChanged(double x, double y, double w, double h)
-        {
-            Dispatcher.Invoke(RefreshClipBox);
-        }
+        private void OnRectChanged(int x, int y, int w, int h) => Dispatcher.Invoke(RefreshClipBox);
 
         // ReSharper disable once RedundantArgumentDefaultValue
         private void RefreshBackground() => GetDrawingVisual(BackgroundIndex).Using(DrawBackground);
@@ -81,10 +85,16 @@ namespace HandyScreenshot.Controls
         {
             var halfPenThickness = _primaryPen.Thickness / 2;
 
-            var x = RectProxy.X - halfPenThickness;
-            var y = RectProxy.Y - halfPenThickness;
-            var w = RectProxy.Width + _primaryPen.Thickness + halfPenThickness;
-            var h = RectProxy.Height + _primaryPen.Thickness + halfPenThickness;
+            var (x, y, w, h) = MonitorInfo.ToWpfAxis(
+                RectProxy.X,
+                RectProxy.Y,
+                RectProxy.Width,
+                RectProxy.Height);
+
+            x -= halfPenThickness;
+            y -= halfPenThickness;
+            w += _primaryPen.Thickness + halfPenThickness;
+            h += _primaryPen.Thickness + halfPenThickness;
 
             var x0 = Math.Max(x, 0);
             var y0 = Math.Max(y, 0);

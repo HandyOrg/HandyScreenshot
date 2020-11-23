@@ -23,17 +23,11 @@ namespace HandyScreenshot.ViewModels
             set => SetProperty(ref _dpiString, value);
         }
 
-        public Func<double, double, Color> ColorGetter { get; }
+        public Func<int, int, Color> ColorGetter { get; }
 
         public BitmapSource Background { get; }
 
         public MonitorInfo MonitorInfo { get; }
-
-        public Rect ScreenBound { get; }
-
-        public double ScaleX { get; }
-
-        public double ScaleY { get; }
 
         public ICommand CloseCommand { get; } = new RelayCommand(() => Application.Current.Shutdown());
 
@@ -43,21 +37,11 @@ namespace HandyScreenshot.ViewModels
             IObservable<(MouseMessage message, int x, int y)> mouseEventSource,
             BitmapSource background,
             MonitorInfo monitorInfo,
-            RectDetector detector,
-            double scaleX,
-            double scaleY)
+            RectDetector detector)
         {
-            State = new ScreenshotState(
-                DetectRectFromPhysicalPoint,
-                ToDisplayPoint);
+            State = new ScreenshotState(DetectRectFromPhysicalPoint);
             Background = background;
             MonitorInfo = monitorInfo;
-            var screenRect = monitorInfo.PhysicalScreenRect;
-            var screenBound = new Rect(0, 0, screenRect.Width, screenRect.Height);
-            screenBound.Scale(scaleX, scaleY);
-            ScreenBound = screenBound;
-            ScaleX = scaleX;
-            ScaleY = scaleY;
             _detector = detector;
 
             var disposable = mouseEventSource
@@ -74,41 +58,22 @@ namespace HandyScreenshot.ViewModels
             State.PushState(MouseMessage.MouseMove, initPoint.X, initPoint.Y);
         }
 
-        private Color GetColorByCoordinate(double x, double y)
+        private Color GetColorByCoordinate(int x, int y)
         {
-            var physicalX = (int) (x / ScaleX);
-            var physicalY = (int) (y / ScaleX);
+            if (x < 0 || x >= Background.PixelWidth ||
+                y < 0 || y >= Background.PixelHeight) return Colors.Transparent;
 
-            if (physicalX < 0 || physicalX >= Background.PixelWidth ||
-                physicalY < 0 || physicalY >= Background.PixelHeight) return Colors.Transparent;
-
-            Background.CopyPixels(
-                new Int32Rect(physicalX, physicalY, 1, 1),
-                SampleBytes, 4, 0);
+            Background.CopyPixels(new Int32Rect(x, y, 1, 1), SampleBytes, 4, 0);
 
             return Color.FromArgb(SampleBytes[3], SampleBytes[2], SampleBytes[1], SampleBytes[0]);
         }
 
-        private ReadOnlyRect DetectRectFromPhysicalPoint(double physicalX, double physicalY)
+        private ReadOnlyRect DetectRectFromPhysicalPoint(int physicalX, int physicalY)
         {
             var rect = _detector.GetByPhysicalPoint(physicalX, physicalY);
             return rect != ReadOnlyRect.Empty && MonitorInfo.PhysicalScreenRect.IntersectsWith(rect)
-                ? ToDisplayRect(rect)
+                ? rect
                 : ReadOnlyRect.Zero;
-        }
-
-        private ReadOnlyRect ToDisplayRect(ReadOnlyRect physicalRect)
-        {
-            return physicalRect
-                .Offset(MonitorInfo.PhysicalScreenRect.X, MonitorInfo.PhysicalScreenRect.Y)
-                .Scale(ScaleX, ScaleY);
-        }
-
-        private (double X, double Y) ToDisplayPoint(double x, double y)
-        {
-            return (
-                (x - MonitorInfo.PhysicalScreenRect.X) * ScaleX,
-                (y - MonitorInfo.PhysicalScreenRect.Y) * ScaleY);
         }
     }
 }

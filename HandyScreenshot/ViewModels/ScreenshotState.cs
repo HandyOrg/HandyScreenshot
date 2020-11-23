@@ -9,15 +9,12 @@ namespace HandyScreenshot.ViewModels
 {
     public class ScreenshotState : BindableBase
     {
-        private readonly Func<double, double, ReadOnlyRect> _rectDetector;
-        private readonly Func<double, double, (double x, double y)> _displayXyConvertor;
+        private readonly Func<int, int, ReadOnlyRect> _rectDetector;
 
         private ScreenshotMode _mode;
         private PointOrientation _orientation;
-        private double _previousX;
-        private double _previousY;
-        private int _physicalX;
-        private int _physicalY;
+        private int _previousX;
+        private int _previousY;
 
         public ScreenshotMode Mode
         {
@@ -35,17 +32,13 @@ namespace HandyScreenshot.ViewModels
 
         public RectProxy ScreenshotRect { get; } = new RectProxy();
 
-        public ScreenshotState(
-            Func<double, double, ReadOnlyRect> rectDetector,
-            Func<double, double, (double x, double y)> displayXYConvertor)
+        public ScreenshotState(Func<int, int, ReadOnlyRect> rectDetector)
         {
             _rectDetector = rectDetector;
-            _displayXyConvertor = displayXYConvertor;
         }
 
         public void PushState(MouseMessage message, int physicalX, int physicalY)
         {
-            var (x, y) = _displayXyConvertor(physicalX, physicalY);
             bool canUpdateMousePosition = true;
 
             switch (message)
@@ -56,17 +49,17 @@ namespace HandyScreenshot.ViewModels
                         case ScreenshotMode.AutoDetect:
                             Mode = ScreenshotMode.Resizing;
                             Orientation = PointOrientation.Center;
-                            (_previousX, _previousY) = (x, y);
+                            (_previousX, _previousY) = (physicalX, physicalY);
                             break;
-                        case ScreenshotMode.Fixed when ScreenshotRect.Contains(x, y):
+                        case ScreenshotMode.Fixed when ScreenshotRect.Contains(physicalX, physicalY):
                             Mode = ScreenshotMode.Moving;
                             Orientation = PointOrientation.Center;
-                            (_previousX, _previousY) = (x, y);
+                            (_previousX, _previousY) = (physicalX, physicalY);
                             break;
                         case ScreenshotMode.Fixed:
                             {
                                 Mode = ScreenshotMode.Resizing;
-                                Orientation = GetPointOrientation(x, y);
+                                Orientation = GetPointOrientation(physicalX, physicalY);
                                 var right = ScreenshotRect.X + ScreenshotRect.Width;
                                 var bottom = ScreenshotRect.Y + ScreenshotRect.Height;
                                 (_previousX, _previousY) = Orientation switch
@@ -78,7 +71,7 @@ namespace HandyScreenshot.ViewModels
                                     _ => (_previousX, _previousY)
                                 };
 
-                                Resize(Orientation, x, y);
+                                Resize(Orientation, physicalX, physicalY);
                                 break;
                             }
                     }
@@ -110,14 +103,14 @@ namespace HandyScreenshot.ViewModels
                             DetectAutomatically(physicalX, physicalY);
                             break;
                         case ScreenshotMode.Resizing:
-                            Resize(Orientation, x, y);
+                            Resize(Orientation, physicalX, physicalY);
                             break;
                         case ScreenshotMode.Moving:
-                            ScreenshotRect.Offset(_previousX, _previousY, x, y);
-                            (_previousX, _previousY) = (x, y);
+                            ScreenshotRect.Offset(_previousX, _previousY, physicalX, physicalY);
+                            (_previousX, _previousY) = (physicalX, physicalY);
                             break;
                         case ScreenshotMode.Fixed:
-                            Orientation = GetPointOrientation(x, y);
+                            Orientation = GetPointOrientation(physicalX, physicalY);
                             break;
                     }
                     break;
@@ -125,26 +118,24 @@ namespace HandyScreenshot.ViewModels
 
             if (canUpdateMousePosition)
             {
-                MousePosition.Set(x, y);
-                _physicalX = physicalX;
-                _physicalY = physicalY;
+                MousePosition.Set(physicalX, physicalY);
             }
             else
             {
                 // 接上面的[防抖]所述，最后一个鼠标坐标虽然没有影响绘制，但是实际上 Cursor 还是抖动到了真实的位置，
                 // 这样就会使得 Cursor 与绘制的图像不重合，就很丑，显得十分不专业。
                 // 所以应当重置鼠标位置到上一个鼠标位置上。（我是不是考虑的很细致？（￣︶￣）↗）
-                NativeMethods.SetCursorPos(_physicalX, _physicalY);
+                NativeMethods.SetCursorPos(MousePosition.X, MousePosition.Y);
             }
         }
 
-        private void DetectAutomatically(double physicalX, double physicalY)
+        private void DetectAutomatically(int physicalX, int physicalY)
         {
             var (rectX, rectY, rectWidth, rectHeight) = _rectDetector(physicalX, physicalY);
             ScreenshotRect.Set(rectX, rectY, rectWidth, rectHeight);
         }
 
-        private void Resize(PointOrientation orientation, double x, double y)
+        private void Resize(PointOrientation orientation, int x, int y)
         {
             var newOrientation = GetPointOrientation(x, y);
 
@@ -239,13 +230,15 @@ namespace HandyScreenshot.ViewModels
             return horizontal | vertical;
         }
 
-        private static ReadOnlyRect GetRectByTwoPoint(double x1, double y1, double x2, double y2)
+        private static ReadOnlyRect GetRectByTwoPoint(int x1, int y1, int x2, int y2)
         {
             var x = Math.Min(x1, x2);
             var y = Math.Min(y1, y2);
-            return (x, y,
-                Math.Max(Math.Max(x1, x2) - x, 0.0),
-                Math.Max(Math.Max(y1, y2) - y, 0.0));
+            return (
+                x,
+                y,
+                Math.Max(Math.Max(x1, x2) - x, 0),
+                Math.Max(Math.Max(y1, y2) - y, 0));
         }
 
         private static bool IsVertex(PointOrientation orientation)
