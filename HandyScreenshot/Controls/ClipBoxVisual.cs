@@ -83,13 +83,13 @@ namespace HandyScreenshot.Controls
 
         private void DrawClipBox(DrawingContext dc)
         {
-            var halfPenThickness = _primaryPen.Thickness / 2;
-
             var (x, y, w, h) = MonitorInfo.ToWpfAxis(
                 RectProxy.X,
                 RectProxy.Y,
                 RectProxy.Width,
                 RectProxy.Height);
+
+            var halfPenThickness = _primaryPen.Thickness / 2;
 
             x -= halfPenThickness;
             y -= halfPenThickness;
