@@ -15,17 +15,17 @@ namespace HandyScreenshot.Helpers
 
             var hookId = SetWindowsHookEx(
                 HookType.WH_MOUSE_LL,
-                (HookProc)gcHandle.Target,
+                (HookProc)gcHandle.Target!,
                 // ReSharper disable once PossibleNullReferenceException
-                Process.GetCurrentProcess().MainModule.BaseAddress,
+                Process.GetCurrentProcess().MainModule!.BaseAddress,
                 0);
 
-            if(hookId == IntPtr.Zero)
+            if (hookId == IntPtr.Zero)
                 throw new Win32Exception(Marshal.GetLastWin32Error());
 
             return Disposable.Create(() =>
             {
-                UnhookWindowsHookEx(hookId);
+                _ = UnhookWindowsHookEx(hookId);
                 gcHandle.Free();
             });
 
@@ -33,7 +33,7 @@ namespace HandyScreenshot.Helpers
             {
                 if (nCode >= 0)
                 {
-                    var mouseHookStruct = (MOUSEHOOKSTRUCT)Marshal.PtrToStructure(lParam, typeof(MOUSEHOOKSTRUCT));
+                    var mouseHookStruct = (MOUSEHOOKSTRUCT)Marshal.PtrToStructure(lParam, typeof(MOUSEHOOKSTRUCT))!;
                     callback((MouseMessage)wParam, mouseHookStruct);
                 }
 
