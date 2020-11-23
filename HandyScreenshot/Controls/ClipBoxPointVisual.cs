@@ -11,8 +11,9 @@ namespace HandyScreenshot.Controls
     {
         public static readonly DependencyProperty RectProxyProperty = DependencyProperty.Register(
             "RectProxy", typeof(RectProxy), typeof(ClipBoxPointVisual), new PropertyMetadata(default(RectProxy), OnRectProxyChanged));
-        public static readonly DependencyProperty ScaleProperty = DependencyProperty.Register(
-            "Scale", typeof(double), typeof(ClipBoxPointVisual), new PropertyMetadata(default(double), OnScaleChanged));
+        public static readonly DependencyProperty MonitorInfoProperty = DependencyProperty.Register(
+            "MonitorInfo", typeof(MonitorInfo), typeof(ClipBoxPointVisual),
+            new PropertyMetadata(default(MonitorInfo), OnMonitorInfoChanged));
 
         private static void OnRectProxyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
@@ -21,12 +22,12 @@ namespace HandyScreenshot.Controls
                 (self, oldValue) => oldValue.RectChanged -= self.OnRectChanged);
         }
 
-        private static void OnScaleChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        private static void OnMonitorInfoChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
-            d.UpdateDependencyProperty<ClipBoxPointVisual, double>(e,
+            d.UpdateDependencyProperty<ClipBoxPointVisual, MonitorInfo>(e,
                 (self, newValue) =>
                 {
-                    var correction = PrimaryPenThickness * newValue / 2;
+                    var correction = PrimaryPenThickness * newValue.ScaleX / 2;
                     self._positionCorrection = correction;
                     self._sizeCorrection = 3 * correction;
                 });
@@ -38,13 +39,15 @@ namespace HandyScreenshot.Controls
             set => SetValue(RectProxyProperty, value);
         }
 
+        public MonitorInfo MonitorInfo => (MonitorInfo)GetValue(MonitorInfoProperty);
+
         private const double MinDisplayPointLimit = 80;
         private const double PointRadius = 4.5;
 
         private double _positionCorrection = PrimaryPenThickness / 2d;
         private double _sizeCorrection = 1.5 * PrimaryPenThickness;
 
-        private void OnRectChanged(double x, double y, double w, double h)
+        private void OnRectChanged(int x, int y, int w, int h)
         {
             try
             {
@@ -60,10 +63,16 @@ namespace HandyScreenshot.Controls
 
         private void DrawClipBoxPoint(DrawingContext dc)
         {
-            var x = RectProxy.X - _positionCorrection;
-            var y = RectProxy.Y - _positionCorrection;
-            var w = RectProxy.Width + _sizeCorrection;
-            var h = RectProxy.Height + _sizeCorrection;
+            var (x, y, w, h) = MonitorInfo.ToWpfAxis(
+                RectProxy.X,
+                RectProxy.Y,
+                RectProxy.Width,
+                RectProxy.Height);
+
+            x -= _positionCorrection;
+            y -= _positionCorrection;
+            w += _sizeCorrection;
+            h += _sizeCorrection;
             var r = x + w;
             var b = y + h;
 

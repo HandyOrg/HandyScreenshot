@@ -3,6 +3,7 @@ using System.Windows;
 using System.Windows.Data;
 using System.Windows.Media;
 using HandyScreenshot.Common;
+using HandyScreenshot.Helpers;
 
 namespace HandyScreenshot.Controls
 {
@@ -12,8 +13,8 @@ namespace HandyScreenshot.Controls
             "RectProxy", typeof(RectProxy), typeof(ClipBox), new PropertyMetadata(null));
         public static readonly DependencyProperty BackgroundProperty = DependencyProperty.Register(
             "Background", typeof(ImageSource), typeof(ClipBox), new PropertyMetadata(default(ImageSource)));
-        public static readonly DependencyProperty ScaleProperty = DependencyProperty.Register(
-            "Scale", typeof(double), typeof(ClipBox), new PropertyMetadata(default(double)));
+        public static readonly DependencyProperty MonitorInfoProperty = DependencyProperty.Register(
+            "MonitorInfo", typeof(MonitorInfo), typeof(ClipBox), new PropertyMetadata(default(MonitorInfo)));
 
         public RectProxy RectProxy
         {
@@ -27,10 +28,10 @@ namespace HandyScreenshot.Controls
             set => SetValue(BackgroundProperty, value);
         }
 
-        public double Scale
+        public MonitorInfo MonitorInfo
         {
-            get => (double)GetValue(ScaleProperty);
-            set => SetValue(ScaleProperty, value);
+            get => (MonitorInfo) GetValue(MonitorInfoProperty);
+            set => SetValue(MonitorInfoProperty, value);
         }
 
         public Visual Visual { get; }
@@ -47,16 +48,16 @@ namespace HandyScreenshot.Controls
                 ClipBoxVisual.BackgroundProperty,
                 new Binding(nameof(Background)) { Source = this });
             BindingOperations.SetBinding(Visual,
-                ClipBoxVisual.ScaleProperty,
-                new Binding(nameof(Scale)) { Source = this });
+                ClipBoxVisual.MonitorInfoProperty,
+                new Binding(nameof(ClipBoxVisual.MonitorInfo)) { Source = this });
 
             var clipBoxPointVisual = new ClipBoxPointVisual();
             BindingOperations.SetBinding(clipBoxPointVisual,
                 ClipBoxPointVisual.RectProxyProperty,
                 new Binding(nameof(RectProxy)) { Source = this });
             BindingOperations.SetBinding(clipBoxPointVisual,
-                ClipBoxPointVisual.ScaleProperty,
-                new Binding(nameof(Scale)) { Source = this });
+                ClipBoxPointVisual.MonitorInfoProperty,
+                new Binding(nameof(ClipBoxPointVisual.MonitorInfo)) { Source = this });
 
             _visualCollection = new VisualCollection(this)
             {

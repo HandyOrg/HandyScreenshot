@@ -10,7 +10,7 @@ namespace HandyScreenshot.Helpers
     {
         private const double DefaultDpi = 96.0;
         private const uint MonitorDefaultToNull = 0;
-        
+
         private static readonly bool DpiApiLevel3 = Environment.OSVersion.Version >= new Version(6, 3);
 
         public static IReadOnlyCollection<MonitorInfo> GetMonitorInfos()
@@ -58,17 +58,13 @@ namespace HandyScreenshot.Helpers
             if (windowDc == IntPtr.Zero)
                 throw new Win32Exception("Getting window device context failed");
 
-            try
-            {
-                var dpiX = GetDeviceCaps(windowDc, DeviceCap.Logpixelsx);
-                var dpiY = GetDeviceCaps(windowDc, DeviceCap.Logpixelsy);
-                return (DefaultDpi / dpiX, DefaultDpi / dpiY);
-            }
-            finally
-            {
-                if (ReleaseDC(hWnd, windowDc) == 0)
-                    throw new Win32Exception("Releasing window device context failed");
-            }
+            var dpiX = GetDeviceCaps(windowDc, DeviceCap.Logpixelsx);
+            var dpiY = GetDeviceCaps(windowDc, DeviceCap.Logpixelsy);
+
+            if (ReleaseDC(hWnd, windowDc) == 0)
+                throw new Win32Exception("Releasing window device context failed");
+
+            return (DefaultDpi / dpiX, DefaultDpi / dpiY);
         }
     }
 }

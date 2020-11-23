@@ -39,15 +39,15 @@ namespace HandyScreenshot.Detection
             _elementSnapshot = GetChildren(AutomationElement.RootElement, physicalFullScreenRect);
         }
 
-        public ReadOnlyRect GetByPhysicalPoint(double physicalX, double physicalY)
+        public ReadOnlyRect GetByPhysicalPoint(int physicalX, int physicalY)
         {
             return GetAdjustRect(_elementSnapshot, physicalX, physicalY)?.PhysicalRect ?? ReadOnlyRect.Empty;
         }
 
         private static CachedRect? GetAdjustRect(
             IReadOnlyCollection<CachedRect> elements,
-            double physicalX,
-            double physicalY)
+            int physicalX,
+            int physicalY)
         {
             CachedRect? result = null;
 
