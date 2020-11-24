@@ -30,9 +30,10 @@ namespace HandyScreenshot.Helpers
 
             foreach (var monitorInfo in monitorInfos)
             {
+                var screenshot = CaptureScreen(monitorInfo.PhysicalScreenRect);
                 var vm = new MainWindowViewModel(
                     mouseEventSource,
-                    CaptureScreen(monitorInfo.PhysicalScreenRect),
+                    screenshot,
                     monitorInfo,
                     detector);
 
@@ -106,8 +107,9 @@ namespace HandyScreenshot.Helpers
                 TernaryRasterOperations.SRCCOPY | TernaryRasterOperations.CAPTUREBLT);
 
             var image = Image.FromHbitmap(hBitmap);
+            image.Save($"./screen-{rect}.png", ImageFormat.Png);
             var bitmap = image.ToBitmapSource();
-            //bitmap = Imaging.CreateBitmapSourceFromHBitmap(hBitmap, IntPtr.Zero, Int32Rect.Empty,
+            //var bitmap = Imaging.CreateBitmapSourceFromHBitmap(hBitmap, IntPtr.Zero, Int32Rect.Empty,
             //    BitmapSizeOptions.FromEmptyOptions());
 
             DeleteObject(hBitmap);

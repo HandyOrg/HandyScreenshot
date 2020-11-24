@@ -36,6 +36,9 @@
                           RectProxy="{Binding State.ScreenshotRect}"
                           Background="{Binding Background}" />
 
+        <controls:ScreenshotToolbar ScreenshotState="{Binding State}"
+                                    MonitorInfo="{Binding MonitorInfo}" />
+
         <controls:Magnifier ScreenshotState="{Binding State}"
                             MonitorInfo="{Binding MonitorInfo}"
                             MagnifiedTarget="{Binding ElementName=ClipBox, Path=Visual, Mode=OneWay}"
