@@ -38,11 +38,7 @@ namespace HandyScreenshot.Helpers
             WpfAxisScreenRect = new Rect(x, y, width, height);
         }
 
-        public (double x, double y, double width, double height) ToWpfAxis(
-            in int x,
-            in int y,
-            in int width,
-            in int height)
+        public (double x, double y, double width, double height) ToWpfAxis(int x, int y, int width, int height)
         {
             return (
                 (x - PhysicalScreenRect.X) * ScaleX,
@@ -51,7 +47,7 @@ namespace HandyScreenshot.Helpers
                 height * ScaleY);
         }
 
-        public (double x, double y) ToWpfAxis(in int x, in int y)
+        public (double x, double y) ToWpfAxis(int x, int y)
         {
             return (
                 (x - PhysicalScreenRect.X) * ScaleX,

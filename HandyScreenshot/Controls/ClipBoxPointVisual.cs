@@ -47,7 +47,7 @@ namespace HandyScreenshot.Controls
         private double _positionCorrection = PrimaryPenThickness / 2d;
         private double _sizeCorrection = 1.5 * PrimaryPenThickness;
 
-        private void OnRectChanged(in int x, in int y, in int w, in int h)
+        private void OnRectChanged(int x, int y, int w, int h)
         {
             try
             {

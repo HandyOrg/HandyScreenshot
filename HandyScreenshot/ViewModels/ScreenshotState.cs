@@ -37,7 +37,7 @@ namespace HandyScreenshot.ViewModels
             _rectDetector = rectDetector;
         }
 
-        public void PushState(in MouseMessage message, in int physicalX, in int physicalY)
+        public void PushState(MouseMessage message, int physicalX, int physicalY)
         {
             bool canUpdateMousePosition = true;
 
@@ -129,13 +129,13 @@ namespace HandyScreenshot.ViewModels
             }
         }
 
-        private void DetectAutomatically(in int physicalX, in int physicalY)
+        private void DetectAutomatically(int physicalX, int physicalY)
         {
             var (rectX, rectY, rectWidth, rectHeight) = _rectDetector(physicalX, physicalY);
             ScreenshotRect.Set(rectX, rectY, rectWidth, rectHeight);
         }
 
-        private void Resize(in PointOrientation orientation, in int x, in int y)
+        private void Resize(PointOrientation orientation, int x, int y)
         {
             var newOrientation = GetPointOrientation(x, y);
 
@@ -209,12 +209,12 @@ namespace HandyScreenshot.ViewModels
         }
 
         private static PointOrientation GetPointOrientation(
-            in double pointX,
-            in double pointY,
-            in double rectX,
-            in double rectY,
-            in double rectWidth,
-            in double rectHeight)
+            double pointX,
+            double pointY,
+            double rectX,
+            double rectY,
+            double rectWidth,
+            double rectHeight)
         {
             var horizontal = pointX <= rectX
                 ? PointOrientation.Left
@@ -230,7 +230,7 @@ namespace HandyScreenshot.ViewModels
             return horizontal | vertical;
         }
 
-        private static ReadOnlyRect GetRectByTwoPoint(in int x1, in int y1, in int x2, in int y2)
+        private static ReadOnlyRect GetRectByTwoPoint(int x1, int y1, int x2, int y2)
         {
             var x = Math.Min(x1, x2);
             var y = Math.Min(y1, y2);
