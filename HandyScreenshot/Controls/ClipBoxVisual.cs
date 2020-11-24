@@ -64,7 +64,7 @@ namespace HandyScreenshot.Controls
             _primaryPen = CreatePrimaryPen(1);
         }
 
-        private void OnRectChanged(int x, int y, int w, int h) => Dispatcher.Invoke(RefreshClipBox);
+        private void OnRectChanged(in int x, in int y, in int w, in int h) => Dispatcher.Invoke(RefreshClipBox);
 
         // ReSharper disable once RedundantArgumentDefaultValue
         private void RefreshBackground() => GetDrawingVisual(BackgroundIndex).Using(DrawBackground);

@@ -2,7 +2,7 @@
 
 namespace HandyScreenshot.Common
 {
-    public delegate void RectChangedEventHandler(int x, int y, int width, int height);
+    public delegate void RectChangedEventHandler(in int x, in int y, in int width, in int height);
 
     public class RectProxy
     {
@@ -16,16 +16,16 @@ namespace HandyScreenshot.Common
 
         public int Height { get; private set; }
 
-        public bool Contains(int x, int y) => X <= x && Y <= y && x <= X + Width && y <= Y + Height;
+        public bool Contains(in int x, in int y) => X <= x && Y <= y && x <= X + Width && y <= Y + Height;
 
-        public void Offset(int x1, int y1, int x2, int y2)
+        public void Offset(in int x1, in int y1, in int x2, in int y2)
         {
             X = X + x2 - x1;
             Y = Y + y2 - y1;
             OnRectChanged();
         }
 
-        public void Union(int x, int y)
+        public void Union(in int x, in int y)
         {
             Width = Math.Max(Width, X < x ? x - X : X - x + Width);
             Height = Math.Max(Height, Y < y ? y - Y : Y - y + Height);
@@ -34,7 +34,7 @@ namespace HandyScreenshot.Common
             OnRectChanged();
         }
 
-        public void Set(int x, int y, int width, int height)
+        public void Set(in int x, in int y, in int width, in int height)
         {
             X = x;
             Y = y;
@@ -43,7 +43,7 @@ namespace HandyScreenshot.Common
             OnRectChanged();
         }
 
-        public void SetLeft(int left)
+        public void SetLeft(in int left)
         {
             if (left > X + Width) return;
 
@@ -52,7 +52,7 @@ namespace HandyScreenshot.Common
             OnRectChanged();
         }
 
-        public void SetRight(int right)
+        public void SetRight(in int right)
         {
             if (right < X) return;
 
@@ -60,7 +60,7 @@ namespace HandyScreenshot.Common
             OnRectChanged();
         }
 
-        public void SetTop(int top)
+        public void SetTop(in int top)
         {
             if (top > Y + Height) return;
 
@@ -69,7 +69,7 @@ namespace HandyScreenshot.Common
             OnRectChanged();
         }
 
-        public void SetBottom(int bottom)
+        public void SetBottom(in int bottom)
         {
             if (bottom < Y) return;
 

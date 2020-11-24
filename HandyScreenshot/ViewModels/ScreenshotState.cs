@@ -37,7 +37,7 @@ namespace HandyScreenshot.ViewModels
             _rectDetector = rectDetector;
         }
 
-        public void PushState(MouseMessage message, int physicalX, int physicalY)
+        public void PushState(in MouseMessage message, in int physicalX, in int physicalY)
         {
             bool canUpdateMousePosition = true;
 
@@ -129,13 +129,13 @@ namespace HandyScreenshot.ViewModels
             }
         }
 
-        private void DetectAutomatically(int physicalX, int physicalY)
+        private void DetectAutomatically(in int physicalX, in int physicalY)
         {
             var (rectX, rectY, rectWidth, rectHeight) = _rectDetector(physicalX, physicalY);
             ScreenshotRect.Set(rectX, rectY, rectWidth, rectHeight);
         }
 
-        private void Resize(PointOrientation orientation, int x, int y)
+        private void Resize(in PointOrientation orientation, in int x, in int y)
         {
             var newOrientation = GetPointOrientation(x, y);
 
@@ -209,12 +209,12 @@ namespace HandyScreenshot.ViewModels
         }
 
         private static PointOrientation GetPointOrientation(
-            double pointX,
-            double pointY,
-            double rectX,
-            double rectY,
-            double rectWidth,
-            double rectHeight)
+            in double pointX,
+            in double pointY,
+            in double rectX,
+            in double rectY,
+            in double rectWidth,
+            in double rectHeight)
         {
             var horizontal = pointX <= rectX
                 ? PointOrientation.Left
@@ -230,7 +230,7 @@ namespace HandyScreenshot.ViewModels
             return horizontal | vertical;
         }
 
-        private static ReadOnlyRect GetRectByTwoPoint(int x1, int y1, int x2, int y2)
+        private static ReadOnlyRect GetRectByTwoPoint(in int x1, in int y1, in int x2, in int y2)
         {
             var x = Math.Min(x1, x2);
             var y = Math.Min(y1, y2);
@@ -241,7 +241,7 @@ namespace HandyScreenshot.ViewModels
                 Math.Max(Math.Max(y1, y2) - y, 0));
         }
 
-        private static bool IsVertex(PointOrientation orientation)
+        private static bool IsVertex(in PointOrientation orientation)
         {
             return orientation is (PointOrientation.Left | PointOrientation.Top) or
                 (PointOrientation.Right | PointOrientation.Top) or
