@@ -61,8 +61,6 @@
             Dpi:
             <Run Text="{Binding Path=DpiString, Mode=OneWay}" />
             <LineBreak />
-            ScaleXY:
-            (<Run Text="{Binding Path=ScaleX, Mode=OneWay}" />, <Run Text="{Binding Path=ScaleY, Mode=OneWay}" />)
         </TextBlock>
     </controls:ZStackPanel>
 </Window>
