@@ -241,7 +241,7 @@ namespace HandyScreenshot.ViewModels
                 Math.Max(Math.Max(y1, y2) - y, 0));
         }
 
-        private static bool IsVertex(in PointOrientation orientation)
+        private static bool IsVertex(PointOrientation orientation)
         {
             return orientation is (PointOrientation.Left | PointOrientation.Top) or
                 (PointOrientation.Right | PointOrientation.Top) or
