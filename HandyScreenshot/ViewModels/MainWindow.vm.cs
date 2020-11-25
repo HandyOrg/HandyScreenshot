@@ -16,6 +16,7 @@ namespace HandyScreenshot.ViewModels
 
         private readonly RectDetector _detector;
         private string _dpiString = string.Empty;
+        private bool _isActive;
 
         public string DpiString
         {
@@ -33,6 +34,13 @@ namespace HandyScreenshot.ViewModels
 
         public ScreenshotState State { get; }
 
+        public bool IsActive
+        {
+            get => _isActive;
+            set => SetProperty(ref _isActive, value);
+        }
+
+
         public MainWindowViewModel(
             IObservable<(MouseMessage message, int x, int y)> mouseEventSource,
             BitmapSource background,
@@ -45,7 +53,13 @@ namespace HandyScreenshot.ViewModels
             _detector = detector;
 
             var disposable = mouseEventSource
-                .Subscribe(i => State.PushState(i.message, i.x, i.y));
+                .Subscribe(i =>
+                {
+                    if (!IsActive)
+                    {
+                        State.PushState(i.message, i.x, i.y);
+                    }
+                });
 
             ColorGetter = GetColorByCoordinate;
 

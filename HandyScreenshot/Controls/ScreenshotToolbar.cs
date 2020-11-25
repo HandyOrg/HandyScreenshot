@@ -1,6 +1,10 @@
 ﻿using System;
+using System.ComponentModel;
+using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
+using HandyScreenshot.Common;
 using HandyScreenshot.Helpers;
 using HandyScreenshot.ViewModels;
 
@@ -21,13 +25,24 @@ namespace HandyScreenshot.Controls
             "MonitorInfo", typeof(MonitorInfo), typeof(ScreenshotToolbar),
             new PropertyMetadata(default(MonitorInfo)));
 
+        public static readonly DependencyProperty IsActiveProperty = DependencyProperty.Register(
+            "IsActive", typeof(bool), typeof(ScreenshotToolbar),
+            new PropertyMetadata(default(bool)));
+
         private static void OnScreenshotRectChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
             d.UpdateDependencyProperty<ScreenshotToolbar, ScreenshotState>(e,
-                (self, newValue) => newValue.ScreenshotRect.RectChanged += self.OnRectChanged,
-                (self, oldValue) => oldValue.ScreenshotRect.RectChanged -= self.OnRectChanged);
+                (self, newValue) =>
+                {
+                    newValue.ScreenshotRect.RectChanged += self.OnRectChanged;
+                    newValue.PropertyChanged += self.OnStateChanged;
+                },
+                (self, oldValue) =>
+                {
+                    oldValue.ScreenshotRect.RectChanged -= self.OnRectChanged;
+                    oldValue.PropertyChanged -= self.OnStateChanged;
+                });
         }
-
 
         public ScreenshotState ScreenshotState
         {
@@ -41,26 +56,45 @@ namespace HandyScreenshot.Controls
             set => SetValue(MonitorInfoProperty, value);
         }
 
+        public bool IsActive
+        {
+            get => (bool)GetValue(IsActiveProperty);
+            set => SetValue(IsActiveProperty, value);
+        }
+
 
         private FrameworkElement? _toolbar;
 
-        public void OnRectChanged(int x, int y, int w, int h)
+        private void OnStateChanged(object? sender, PropertyChangedEventArgs e)
+        {
+            Dispatcher.Invoke(() =>
+            {
+                if (e.PropertyName == nameof(ScreenshotState.Mode))
+                {
+                    Visibility = ScreenshotState.Mode == ScreenshotMode.Fixed
+                        ? Visibility.Visible
+                        : Visibility.Collapsed;
+                }
+            });
+        }
+
+        private void OnRectChanged(int x, int y, int w, int h)
         {
             Dispatcher.Invoke(OnRectChangedInternal);
         }
 
-        public void OnRectChangedInternal()
+        private void OnRectChangedInternal()
         {
             if (_toolbar == null || MonitorInfo == null) return;
-            //if (ScreenshotState.Mode != ScreenshotMode.Fixed)
-            //{
-            //    _toolbar.Visibility = Visibility.Collapsed;
-            //    return;
-            //}
-
-            //_toolbar.Visibility = Visibility.Visible;
 
             var rect = ScreenshotState.ScreenshotRect;
+            var intersectedRect = MonitorInfo.PhysicalScreenRect.Intersect((rect.X, rect.Y, rect.Width, rect.Height));
+            if (2 * intersectedRect.Width * intersectedRect.Height < rect.Width * rect.Height)
+            {
+                _toolbar.Visibility = Visibility.Collapsed;
+                return;
+            }
+
             var (wpfX, wpfY, wpfWidth, wpfHeight) = MonitorInfo.ToWpfAxis(
                 rect.X, rect.Y, rect.Width, rect.Height);
 
@@ -76,6 +110,18 @@ namespace HandyScreenshot.Controls
 
             Canvas.SetLeft(_toolbar, left);
             Canvas.SetTop(_toolbar, top);
+        }
+
+        protected override void OnMouseEnter(MouseEventArgs e)
+        {
+            base.OnMouseEnter(e);
+            SetCurrentValue(IsActiveProperty, true);
+        }
+
+        protected override void OnMouseLeave(MouseEventArgs e)
+        {
+            base.OnMouseLeave(e);
+            SetCurrentValue(IsActiveProperty, false);
         }
 
         public override void OnApplyTemplate()

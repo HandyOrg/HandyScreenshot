@@ -36,7 +36,8 @@
                           RectProxy="{Binding State.ScreenshotRect}"
                           Background="{Binding Background}" />
 
-        <controls:ScreenshotToolbar ScreenshotState="{Binding State}"
+        <controls:ScreenshotToolbar IsActive="{Binding IsActive, Mode=OneWayToSource}"
+                                    ScreenshotState="{Binding State}"
                                     MonitorInfo="{Binding MonitorInfo}" />
 
         <controls:Magnifier ScreenshotState="{Binding State}"
@@ -47,7 +48,8 @@
         <TextBlock Background="#AA000000"
                    Foreground="White"
                    HorizontalAlignment="Right"
-                   VerticalAlignment="Top">
+                   VerticalAlignment="Top"
+                   Padding="16">
             Window Actual Size:
             <Run Text="{Binding Path=ActualWidth, RelativeSource={RelativeSource FindAncestor, AncestorType=Window}, Mode=OneWay}" />
             <Run Text="{Binding Path=ActualHeight, RelativeSource={RelativeSource FindAncestor, AncestorType=Window}, Mode=OneWay}" />
@@ -63,7 +65,6 @@
             <LineBreak />
             Dpi:
             <Run Text="{Binding Path=DpiString, Mode=OneWay}" />
-            <LineBreak />
         </TextBlock>
     </controls:ZStackPanel>
 </Window>

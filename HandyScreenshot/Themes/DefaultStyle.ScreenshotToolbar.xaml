@@ -8,8 +8,14 @@
                     <Canvas>
                         <Border x:Name="PART_Toolbar"
                                 Width="100"
-                                Height="20"
-                                Background="Aquamarine">
+                                Height="30"
+                                Background="LightGray"
+                                BorderThickness="1"
+                                BorderBrush="#2080f0">
+                            <Border.Effect>
+                                <DropShadowEffect ShadowDepth="0"
+                                                  Color="DarkGray" />
+                            </Border.Effect>
                         </Border>
                     </Canvas>
                 </ControlTemplate>

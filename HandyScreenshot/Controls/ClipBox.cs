@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Windows;
 using System.Windows.Data;
+using System.Windows.Input;
 using System.Windows.Media;
 using HandyScreenshot.Common;
 using HandyScreenshot.Helpers;
@@ -30,7 +32,7 @@ namespace HandyScreenshot.Controls
 
         public MonitorInfo MonitorInfo
         {
-            get => (MonitorInfo) GetValue(MonitorInfoProperty);
+            get => (MonitorInfo)GetValue(MonitorInfoProperty);
             set => SetValue(MonitorInfoProperty, value);
         }
 
@@ -91,6 +93,7 @@ namespace HandyScreenshot.Controls
             return _visualCollection[index];
         }
 
+        #region Internal Members
 
         internal const int PrimaryPenThickness = 2;
         internal static readonly Brush PrimaryBrush;
@@ -113,5 +116,7 @@ namespace HandyScreenshot.Controls
             result.Freeze();
             return result;
         }
+
+        #endregion
     }
 }
