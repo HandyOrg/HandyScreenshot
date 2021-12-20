@@ -15,6 +15,9 @@ namespace HandyScreenshot.ViewModels
         private string _dpiString = string.Empty;
         private bool _isToolBarActivated;
 
+        public event EventHandler? CloseCommandInvoked;
+        public event EventHandler? SaveCommandInvoked;
+
         public string DpiString
         {
             get => _dpiString;
@@ -27,7 +30,7 @@ namespace HandyScreenshot.ViewModels
 
         public MonitorInfo MonitorInfo { get; }
 
-        public ICommand CloseCommand { get; } = new RelayCommand(() => Application.Current.Shutdown());
+        public ICommand CloseCommand { get; }
 
         public ICommand SaveCommand { get; }
 
@@ -45,7 +48,9 @@ namespace HandyScreenshot.ViewModels
             Background = background;
             MonitorInfo = monitorInfo;
             ColorGetter = GetColorByCoordinate;
-            SaveCommand = new RelayCommand(ExecuteSaveCommand);
+
+            CloseCommand = new RelayCommand(OnCloseCommandInvoked);
+            SaveCommand = new RelayCommand(OnSaveCommandInvoked);
         }
 
         public void Initialize()
@@ -53,14 +58,6 @@ namespace HandyScreenshot.ViewModels
             State.IsActivated = true;
             var initPoint = Win32Helper.GetPhysicalMousePosition();
             State.PushState(MouseMessage.MouseMove, initPoint.X, initPoint.Y);
-        }
-
-        private void ExecuteSaveCommand()
-        {
-            ScreenshotHelper
-                .CaptureScreen(State.ScreenshotRect.ToReadOnlyRect())
-                .Save($"screenshot-{DateTime.Now:yyyy-MM-dd-hh-mm-ss.fff}.png");
-            CloseCommand.Execute(null!);
         }
 
         private Color GetColorByCoordinate(int x, int y)
@@ -71,6 +68,16 @@ namespace HandyScreenshot.ViewModels
             Background.CopyPixels(new Int32Rect(x, y, 1, 1), SampleBytes, 4, 0);
 
             return Color.FromArgb(SampleBytes[3], SampleBytes[2], SampleBytes[1], SampleBytes[0]);
+        }
+
+        protected virtual void OnCloseCommandInvoked()
+        {
+            CloseCommandInvoked?.Invoke(this, EventArgs.Empty);
+        }
+
+        protected virtual void OnSaveCommandInvoked()
+        {
+            SaveCommandInvoked?.Invoke(this, EventArgs.Empty);
         }
     }
 }

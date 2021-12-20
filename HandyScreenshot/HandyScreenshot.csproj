@@ -1,16 +1,24 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
   <PropertyGroup>
-    <OutputType>WinExe</OutputType>
+    <UseWPF>true</UseWPF>
     <TargetFramework>net462</TargetFramework>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <Product>HandyScreenshot</Product>
-    <Copyright>Copyright ©  2020</Copyright>
+    <Copyright>Copyright (c) 2020-2021 DingpingZhang</Copyright>
     <AssemblyTitle>HandyScreenshot</AssemblyTitle>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <LangVersion>preview</LangVersion>
     <OutputPath>bin\$(Configuration)\</OutputPath>
-    <UseWPF>true</UseWPF>
     <Nullable>enable</Nullable>
+    <Authors>Dingping Zhang</Authors>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <GeneratePackageOnBuild Condition=" '$(Configuration)' == 'Release' ">true</GeneratePackageOnBuild>
+    <Version>0.1.0</Version>
+    <PackageProjectUrl>https://github.com/HandyOrg/HandyScreenshot</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/HandyOrg/HandyScreenshot</RepositoryUrl>
+    <EnableNETAnalyzers>true</EnableNETAnalyzers>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugType>full</DebugType>
@@ -18,12 +26,6 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
   </PropertyGroup>
-  <PropertyGroup>
-    <ApplicationManifest>app.manifest</ApplicationManifest>
-  </PropertyGroup>
-  <ItemGroup>
-    <None Include="app.manifest" />
-  </ItemGroup>
   <ItemGroup>
     <PackageReference Include="System.Reactive" Version="4.4.1" />
   </ItemGroup>

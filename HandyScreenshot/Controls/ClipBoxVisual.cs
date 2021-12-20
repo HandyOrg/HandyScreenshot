@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Windows;
 using System.Windows.Media;
 using HandyScreenshot.Common;
@@ -34,7 +35,7 @@ namespace HandyScreenshot.Controls
         private static void OnBackgroundChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
             d.UpdateDependencyProperty<ClipBoxVisual, ImageSource>(e,
-                (self, newValue) => self.RefreshBackground());
+                (self, _) => self.RefreshBackground());
         }
 
         private static void OnMonitorInfoChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
@@ -79,6 +80,8 @@ namespace HandyScreenshot.Controls
             groupDc.DrawImage(Background, new Rect(0, 0, ActualWidth, ActualHeight));
             groupDc.Close();
             dc.DrawDrawing(group);
+
+            Debug.WriteLine($"Draw {Background}");
         }
 
         private void DrawClipBox(DrawingContext dc)

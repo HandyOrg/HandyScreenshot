@@ -2,7 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Concurrency;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using System.Threading.Tasks;
 using System.Windows;
 using HandyScreenshot.Common;
 using HandyScreenshot.Detection;
@@ -15,21 +17,66 @@ namespace HandyScreenshot
 {
     public static class Screenshot
     {
-        public static void Start()
+        public static Task<IDisposable> Start(string? filePath = null)
         {
+            TaskCompletionSource<IDisposable> tcs = new();
+
             var monitorInfos = MonitorHelper.GetMonitorInfos();
             var mouseEventSource = CreateMouseEventSource();
             var screenshotState = CreateScreenshotState(monitorInfos, mouseEventSource);
 
+            Queue<Window> windows = new();
             foreach (var monitorInfo in monitorInfos)
             {
                 var screenshot = ScreenshotHelper.CaptureScreen(monitorInfo.PhysicalScreenRect).ToBitmapSource();
                 var vm = new MainWindowViewModel(screenshotState, screenshot, monitorInfo);
+                vm.CloseCommandInvoked += OnCloseCommandInvoked;
+                vm.SaveCommandInvoked += OnSaveCommandInvoked;
 
                 var window = new MainWindow { DataContext = vm };
                 SetWindowRect(window, monitorInfo.PhysicalScreenRect);
                 window.Loaded += WindowOnLoaded;
+                window.Closed += WindowOnClosed;
                 window.Show();
+
+                windows.Enqueue(window);
+            }
+
+            screenshotState.CloseCommandInvoked += OnCloseCommandInvoked;
+
+            return tcs.Task;
+
+            // Local Methods
+            void WindowOnClosed(object sender, EventArgs e)
+            {
+                tcs.TrySetResult(Disposable.Create(Dispose));
+            }
+
+            void OnCloseCommandInvoked(object sender, EventArgs e)
+            {
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    while (windows.Count > 0)
+                    {
+                        windows.Dequeue().Close();
+                    }
+                });
+            }
+
+            void OnSaveCommandInvoked(object sender, EventArgs e)
+            {
+                ScreenshotHelper
+                    .CaptureScreen(screenshotState.ScreenshotRect.ToReadOnlyRect())
+                    .Save(filePath ?? $"screenshot-{DateTime.Now:yyyy-MM-dd-hh-mm-ss.fff}.png");
+                OnCloseCommandInvoked(sender, e);
+            }
+        }
+
+        private static void Dispose()
+        {
+            while (SharedProperties.Disposables.Count > 0)
+            {
+                SharedProperties.Disposables.Pop().Dispose();
             }
         }
 
@@ -83,19 +130,9 @@ namespace HandyScreenshot
         // For DEBUG
         private static void WindowOnLoaded(object sender, RoutedEventArgs e)
         {
-            if (sender is Window { DataContext: MainWindowViewModel vm } window)
+            if (sender is Window { DataContext: MainWindowViewModel vm })
             {
                 vm.Initialize();
-
-                var source = PresentationSource.FromVisual(window);
-                if (source?.CompositionTarget is null)
-                {
-                    return;
-                }
-
-                var dpiX = 96.0 * source.CompositionTarget.TransformToDevice.M11;
-                var dpiY = 96.0 * source.CompositionTarget.TransformToDevice.M22;
-                vm.DpiString = $"{dpiX}, {dpiY}";
             }
         }
 

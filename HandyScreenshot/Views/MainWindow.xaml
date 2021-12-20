@@ -40,17 +40,17 @@
                           RectProxy="{Binding State.ScreenshotRect}"
                           Background="{Binding Background}" />
 
-        <controls:ScreenshotToolbar IsActive="{Binding IsToolBarActivated, Mode=OneWayToSource}"
+        <!--<controls:ScreenshotToolbar IsActive="{Binding IsToolBarActivated, Mode=OneWayToSource}"
                                     ScreenshotState="{Binding State}"
                                     MonitorInfo="{Binding MonitorInfo}" />
 
         <controls:Magnifier ScreenshotState="{Binding State}"
                             MonitorInfo="{Binding MonitorInfo}"
                             MagnifiedTarget="{Binding ElementName=ClipBox, Path=Visual, Mode=OneWay}"
-                            ColorGetter="{Binding ColorGetter}" />
+                            ColorGetter="{Binding ColorGetter}" />-->
 
         <!-- Info Panel -->
-        <TextBlock Background="#AA000000"
+        <!--<TextBlock Background="#AA000000"
                    Foreground="White"
                    HorizontalAlignment="Right"
                    VerticalAlignment="Top"
@@ -70,6 +70,6 @@
             <LineBreak />
             Dpi:
             <Run Text="{Binding Path=DpiString, Mode=OneWay}" />
-        </TextBlock>
+        </TextBlock>-->
     </controls:ZStackPanel>
 </Window>

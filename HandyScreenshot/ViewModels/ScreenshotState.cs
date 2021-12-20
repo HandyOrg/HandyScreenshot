@@ -17,6 +17,8 @@ namespace HandyScreenshot.ViewModels
         private int _previousX;
         private int _previousY;
 
+        public event EventHandler? CloseCommandInvoked;
+
         public bool IsActivated
         {
             get => _isActivated;
@@ -104,7 +106,7 @@ namespace HandyScreenshot.ViewModels
                             Orientation = PointOrientation.Center;
                             break;
                         case ScreenshotMode.AutoDetect:
-                            ExitApplication();
+                            OnCloseCommandInvoked();
                             break;
                     }
                     break;
@@ -261,17 +263,9 @@ namespace HandyScreenshot.ViewModels
                 (PointOrientation.Right | PointOrientation.Bottom);
         }
 
-        private static void ExitApplication()
+        protected virtual void OnCloseCommandInvoked()
         {
-            try
-            {
-                // Exit
-                Application.Current.Dispatcher.Invoke(Application.Current.Shutdown);
-            }
-            catch (OperationCanceledException)
-            {
-                // Ignore
-            }
+            CloseCommandInvoked?.Invoke(this, EventArgs.Empty);
         }
     }
 }
