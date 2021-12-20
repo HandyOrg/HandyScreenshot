@@ -2,96 +2,14 @@
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
-using System.Linq;
-using System.Reactive.Concurrency;
-using System.Reactive.Linq;
-using System.Windows;
 using System.Windows.Media.Imaging;
 using HandyScreenshot.Common;
-using HandyScreenshot.Detection;
-using HandyScreenshot.ViewModels;
-using HandyScreenshot.Views;
 using static HandyScreenshot.Interop.NativeMethods;
 
 namespace HandyScreenshot.Helpers
 {
     public static class ScreenshotHelper
     {
-        public static void StartScreenshot()
-        {
-            var monitorInfos = MonitorHelper.GetMonitorInfos();
-
-            var detector = new RectDetector();
-            detector.Snapshot(monitorInfos
-                .Select(item => item.PhysicalScreenRect)
-                .Aggregate((acc, item) => acc.Union(item)));
-
-            var mouseEventSource = CreateMouseEventSource();
-
-            CaptureScreen(new ReadOnlyRect(0, 0, 4416, 1664));
-
-            foreach (var monitorInfo in monitorInfos)
-            {
-                var screenshot = CaptureScreen(monitorInfo.PhysicalScreenRect).ToBitmapSource();
-                var vm = new MainWindowViewModel(
-                    mouseEventSource,
-                    screenshot,
-                    monitorInfo,
-                    detector);
-
-                var window = new MainWindow { DataContext = vm };
-                SetWindowRect(window, monitorInfo.PhysicalScreenRect);
-                window.Loaded += WindowOnLoaded;
-                window.Show();
-
-                vm.Initialize();
-            }
-        }
-
-        private static IObservable<(MouseMessage message, int x, int y)> CreateMouseEventSource()
-        {
-            var hotSource = Observable.Create<(MouseMessage message, int x, int y)>(o =>
-                    Win32Helper.SubscribeMouseHook((message, _) =>
-                    {
-                        var p = Win32Helper.GetPhysicalMousePosition();
-                        o.OnNext((message, p.X, p.Y));
-                    }))
-                .ObserveOn(NewThreadScheduler.Default)
-                .Publish();
-
-            var disposable = hotSource.Connect();
-            SharedProperties.Disposables.Push(disposable);
-
-            return hotSource;
-        }
-
-        // For DEBUG
-        private static void WindowOnLoaded(object sender, RoutedEventArgs e)
-        {
-            if (sender is Window { DataContext: MainWindowViewModel vm } window)
-            {
-                var source = PresentationSource.FromVisual(window);
-                if (source?.CompositionTarget != null)
-                {
-                    var dpiX = 96.0 * source.CompositionTarget.TransformToDevice.M11;
-                    var dpiY = 96.0 * source.CompositionTarget.TransformToDevice.M22;
-                    vm.DpiString = $"{dpiX}, {dpiY}";
-                }
-            }
-        }
-
-        private static void SetWindowRect(Window window, ReadOnlyRect rect)
-        {
-            SetWindowPos(
-                window.GetHandle(),
-                (IntPtr)HWND_TOPMOST,
-                rect.X,
-                rect.Y,
-                rect.Width,
-                rect.Height,
-                SWP_NOZORDER);
-        }
-
         public static Bitmap CaptureScreen(ReadOnlyRect rect)
         {
             var hdcSrc = GetAllMonitorsDC();

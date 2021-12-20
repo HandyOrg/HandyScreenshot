@@ -28,6 +28,10 @@
     <Window.InputBindings>
         <KeyBinding Key="Escape"
                     Command="{Binding CloseCommand}" />
+        <KeyBinding Key="Enter"
+                    Command="{Binding SaveCommand}" />
+        <KeyBinding Key="Return"
+                    Command="{Binding SaveCommand}" />
     </Window.InputBindings>
 
     <controls:ZStackPanel Cursor="{Binding State.Orientation, Mode=OneWay, Converter={StaticResource PointOrientationToCursorConverter}}">
@@ -36,7 +40,7 @@
                           RectProxy="{Binding State.ScreenshotRect}"
                           Background="{Binding Background}" />
 
-        <controls:ScreenshotToolbar IsActive="{Binding IsActive, Mode=OneWayToSource}"
+        <controls:ScreenshotToolbar IsActive="{Binding IsToolBarActivated, Mode=OneWayToSource}"
                                     ScreenshotState="{Binding State}"
                                     MonitorInfo="{Binding MonitorInfo}" />
 

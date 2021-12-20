@@ -3,8 +3,6 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using HandyScreenshot.Common;
-using HandyScreenshot.Detection;
 using HandyScreenshot.Helpers;
 using HandyScreenshot.Mvvm;
 
@@ -14,9 +12,8 @@ namespace HandyScreenshot.ViewModels
     {
         private static readonly byte[] SampleBytes = new byte[4];
 
-        private readonly RectDetector _detector;
         private string _dpiString = string.Empty;
-        private bool _isActive;
+        private bool _isToolBarActivated;
 
         public string DpiString
         {
@@ -32,44 +29,38 @@ namespace HandyScreenshot.ViewModels
 
         public ICommand CloseCommand { get; } = new RelayCommand(() => Application.Current.Shutdown());
 
+        public ICommand SaveCommand { get; }
+
         public ScreenshotState State { get; }
 
-        public bool IsActive
+        public bool IsToolBarActivated
         {
-            get => _isActive;
-            set => SetProperty(ref _isActive, value);
+            get => _isToolBarActivated;
+            set => SetProperty(ref _isToolBarActivated, value, v => State.IsActivated = !v);
         }
 
-        public MainWindowViewModel(
-            IObservable<(MouseMessage message, int x, int y)> mouseEventSource,
-            BitmapSource background,
-            MonitorInfo monitorInfo,
-            RectDetector detector)
+        public MainWindowViewModel(ScreenshotState state, BitmapSource background, MonitorInfo monitorInfo)
         {
-            State = new ScreenshotState(DetectRectFromPhysicalPoint);
+            State = state;
             Background = background;
             MonitorInfo = monitorInfo;
-            _detector = detector;
-
-            var disposable = mouseEventSource
-                .Subscribe(tuple =>
-                {
-                    if (!IsActive)
-                    {
-                        var (message, x, y) = tuple;
-                        State.PushState(message, x, y);
-                    }
-                });
-
             ColorGetter = GetColorByCoordinate;
-
-            SharedProperties.Disposables.Push(disposable);
+            SaveCommand = new RelayCommand(ExecuteSaveCommand);
         }
 
         public void Initialize()
         {
+            State.IsActivated = true;
             var initPoint = Win32Helper.GetPhysicalMousePosition();
             State.PushState(MouseMessage.MouseMove, initPoint.X, initPoint.Y);
+        }
+
+        private void ExecuteSaveCommand()
+        {
+            ScreenshotHelper
+                .CaptureScreen(State.ScreenshotRect.ToReadOnlyRect())
+                .Save($"screenshot-{DateTime.Now:yyyy-MM-dd-hh-mm-ss.fff}.png");
+            CloseCommand.Execute(null!);
         }
 
         private Color GetColorByCoordinate(int x, int y)
@@ -80,14 +71,6 @@ namespace HandyScreenshot.ViewModels
             Background.CopyPixels(new Int32Rect(x, y, 1, 1), SampleBytes, 4, 0);
 
             return Color.FromArgb(SampleBytes[3], SampleBytes[2], SampleBytes[1], SampleBytes[0]);
-        }
-
-        private ReadOnlyRect DetectRectFromPhysicalPoint(int physicalX, int physicalY)
-        {
-            var rect = _detector.GetByPhysicalPoint(physicalX, physicalY);
-            return rect != ReadOnlyRect.Empty && MonitorInfo.PhysicalScreenRect.IntersectsWith(rect)
-                ? rect
-                : ReadOnlyRect.Zero;
         }
     }
 }

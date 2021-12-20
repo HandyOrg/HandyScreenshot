@@ -11,10 +11,17 @@ namespace HandyScreenshot.ViewModels
     {
         private readonly Func<int, int, ReadOnlyRect> _rectDetector;
 
+        private bool _isActivated;
         private ScreenshotMode _mode;
         private PointOrientation _orientation;
         private int _previousX;
         private int _previousY;
+
+        public bool IsActivated
+        {
+            get => _isActivated;
+            set => SetProperty(ref _isActivated, value);
+        }
 
         public ScreenshotMode Mode
         {
@@ -39,6 +46,11 @@ namespace HandyScreenshot.ViewModels
 
         public void PushState(MouseMessage message, int physicalX, int physicalY)
         {
+            if (!IsActivated)
+            {
+                return;
+            }
+
             bool canUpdateMousePosition = true;
 
             switch (message)

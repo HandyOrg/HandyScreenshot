@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
@@ -8,10 +9,11 @@ namespace HandyScreenshot.Mvvm
     {
         public event PropertyChangedEventHandler? PropertyChanged;
 
-        protected virtual bool SetProperty<T>(ref T storage, T value, [CallerMemberName] string? propertyName = null)
+        protected virtual bool SetProperty<T>(ref T storage, T value, Action<T>? onChanged = null, [CallerMemberName] string? propertyName = null)
         {
             if (EqualityComparer<T>.Default.Equals(storage, value)) return false;
             storage = value;
+            onChanged?.Invoke(value);
             OnPropertyChanged(propertyName);
             return true;
         }

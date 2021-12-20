@@ -1,6 +1,5 @@
 ﻿using System.Windows;
 using HandyScreenshot.Common;
-using HandyScreenshot.Helpers;
 
 namespace HandyScreenshot
 {
@@ -13,7 +12,7 @@ namespace HandyScreenshot
         {
             base.OnStartup(e);
 
-            ScreenshotHelper.StartScreenshot();
+            Screenshot.Start();
         }
 
         protected override void OnExit(ExitEventArgs e)
