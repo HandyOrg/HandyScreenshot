@@ -40,7 +40,6 @@ namespace HandyScreenshot.ViewModels
             set => SetProperty(ref _isActive, value);
         }
 
-
         public MainWindowViewModel(
             IObservable<(MouseMessage message, int x, int y)> mouseEventSource,
             BitmapSource background,
@@ -53,11 +52,12 @@ namespace HandyScreenshot.ViewModels
             _detector = detector;
 
             var disposable = mouseEventSource
-                .Subscribe(i =>
+                .Subscribe(tuple =>
                 {
                     if (!IsActive)
                     {
-                        State.PushState(i.message, i.x, i.y);
+                        var (message, x, y) = tuple;
+                        State.PushState(message, x, y);
                     }
                 });
 

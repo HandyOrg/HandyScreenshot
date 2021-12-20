@@ -82,7 +82,7 @@ namespace HandyScreenshot.Common
             return new ReadOnlyRect(x, y, w, h);
         }
 
-        public static implicit operator ReadOnlyRect(Rect rect) => new ReadOnlyRect(
+        public static implicit operator ReadOnlyRect(Rect rect) => new(
             (int)rect.X,
             (int)rect.Y,
             (int)rect.Width,
@@ -95,7 +95,18 @@ namespace HandyScreenshot.Common
 
         public override bool Equals(object? obj) => obj is ReadOnlyRect other && Equals(other);
 
-        public override int GetHashCode() => HashCode.Combine(X, Y, Width, Height);
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                var hashCode = X;
+                hashCode = (hashCode * 397) ^ Y;
+                hashCode = (hashCode * 397) ^ Width;
+                hashCode = (hashCode * 397) ^ Height;
+                hashCode = (hashCode * 397) ^ IsEmpty.GetHashCode();
+                return hashCode;
+            }
+        }
 
         public static bool operator ==(ReadOnlyRect left, ReadOnlyRect right) => left.Equals(right);
 

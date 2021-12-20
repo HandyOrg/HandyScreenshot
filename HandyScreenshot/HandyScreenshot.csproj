@@ -1,7 +1,7 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net5.0-windows</TargetFramework>
+    <TargetFramework>net462</TargetFramework>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <Product>HandyScreenshot</Product>
     <Copyright>Copyright ©  2020</Copyright>
@@ -26,6 +26,5 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="System.Reactive" Version="4.4.1" />
-    <PackageReference Include="WpfExtensions.Xaml" Version="1.1.0" />
   </ItemGroup>
 </Project>

@@ -45,6 +45,7 @@
                             MagnifiedTarget="{Binding ElementName=ClipBox, Path=Visual, Mode=OneWay}"
                             ColorGetter="{Binding ColorGetter}" />
 
+        <!-- Info Panel -->
         <TextBlock Background="#AA000000"
                    Foreground="White"
                    HorizontalAlignment="Right"

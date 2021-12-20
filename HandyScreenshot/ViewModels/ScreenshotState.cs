@@ -28,9 +28,9 @@ namespace HandyScreenshot.ViewModels
             private set => SetProperty(ref _orientation, value);
         }
 
-        public PointProxy MousePosition { get; } = new PointProxy();
+        public PointProxy MousePosition { get; } = new();
 
-        public RectProxy ScreenshotRect { get; } = new RectProxy();
+        public RectProxy ScreenshotRect { get; } = new();
 
         public ScreenshotState(Func<int, int, ReadOnlyRect> rectDetector)
         {

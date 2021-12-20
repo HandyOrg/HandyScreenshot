@@ -28,9 +28,11 @@ namespace HandyScreenshot.Helpers
 
             var mouseEventSource = CreateMouseEventSource();
 
+            CaptureScreen(new ReadOnlyRect(0, 0, 4416, 1664));
+
             foreach (var monitorInfo in monitorInfos)
             {
-                var screenshot = CaptureScreen(monitorInfo.PhysicalScreenRect);
+                var screenshot = CaptureScreen(monitorInfo.PhysicalScreenRect).ToBitmapSource();
                 var vm = new MainWindowViewModel(
                     mouseEventSource,
                     screenshot,
@@ -49,7 +51,7 @@ namespace HandyScreenshot.Helpers
         private static IObservable<(MouseMessage message, int x, int y)> CreateMouseEventSource()
         {
             var hotSource = Observable.Create<(MouseMessage message, int x, int y)>(o =>
-                    Win32Helper.SubscribeMouseHook((message, info) =>
+                    Win32Helper.SubscribeMouseHook((message, _) =>
                     {
                         var p = Win32Helper.GetPhysicalMousePosition();
                         o.OnNext((message, p.X, p.Y));
@@ -66,8 +68,7 @@ namespace HandyScreenshot.Helpers
         // For DEBUG
         private static void WindowOnLoaded(object sender, RoutedEventArgs e)
         {
-            if (sender is Window window &&
-                window.DataContext is MainWindowViewModel vm)
+            if (sender is Window { DataContext: MainWindowViewModel vm } window)
             {
                 var source = PresentationSource.FromVisual(window);
                 if (source?.CompositionTarget != null)
@@ -75,8 +76,6 @@ namespace HandyScreenshot.Helpers
                     var dpiX = 96.0 * source.CompositionTarget.TransformToDevice.M11;
                     var dpiY = 96.0 * source.CompositionTarget.TransformToDevice.M22;
                     vm.DpiString = $"{dpiX}, {dpiY}";
-
-                    //(vm.ScaleX, vm.ScaleY) = MonitorHelper.GetScaleFactorFromWindow(new WindowInteropHelper(window).EnsureHandle());
                 }
             }
         }
@@ -93,7 +92,7 @@ namespace HandyScreenshot.Helpers
                 SWP_NOZORDER);
         }
 
-        public static BitmapSource CaptureScreen(ReadOnlyRect rect)
+        public static Bitmap CaptureScreen(ReadOnlyRect rect)
         {
             var hdcSrc = GetAllMonitorsDC();
 
@@ -107,16 +106,12 @@ namespace HandyScreenshot.Helpers
                 TernaryRasterOperations.SRCCOPY | TernaryRasterOperations.CAPTUREBLT);
 
             var image = Image.FromHbitmap(hBitmap);
-            image.Save($"./screen-{rect}.png", ImageFormat.Png);
-            var bitmap = image.ToBitmapSource();
-            //var bitmap = Imaging.CreateBitmapSourceFromHBitmap(hBitmap, IntPtr.Zero, Int32Rect.Empty,
-            //    BitmapSizeOptions.FromEmptyOptions());
 
             DeleteObject(hBitmap);
             DeleteDC(hdcDest);
             DeleteDC(hdcSrc);
 
-            return bitmap;
+            return image;
         }
 
         public static BitmapSource ToBitmapSource(this Image image)
@@ -135,6 +130,7 @@ namespace HandyScreenshot.Helpers
             return bitmapImage;
         }
 
+        // ReSharper disable once InconsistentNaming
         public static IntPtr GetAllMonitorsDC()
         {
             return CreateDC("DISPLAY", null, null, IntPtr.Zero);
