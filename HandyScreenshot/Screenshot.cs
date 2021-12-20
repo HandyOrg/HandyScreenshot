@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Concurrency;
-using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using System.Windows;
@@ -17,9 +16,10 @@ namespace HandyScreenshot
 {
     public static class Screenshot
     {
-        public static Task<IDisposable> Start(string? filePath = null)
+        public static Task<bool> Start(string? filePath = null)
         {
-            TaskCompletionSource<IDisposable> tcs = new();
+            TaskCompletionSource<bool> tcs = new();
+            bool success = false;
 
             var monitorInfos = MonitorHelper.GetMonitorInfos();
             var mouseEventSource = CreateMouseEventSource();
@@ -49,10 +49,26 @@ namespace HandyScreenshot
             // Local Methods
             void WindowOnClosed(object sender, EventArgs e)
             {
-                tcs.TrySetResult(Disposable.Create(Dispose));
+                Dispose();
+                tcs.TrySetResult(success);
             }
 
             void OnCloseCommandInvoked(object sender, EventArgs e)
+            {
+                success = false;
+                CloseAllWindows();
+            }
+
+            void OnSaveCommandInvoked(object sender, EventArgs e)
+            {
+                success = true;
+                ScreenshotHelper
+                    .CaptureScreen(screenshotState.ScreenshotRect.ToReadOnlyRect())
+                    .Save(filePath ?? $"screenshot-{DateTime.Now:yyyy-MM-dd-hh-mm-ss.fff}.png");
+                CloseAllWindows();
+            }
+
+            void CloseAllWindows()
             {
                 Application.Current.Dispatcher.Invoke(() =>
                 {
@@ -61,14 +77,6 @@ namespace HandyScreenshot
                         windows.Dequeue().Close();
                     }
                 });
-            }
-
-            void OnSaveCommandInvoked(object sender, EventArgs e)
-            {
-                ScreenshotHelper
-                    .CaptureScreen(screenshotState.ScreenshotRect.ToReadOnlyRect())
-                    .Save(filePath ?? $"screenshot-{DateTime.Now:yyyy-MM-dd-hh-mm-ss.fff}.png");
-                OnCloseCommandInvoked(sender, e);
             }
         }
 

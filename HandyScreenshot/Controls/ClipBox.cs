@@ -13,8 +13,6 @@ namespace HandyScreenshot.Controls
     {
         public static readonly DependencyProperty RectProxyProperty = DependencyProperty.Register(
             "RectProxy", typeof(RectProxy), typeof(ClipBox), new PropertyMetadata(null));
-        public static readonly DependencyProperty BackgroundProperty = DependencyProperty.Register(
-            "Background", typeof(ImageSource), typeof(ClipBox), new PropertyMetadata(default(ImageSource)));
         public static readonly DependencyProperty MonitorInfoProperty = DependencyProperty.Register(
             "MonitorInfo", typeof(MonitorInfo), typeof(ClipBox), new PropertyMetadata(default(MonitorInfo)));
 
@@ -22,12 +20,6 @@ namespace HandyScreenshot.Controls
         {
             get => (RectProxy)GetValue(RectProxyProperty);
             set => SetValue(RectProxyProperty, value);
-        }
-
-        public ImageSource Background
-        {
-            get => (ImageSource)GetValue(BackgroundProperty);
-            set => SetValue(BackgroundProperty, value);
         }
 
         public MonitorInfo MonitorInfo
@@ -46,9 +38,6 @@ namespace HandyScreenshot.Controls
             BindingOperations.SetBinding(Visual,
                 ClipBoxVisual.RectProxyProperty,
                 new Binding(nameof(RectProxy)) { Source = this });
-            BindingOperations.SetBinding(Visual,
-                ClipBoxVisual.BackgroundProperty,
-                new Binding(nameof(Background)) { Source = this });
             BindingOperations.SetBinding(Visual,
                 ClipBoxVisual.MonitorInfoProperty,
                 new Binding(nameof(ClipBoxVisual.MonitorInfo)) { Source = this });

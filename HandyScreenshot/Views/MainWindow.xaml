@@ -14,6 +14,8 @@
         BorderThickness="0"
         UseLayoutRounding="True"
         SnapsToDevicePixels="True"
+        x:Name="Window"
+        Background="{Binding Background}"
         d:DataContext="{d:DesignInstance {x:Type viewModels:MainWindowViewModel}}">
 
     <Window.Resources>
@@ -37,16 +39,15 @@
     <controls:ZStackPanel Cursor="{Binding State.Orientation, Mode=OneWay, Converter={StaticResource PointOrientationToCursorConverter}}">
         <controls:ClipBox x:Name="ClipBox"
                           MonitorInfo="{Binding MonitorInfo}"
-                          RectProxy="{Binding State.ScreenshotRect}"
-                          Background="{Binding Background}" />
+                          RectProxy="{Binding State.ScreenshotRect}" />
 
         <!--<controls:ScreenshotToolbar IsActive="{Binding IsToolBarActivated, Mode=OneWayToSource}"
                                     ScreenshotState="{Binding State}"
-                                    MonitorInfo="{Binding MonitorInfo}" />
+                                    MonitorInfo="{Binding MonitorInfo}" />-->
 
-        <controls:Magnifier ScreenshotState="{Binding State}"
+        <!--<controls:Magnifier ScreenshotState="{Binding State}"
                             MonitorInfo="{Binding MonitorInfo}"
-                            MagnifiedTarget="{Binding ElementName=ClipBox, Path=Visual, Mode=OneWay}"
+                            MagnifiedTarget="{Binding Path=., ElementName=Window, Mode=OneWay}"
                             ColorGetter="{Binding ColorGetter}" />-->
 
         <!-- Info Panel -->

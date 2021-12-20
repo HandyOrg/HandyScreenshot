@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
 using System.Windows;
 using System.Windows.Media;
 using HandyScreenshot.Common;
@@ -10,16 +9,9 @@ namespace HandyScreenshot.Controls
 {
     internal class ClipBoxVisual : DrawingControlBase
     {
-        private const int BackgroundIndex = 0;
-        private const int ClipBoxIndex = 1;
-
         public static readonly DependencyProperty RectProxyProperty = DependencyProperty.Register(
             "RectProxy", typeof(RectProxy), typeof(ClipBoxVisual),
             new PropertyMetadata(default(RectProxy), OnRectProxyChanged));
-
-        public static readonly DependencyProperty BackgroundProperty = DependencyProperty.Register(
-            "Background", typeof(ImageSource), typeof(ClipBoxVisual),
-            new PropertyMetadata(default(ImageSource), OnBackgroundChanged));
 
         public static readonly DependencyProperty MonitorInfoProperty = DependencyProperty.Register(
             "MonitorInfo", typeof(MonitorInfo), typeof(ClipBoxVisual),
@@ -30,12 +22,6 @@ namespace HandyScreenshot.Controls
             d.UpdateDependencyProperty<ClipBoxVisual, RectProxy>(e,
                 (self, newValue) => newValue.RectChanged += self.OnRectChanged,
                 (self, oldValue) => oldValue.RectChanged -= self.OnRectChanged);
-        }
-
-        private static void OnBackgroundChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
-        {
-            d.UpdateDependencyProperty<ClipBoxVisual, ImageSource>(e,
-                (self, _) => self.RefreshBackground());
         }
 
         private static void OnMonitorInfoChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
@@ -50,39 +36,18 @@ namespace HandyScreenshot.Controls
             set => SetValue(RectProxyProperty, value);
         }
 
-        public ImageSource Background
-        {
-            get => (ImageSource)GetValue(BackgroundProperty);
-            set => SetValue(BackgroundProperty, value);
-        }
-
         public MonitorInfo MonitorInfo => (MonitorInfo)GetValue(MonitorInfoProperty);
 
         private Pen _primaryPen;
 
-        public ClipBoxVisual() : base(2)
+        public ClipBoxVisual()
         {
             _primaryPen = CreatePrimaryPen(1);
         }
 
         private void OnRectChanged(int x, int y, int w, int h) => Dispatcher.Invoke(RefreshClipBox);
 
-        // ReSharper disable once RedundantArgumentDefaultValue
-        private void RefreshBackground() => GetDrawingVisual(BackgroundIndex).Using(DrawBackground);
-
-        private void RefreshClipBox() => GetDrawingVisual(ClipBoxIndex).Using(DrawClipBox);
-
-        private void DrawBackground(DrawingContext dc)
-        {
-            var group = new DrawingGroup();
-            RenderOptions.SetBitmapScalingMode(group, BitmapScalingMode.NearestNeighbor);
-            var groupDc = group.Open();
-            groupDc.DrawImage(Background, new Rect(0, 0, ActualWidth, ActualHeight));
-            groupDc.Close();
-            dc.DrawDrawing(group);
-
-            Debug.WriteLine($"Draw {Background}");
-        }
+        private void RefreshClipBox() => GetDrawingVisual().Using(DrawClipBox);
 
         private void DrawClipBox(DrawingContext dc)
         {
