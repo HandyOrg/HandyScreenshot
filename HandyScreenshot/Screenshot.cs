@@ -1,25 +1,26 @@
-﻿using System;
+﻿using HandyScreenshot.Common;
+using HandyScreenshot.Detection;
+using HandyScreenshot.Helpers;
+using HandyScreenshot.ViewModels;
+using HandyScreenshot.Views;
+using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Reactive.Concurrency;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using System.Windows;
-using HandyScreenshot.Common;
-using HandyScreenshot.Detection;
-using HandyScreenshot.Helpers;
-using HandyScreenshot.ViewModels;
-using HandyScreenshot.Views;
 using static HandyScreenshot.Interop.NativeMethods;
 
 namespace HandyScreenshot
 {
     public static class Screenshot
     {
-        public static Task<bool> Start(string? filePath = null)
+        public static Task<Bitmap?> Start()
         {
-            TaskCompletionSource<bool> tcs = new();
-            bool success = false;
+            TaskCompletionSource<Bitmap?> tcs = new();
+            Bitmap? bitmap = null;
 
             var monitorInfos = MonitorHelper.GetMonitorInfos();
             var mouseEventSource = CreateMouseEventSource();
@@ -50,21 +51,14 @@ namespace HandyScreenshot
             void WindowOnClosed(object sender, EventArgs e)
             {
                 Dispose();
-                tcs.TrySetResult(success);
+                tcs.TrySetResult(bitmap);
             }
 
-            void OnCloseCommandInvoked(object sender, EventArgs e)
-            {
-                success = false;
-                CloseAllWindows();
-            }
+            void OnCloseCommandInvoked(object sender, EventArgs e) => CloseAllWindows();
 
             void OnSaveCommandInvoked(object sender, EventArgs e)
             {
-                success = true;
-                ScreenshotHelper
-                    .CaptureScreen(screenshotState.ScreenshotRect.ToReadOnlyRect())
-                    .Save(filePath ?? $"screenshot-{DateTime.Now:yyyy-MM-dd-hh-mm-ss.fff}.png");
+                bitmap = ScreenshotHelper.CaptureScreen(screenshotState.ScreenshotRect.ToReadOnlyRect());
                 CloseAllWindows();
             }
 
